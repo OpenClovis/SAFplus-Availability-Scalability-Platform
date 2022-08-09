@@ -37,6 +37,22 @@ do {                                                                    \
     }                                                                   \
 } while (0)
 
+
+#define CHECK_ENTITY(etype, ename)                                                    \
+do {                                                                    \
+    bool ret = false;                                           \
+                                                                        \
+    ret = (isEntityExist((etype),(ename)));                                                                        \
+                                                                        \
+    if (!ret)                                            \
+    {                                                                   \
+        logError("MGMT","RPC",                                  \
+            "entity [%s] doesn't exist\n",               \
+             (ename).c_str());                 \
+        return CL_ERR_NOT_EXIST;                                              \
+    }                                                                   \
+} while (0)
+
 extern SAFplus::MgtDatabase amfDb;
 extern SAFplusAmf::SAFplusAmfModule cfg;
 extern SAFplus::AmfOperations *amfOpsMgmt;
@@ -673,12 +689,25 @@ namespace amfMgmtRpc {
              {
                count++;
              }
+             else
+             {
+                logError("MGMT","UDT.LIST", " value [%s] of key [%s] already exists",(*it).c_str(), strXpath.c_str()); 
+             }
            }
            strXpath = bkXpath;
          }
          if (count==(int)child.size())
          {
-           newValues.push_back(*it);
+           if (child.size() == 0 && val.compare(*it) == 0)
+           {  
+              logError("MGMT","UDT.LIST", " value [%s] of key [%s] already exists",(*it).c_str(), strXpath.c_str());              
+              return CL_ERR_ALREADY_EXIST;
+           }             
+           newValues.push_back(*it);          
+         }
+         else
+         {
+            return CL_ERR_ALREADY_EXIST;
          }
          count = 0;
        }
@@ -688,6 +717,7 @@ namespace amfMgmtRpc {
          if (child.size()>0)
          {
            std::string lastIdx = *(child.end()-1);
+           logDebug("MGMT","UDT.LIST", "Last index for key [%s] is [%s]",bkXpath.c_str(), lastIdx.c_str());
            int i = lastIdx.find("[");
            assert(i>=0 && i<lastIdx.length());
            std::string strIdx = lastIdx.substr(i+1, lastIdx.length()-1-(i+1));
@@ -697,8 +727,8 @@ namespace amfMgmtRpc {
          logDebug("MGMT","UDT.LIST", "next index for key [%s] is [%d]",bkXpath.c_str(),nextIdx);
          for(;it!=newValues.end();it++)
          {
-           char temp[5];
-           snprintf(temp,4,"[%d]",nextIdx++);                      
+           char temp[10];
+           snprintf(temp,10,"[%d]",nextIdx++);                      
            logDebug("MGMT","UDT.LIST", "appending [%s] to children [%d] of [%s]",temp, (int)child.size(), bkXpath.c_str());
            child.push_back(std::string(temp));
          }
@@ -711,8 +741,8 @@ namespace amfMgmtRpc {
          }
          for(it = newValues.begin(); it!=newValues.end();it++)
          {
-           char temp[5];
-           snprintf(temp,4,"[%d]",j++);
+           char temp[10];
+           snprintf(temp,10,"[%d]",j++);
            std::string key = bkXpath;
            key.append(std::string(temp)); //[/safplusAmf/Node[@name="node0"]/serviceUnits[1]] -> [su0] children [0]
            rc = amfDb.setRecord(key,*it);
@@ -891,6 +921,27 @@ namespace amfMgmtRpc {
     return rc;
   }
 
+  bool isEntityExist(const char* entityType, const std::string& entityName)
+  {     
+     if (entityName.length() == 0 || entityName.compare("") == 0) return true;
+     SAFplus::MgtList<std::string>* entityList = nullptr;
+     if (!strcmp(entityType, "Node")) entityList = &cfg.safplusAmf.nodeList;
+     else if (!strcmp(entityType, "ServiceGroup")) entityList = &cfg.safplusAmf.serviceGroupList;
+     else if (!strcmp(entityType, "ServiceUnit")) entityList = &cfg.safplusAmf.serviceUnitList;
+     else if (!strcmp(entityType, "ServiceInstance")) entityList = &cfg.safplusAmf.serviceInstanceList;
+     else if (!strcmp(entityType, "ComponentServiceInstance")) entityList = &cfg.safplusAmf.componentServiceInstanceList;
+     else if (!strcmp(entityType, "Component")) entityList = &cfg.safplusAmf.componentList;
+     else
+     {
+        logError("MGMT","ENT.EXIST", "Unknown entity type [%s]", entityType);
+     }
+     if (entityList)
+     {
+        return ((*entityList)[entityName]!=nullptr);
+     }
+     return false;
+  }
+
   ClRcT getDbalObj(const void* reqBuf, DbalPlugin** pd)
   {
     Handle hdl;
@@ -933,7 +984,7 @@ namespace amfMgmtRpc {
     {
       uint32_t maxActiveAssignments  = comp.maxactiveassignments();
       char temp[10];
-      snprintf(temp, 9, "%d", maxActiveAssignments);
+      snprintf(temp, 10, "%d", maxActiveAssignments);
       std::string strMaxActiveAssignments = temp;
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"maxActiveAssignments",strMaxActiveAssignments));
     }
@@ -941,7 +992,7 @@ namespace amfMgmtRpc {
     {
       uint32_t maxStandbyAssignments  = comp.maxstandbyassignments();
       char temp[10];
-      snprintf(temp, 9, "%d", maxStandbyAssignments);
+      snprintf(temp, 10, "%d", maxStandbyAssignments);
       std::string strMaxStandbyAssignments = temp;
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"maxStandbyAssignments",strMaxStandbyAssignments));
     }
@@ -966,7 +1017,7 @@ namespace amfMgmtRpc {
           const std::string& cmd = exe.command();
           uint64_t timeout = exe.timeout();
           char temp[20];
-          snprintf(temp, 19, "%" PRId64, timeout);
+          snprintf(temp, 20, "%" PRId64, timeout);
           std::string strTimeout = temp;
           std::vector<std::string> v;
           v.push_back(std::string("command"));
@@ -988,7 +1039,7 @@ namespace amfMgmtRpc {
           const std::string& cmd = exe.command();
           uint64_t timeout = exe.timeout();
           char temp[20];
-          snprintf(temp, 19, "%" PRId64, timeout);
+          snprintf(temp, 20, "%" PRId64, timeout);
           std::string strTimeout = temp;
           std::vector<std::string> terminates;
           terminates.push_back(cmd);
@@ -1008,7 +1059,7 @@ namespace amfMgmtRpc {
           const std::string& cmd = exe.command();
           uint64_t timeout = exe.timeout();
           char temp[20];
-          snprintf(temp, 19, "%" PRId64, timeout);
+          snprintf(temp, 20, "%" PRId64, timeout);
           std::string strTimeout = temp;
           std::vector<std::string> cleanups;
           cleanups.push_back(cmd);
@@ -1022,7 +1073,7 @@ namespace amfMgmtRpc {
     {
       int maxInstantiations  = comp.maxinstantinstantiations();
       char temp[10];
-      snprintf(temp, 9, "%d", maxInstantiations);
+      snprintf(temp, 10, "%d", maxInstantiations);
       std::string strMaxInstantiations = temp;
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"maxInstantInstantiations",strMaxInstantiations));
     }
@@ -1031,7 +1082,7 @@ namespace amfMgmtRpc {
     {
       int isd  = comp.instantiationsuccessduration();
       char temp[10];
-      snprintf(temp, 9, "%d", isd);
+      snprintf(temp, 10, "%d", isd);
       std::string strIsd = temp;
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"instantiationSuccessDuration",strIsd));
     }
@@ -1040,7 +1091,7 @@ namespace amfMgmtRpc {
     {
       int dbi  = comp.delaybetweeninstantiation();
       char temp[10];
-      snprintf(temp, 9, "%d", dbi);
+      snprintf(temp, 10, "%d", dbi);
       std::string strDbi = temp;
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"delayBetweenInstantiation",strDbi));
     }
@@ -1048,6 +1099,7 @@ namespace amfMgmtRpc {
     if (comp.has_serviceunit())
     {
       const std::string& su  = comp.serviceunit();
+      CHECK_ENTITY("ServiceUnit",su);
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"serviceUnit",su));
     }
     if (comp.has_recovery())
@@ -1124,7 +1176,6 @@ namespace amfMgmtRpc {
     {
        logError("MGMT","RPC", "su obj for comp [%s] not found", compName.c_str());
     }
-    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     rc = cfg.safplusAmf.componentList.deleteObj(compName);
     if (rc != CL_OK)
     {
@@ -1328,7 +1379,7 @@ namespace amfMgmtRpc {
     {
       uint32_t rank  = su.rank();
       char temp[10];
-      snprintf(temp, 9, "%d", rank);
+      snprintf(temp, 10, "%d", rank);
       std::string strRank = temp;
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceUnit",su.name(),"rank",strRank));
     }
@@ -1344,25 +1395,29 @@ namespace amfMgmtRpc {
       std::vector<std::string> comps;
       for (int i=0;i<compsSize;i++)
       {
-         comps.push_back(su.components(i));
+         const std::string& compName = su.components(i);
+         CHECK_ENTITY("Component", compName);
+         comps.push_back(compName);
       }
       MGMT_CALL(updateEntityAsListTypeFromDatabase("/safplusAmf/ServiceUnit",su.name(),"components",comps));
     }
     if (su.has_node())
     {
       const std::string& node  = su.node();
+      CHECK_ENTITY("Node", node);
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceUnit",su.name(),"node",node));
     }
     if (su.has_servicegroup())
     {
       const std::string& sg  = su.servicegroup();
+      CHECK_ENTITY("ServiceGroup", sg);
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceUnit",su.name(),"serviceGroup",sg));
     }
     if (su.has_probationtime())
     {
       int pt  = su.probationtime();
       char temp[10];
-      snprintf(temp, 9, "%d", pt);
+      snprintf(temp, 10, "%d", pt);
       std::string strPt = temp;
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceUnit",su.name(),"probationTime",strPt));
     }
@@ -1472,7 +1527,7 @@ namespace amfMgmtRpc {
     {
       SaTimeT autoAdjInterval  = sg.autoadjustinterval();
       char temp[20];
-      snprintf(temp, 19, "%" PRId64, autoAdjInterval.uint64());
+      snprintf(temp, 20, "%" PRId64, autoAdjInterval.uint64());
       std::string strAutoAdjInterval = temp;
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"autoAdjustInterval",strAutoAdjInterval));
     }
@@ -1480,7 +1535,7 @@ namespace amfMgmtRpc {
     {
       uint32_t pnasu = sg.preferrednumactiveserviceunits();
       char temp[10];
-      snprintf(temp, 9, "%ul", pnasu);
+      snprintf(temp, 10, "%ul", pnasu);
       std::string strPnasu = temp;
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"preferredNumActiveServiceUnits",strPnasu));
     }
@@ -1488,7 +1543,7 @@ namespace amfMgmtRpc {
     {
       uint32_t pnssu = sg.preferrednumstandbyserviceunits();
       char temp[10];
-      snprintf(temp, 9, "%ul", pnssu);
+      snprintf(temp, 10, "%ul", pnssu);
       std::string strPnssu = temp;
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"preferredNumStandbyServiceUnits",strPnssu));
     }
@@ -1496,7 +1551,7 @@ namespace amfMgmtRpc {
     {
       uint32_t pnisu = sg.preferrednumidleserviceunits();
       char temp[10];
-      snprintf(temp, 9, "%ul", pnisu);
+      snprintf(temp, 10, "%ul", pnisu);
       std::string strPnisu = temp;
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"preferredNumIdleServiceUnits",strPnisu));
     }
@@ -1504,7 +1559,7 @@ namespace amfMgmtRpc {
     {
       uint32_t mawa = sg.maxactiveworkassignments();
       char temp[10];
-      snprintf(temp, 9, "%ul", mawa);
+      snprintf(temp, 10, "%ul", mawa);
       std::string strMawa = temp;
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"maxActiveWorkAssignments",strMawa));
     }
@@ -1512,7 +1567,7 @@ namespace amfMgmtRpc {
     {
       uint32_t mswa = sg.maxstandbyworkassignments();
       char temp[10];
-      snprintf(temp, 9, "%ul", mswa);
+      snprintf(temp, 10, "%ul", mswa);
       std::string strMswa = temp;
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"maxStandbyWorkAssignments",strMswa));
     }
@@ -1526,9 +1581,9 @@ namespace amfMgmtRpc {
           uint64_t max = ep.maximum();
           SaTimeT duration = ep.duration();
           char temp[20];
-          snprintf(temp, 19, "%" PRId64, max);
+          snprintf(temp, 20, "%" PRId64, max);
           std::string strMax = temp;
-          snprintf(temp, 19, "%" PRId64, duration.uint64());
+          snprintf(temp, 20, "%" PRId64, duration.uint64());
           std::string strDuration = temp;
           std::vector<std::string> v;
           v.push_back(std::string("maximum"));
@@ -1550,9 +1605,9 @@ namespace amfMgmtRpc {
           uint64_t max = sur.maximum();
           SaTimeT duration = sur.duration();
           char temp[20];
-          snprintf(temp, 19, "%" PRId64, max);
+          snprintf(temp, 20, "%" PRId64, max);
           std::string strMax = temp;
-          snprintf(temp, 19, "%" PRId64, duration.uint64());
+          snprintf(temp, 20, "%" PRId64, duration.uint64());
           std::string strDuration = temp;
           std::vector<std::string> v;
           v.push_back(std::string("maximum"));
@@ -1570,7 +1625,9 @@ namespace amfMgmtRpc {
       std::vector<std::string> sus;
       for (int i=0;i<susSize;i++)
       {
-         sus.push_back(sg.serviceunits(i));
+         const string& suName = sg.serviceunits(i);
+         CHECK_ENTITY("ServiceUnit", suName);
+         sus.push_back(suName);
       }
       MGMT_CALL(updateEntityAsListTypeFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"serviceUnits",sus));
     }
@@ -1580,7 +1637,9 @@ namespace amfMgmtRpc {
       std::vector<std::string> sis;
       for (int i=0;i<sisSize;i++)
       {
-         sis.push_back(sg.serviceinstances(i));
+         const string& siName = sg.serviceinstances(i);
+         CHECK_ENTITY("ServiceInstance", siName);
+         sis.push_back(siName);
       }
       MGMT_CALL(updateEntityAsListTypeFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"serviceInstances",sis));
     }    
@@ -1783,9 +1842,9 @@ namespace amfMgmtRpc {
           uint64_t max = ep.maximum();
           SaTimeT duration = ep.duration();
           char temp[20];
-          snprintf(temp, 19, "%" PRId64, max);
+          snprintf(temp, 20, "%" PRId64, max);
           std::string strMax = temp;
-          snprintf(temp, 19, "%" PRId64, duration.uint64());
+          snprintf(temp, 20, "%" PRId64, duration.uint64());
           std::string strDuration = temp;
           std::vector<std::string> v;
           v.push_back(std::string("maximum"));
@@ -1803,7 +1862,9 @@ namespace amfMgmtRpc {
       std::vector<std::string> sus;
       for (int i=0;i<susSize;i++)
       {
-         sus.push_back(node.serviceunits(i));
+         const string& suName = node.serviceunits(i);
+         CHECK_ENTITY("ServiceUnit", suName);
+         sus.push_back(suName);
       }
       MGMT_CALL(updateEntityAsListTypeFromDatabase("/safplusAmf/Node",node.name(),"serviceUnits",sus));
     }
@@ -1946,7 +2007,6 @@ namespace amfMgmtRpc {
     {
        logError("MGMT","RPC", "sg obj for su [%s] not found", suName.c_str());
     }
-    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     rc = cfg.safplusAmf.serviceUnitList.deleteObj(suName);
     if (rc != CL_OK)
     {
@@ -1977,7 +2037,6 @@ namespace amfMgmtRpc {
     {
       return CL_ERR_INVALID_PARAMETER;      
     }
-    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     rc = cfg.safplusAmf.serviceGroupList.deleteObj(sgName);
     if (rc != CL_OK)
     {
@@ -1998,7 +2057,6 @@ namespace amfMgmtRpc {
     {
       return CL_ERR_INVALID_PARAMETER;      
     }
-    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     rc = cfg.safplusAmf.nodeList.deleteObj(nodeName);
     if (rc != CL_OK)
     {
@@ -2038,7 +2096,7 @@ namespace amfMgmtRpc {
     {
       uint32_t paa = si.preferredactiveassignments();
       char temp[10];
-      snprintf(temp, 9, "%ul", paa);
+      snprintf(temp, 10, "%ul", paa);
       std::string strPaa = temp;
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceInstance",si.name(),"preferredActiveAssignments",strPaa));
     }
@@ -2046,7 +2104,7 @@ namespace amfMgmtRpc {
     {
       uint32_t psa = si.preferredstandbyassignments();
       char temp[10];
-      snprintf(temp, 9, "%ul", psa);
+      snprintf(temp, 10, "%ul", psa);
       std::string strPsa = temp;
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceInstance",si.name(),"preferredStandbyAssignments",strPsa));
     }
@@ -2054,7 +2112,7 @@ namespace amfMgmtRpc {
     {
       uint32_t rank = si.rank();
       char temp[10];
-      snprintf(temp, 9, "%ul", rank);
+      snprintf(temp,10, "%ul", rank);
       std::string strRank = temp;
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceInstance",si.name(),"rank",strRank));
     }
@@ -2071,6 +2129,7 @@ namespace amfMgmtRpc {
     if (si.has_servicegroup())
     {
       const std::string& sg = si.servicegroup();
+      CHECK_ENTITY("ServiceGroup", sg);
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceInstance",si.name(),"serviceGroup",sg));
     }
 
@@ -2118,7 +2177,6 @@ namespace amfMgmtRpc {
     {
        logError("MGMT","RPC", "sg obj for si [%s] not found", siName.c_str());
     }
-    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     rc = cfg.safplusAmf.serviceInstanceList.deleteObj(siName);
     if (rc != CL_OK)
     {
@@ -2174,8 +2232,9 @@ namespace amfMgmtRpc {
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ComponentServiceInstance", csi.name(), "data", "val", data));
     }           
     if (csi.has_serviceinstance())
-    {
+    {     
       const std::string& si = csi.serviceinstance();
+      CHECK_ENTITY("ServiceInstance", si);
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ComponentServiceInstance",csi.name(),"serviceInstance",si));
     }
     if (csi.has_type())
@@ -2239,7 +2298,6 @@ namespace amfMgmtRpc {
     {
        logError("MGMT","RPC", "si obj for csi [%s] not found", csiName.c_str());
     }
-    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     rc = cfg.safplusAmf.componentServiceInstanceList.deleteObj(csiName);
     if (rc != CL_OK)
     {
@@ -2266,7 +2324,6 @@ namespace amfMgmtRpc {
     {
       return CL_ERR_INVALID_PARAMETER;      
     }
-    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     SAFplusAmf::ComponentServiceInstance* csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*>(cfg.safplusAmf.componentServiceInstanceList[csiName]);
     if (csi == NULL)
     {
@@ -2786,6 +2843,7 @@ namespace amfMgmtRpc {
     logDebug("MGMT","COMMIT","server is processing [%s]", __FUNCTION__);
     DbalPlugin* pd = NULL;
     ClRcT rc2 = CL_ERR_NOT_EXIST;
+    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     ClRcT rc = getDbalObj(request->amfmgmthandle().Get(0).c_str(), &pd);
     if (rc == CL_OK)
     {
@@ -2812,7 +2870,6 @@ namespace amfMgmtRpc {
       if (rc2 == CL_OK)
       {
         logInfo("MGMT","RPC","read the DB to reflect the changes");
-        ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
         cfg.read(&amfDb);
         if (CL_GET_ERROR_CODE(rc)==CL_ERR_NOT_EXIST)
         {

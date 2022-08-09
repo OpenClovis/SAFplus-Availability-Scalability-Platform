@@ -1060,6 +1060,7 @@ int main(int argc, char* argv[])
     nowBeat = beat;
     if (lastBeat != nowBeat)
       {
+      ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
       logInfo("PRC","MON","Beat advanced, writing changes");
       cfg.writeChanged(lastBeat,nowBeat,&amfDb);
       }
