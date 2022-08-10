@@ -1533,7 +1533,7 @@ class Panel(scrolled.ScrolledPanel):
         if menu:
           menuItem = menu.FindItemById(eid)
           if menuItem:
-            menuItem.SetText(newValue)
+            menuItem.SetItemLabel(newValue)
           else:
             print('modifyEntityTool: menu item with id [%d] does not exist' % eid)
       else:

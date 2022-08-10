@@ -69,7 +69,8 @@ class FilesExistenceDaemon:
       dirPath = os.path.dirname(filePath)
       if dirPath in self.files:
         fileName = os.path.basename(filePath)
-        self.files[dirPath].remove(fileName)
+        if fileName in self.files[dirPath]:
+          self.files[dirPath].remove(fileName)
       else:
         print("dirPath not in dict")
 
@@ -566,7 +567,6 @@ class SAFplusFrame(wx.Frame):
       return None
 
     def getItemInTree(self, child, cookie, filePath, currDir):
-      print("currDir: %r" % currDir)
       if child and child.IsOk():
         tmpDir = os.path.join(currDir, self.project.tree.GetItemText(child))
         if tmpDir == filePath:
