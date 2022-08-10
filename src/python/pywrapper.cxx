@@ -484,6 +484,10 @@ ClRcT updateComponentServiceInstance(const SAFplus::Handle& mgmtHandle, const st
   {
       std::string attr = boost::python::extract<std::string>(argv[i]);
       std::string val = boost::python::extract<std::string>(argv[i+1]);
+      if(val.compare("\'\'") == 0)
+      {
+          val = "";
+      }
       if(!attr.compare("name"))
       {
           csi->set_name(val);
@@ -561,6 +565,10 @@ ClRcT updateServiceInstance(const SAFplus::Handle& mgmtHandle, boost::python::li
   {
       std::string attr = boost::python::extract<std::string>(argv[i]);
       std::string val = boost::python::extract<std::string>(argv[i+1]);
+      if(val.compare("\'\'") == 0)
+      {
+          val = "";
+      }
       if(!attr.compare("name"))
       {
           si->set_name(val);
@@ -604,6 +612,10 @@ ClRcT updateServiceUnit(const SAFplus::Handle& mgmtHandle, boost::python::list &
   {
       std::string attr = boost::python::extract<std::string>(argv[i]);
       std::string val = boost::python::extract<std::string>(argv[i+1]);
+      if(val.compare("\'\'") == 0)
+      {
+          val = "";
+      }
       if(!attr.compare("name"))
       {
           su->set_name(val);
@@ -647,6 +659,10 @@ ClRcT updateNode(const SAFplus::Handle& mgmtHandle, boost::python::list & argv)
     {
         std::string attr = boost::python::extract<std::string>(argv[i]);
         std::string val = boost::python::extract<std::string>(argv[i+1]);
+        if(val.compare("\'\'") == 0)
+        {
+            val = "";
+        }
         if(!attr.compare("name"))
         {
             node->set_name(val);
@@ -687,6 +703,10 @@ ClRcT updateServiceGroup(const SAFplus::Handle& mgmtHandle, boost::python::list 
     {
         std::string attr = boost::python::extract<std::string>(argv[i]);
         std::string val = boost::python::extract<std::string>(argv[i+1]);
+        if(val.compare("\'\'") == 0)
+        {
+            val = "";
+        }
         if(!attr.compare("name"))
         {
             sg->set_name(val);
@@ -781,6 +801,10 @@ ClRcT updateComponent(const SAFplus::Handle& mgmtHandle, const std::string & com
     {
         std::string attr = boost::python::extract<std::string>(argv[i]);
         std::string val = boost::python::extract<std::string>(argv[i+1]);
+        if(val.compare("\'\'") == 0)
+        {
+            val = "";
+        }
         if(!attr.compare("name"))
         {
             comp->set_name(val);

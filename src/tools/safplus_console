@@ -1356,36 +1356,55 @@ By default the specified location and children are shown.  Use -N to specify how
     Creates a new entityName with the specified entityType
     """
     global amfMgmtHandle
+    args = list(args)
     try:
       ret = access.amfMgmtInitialize(amfMgmtHandle)
       if ret == 0x0:
         if entityType == "Component":
           if len(args) == 2:
+            for i in range(len(args)):
+              if args[i] == "\'\'":
+                args[i] = ""
             ret = access.addNewComponent(amfMgmtHandle, entityName, args[0], args[1])
           else:
             ret = "CompErr"
         elif entityType == "ServiceGroup":
           if len(args) == 2:
+            for i in range(len(args)):
+              if args[i] == "\'\'":
+                args[i] = ""
             ret = access.addNewServiceGroup(amfMgmtHandle, entityName, args[0], args[1])
           else:
             ret = "SGErr"
         elif entityType == "Node":
           if len(args) == 1:
+            for i in range(len(args)):
+              if args[i] == "\'\'":
+                args[i] = ""
             ret = access.addNewNode(amfMgmtHandle, entityName, args[0])
           else:
             ret = "NodeErr"
         elif entityType == "ServiceUnit":
           if len(args) == 3:
+            for i in range(len(args)):
+              if args[i] == "\'\'":
+                args[i] = ""
             ret = access.addNewServiceUnit(amfMgmtHandle, entityName, args[0], args[1], args[2])
           else:
             ret = "SUErr"
         elif entityType == "ServiceInstance":
           if len(args) == 2:
+            for i in range(len(args)):
+              if args[i] == "\'\'":
+                args[i] = ""
             ret = access.addNewServiceInstance(amfMgmtHandle, entityName, args[0], args[1])
           else:
             ret = "SIErr"
         elif entityType == "ComponentServiceInstance":
           if len(args) >= 1:
+            for i in range(len(args)):
+              if args[i] == "\'\'":
+                args[i] = ""
             siName = args[0]
             listArg = list(args[1:])
             ret = access.addNewComponentServiceInstance(amfMgmtHandle, entityName, siName, listArg)
