@@ -291,8 +291,11 @@ public:
       {
         std::string val;
         if (db->getRecord(*it, val) == CL_OK)
-        {        
-        value.push_back(Elem(val));
+        {
+          if (val.length()>0)
+          {
+            value.push_back(Elem(val));
+          }       
         }
       }
       MgtRoot *mgtRoot = MgtRoot::getInstance();
@@ -428,7 +431,12 @@ template<class T> ClRcT MgtIdentifierList<T>::setObj(const std::string &val)
   boost::split(refs, val, boost::is_any_of(", "));
   value.clear();
   for(auto i = refs.begin(); i != refs.end(); i++)
-    value.push_back(Elem(*i));
+  { 
+    if ((*i).length()>0)
+    {
+      value.push_back(Elem(*i));
+    }
+  }
   
   MgtRoot::getInstance()->addReference(this);
   updateReference();

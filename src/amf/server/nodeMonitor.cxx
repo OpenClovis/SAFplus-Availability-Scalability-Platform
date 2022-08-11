@@ -24,6 +24,8 @@ extern SAFplus::Fault gfault;
 bool isNodeRegistered = false;
 extern volatile bool    quitting;  // Set to true to tell all threads to quit
 extern SAFplusI::GroupServer gs;
+extern ClRcT registerInstallInfo(bool active);
+
 struct HeartbeatData
 {
   enum
@@ -543,6 +545,7 @@ active_exists:
                       boost::this_thread::sleep(boost::posix_time::milliseconds(250));
                     } while(gfault.getFaultState(myHandle) != FaultState::STATE_UP);
                     isNodeRegistered = true;
+                    registerInstallInfo(false);
                 }
                 else
                 {
