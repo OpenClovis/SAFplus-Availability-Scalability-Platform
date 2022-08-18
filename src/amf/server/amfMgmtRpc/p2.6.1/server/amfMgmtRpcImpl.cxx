@@ -508,6 +508,7 @@ namespace amfMgmtRpc {
   ClRcT updateEntityFromDatabase(const char* xpath, const std::string& entityName, const char* tagName1, const char* tagName2, const KeyValueHashMap& kvm)
   {
     logDebug("MGMT","---", "enter [%s] with params [%s] [%s] [%s] [%s]",__FUNCTION__, xpath, entityName.c_str(), tagName1, tagName2);
+    ClRcT rc = CL_OK;
     /*/safplusAmf/ComponentServiceInstance[@name="csi"]/data[@name="testKey"] ->  childs: [val]
       /safplusAmf/ComponentServiceInstance[@name="csi"]/data[@name="testKey"]/val -> [testVal] children [0]
       /safplusAmf/ComponentServiceInstance[@name="csi"]/data[@name="testKey2"] ->  childs: [val]
@@ -531,38 +532,20 @@ namespace amfMgmtRpc {
     std::string strXpath1(xpath); // /safplusAmf/ComponentServiceInstance
     strXpath1.append("[@name=\""); // /safplusAmf/ComponentServiceInstance[@name="
     strXpath1.append(entityName); // /safplusAmf/ComponentServiceInstance[@name="csi
-    strXpath1.append("\"]"); // /safplusAmf/ComponentServiceInstance[@name="csi"]
-    ClRcT rc = amfDb.getRecord(strXpath1,value,&children);
-    logInfo("MGMT","UPT.ENT", "get record for xpath [%s], rc=[0x%x]", strXpath1.c_str(),rc);
-    //if (rc == CL_OK)
-    //{
-    //strXpath1.append("/"); // /safplusAmf/ComponentServiceInstance[@name="csi"]/
-    std::string strXpath2(tagName1); // data
-    strXpath2.append("[@name=\""); // data[@name="
-    //strXpath2.append(entityName); // /safplusAmf/ComponentServiceInstance[@name="csi
-    //strXpath1.append("\"]/"); // /safplusAmf/ComponentServiceInstance[@name="csi"]
-        
-    //strXpath.append("[@name=\"");
-    //strXpath.append(entityName);
-    //strXpath.append("\"]/");
-    //strXpath.append(tagName1); // /safplusAmf/ComponentServiceInstance[@name="csi"]/data
-
+    strXpath1.append("\"]/"); // /safplusAmf/ComponentServiceInstance[@name="csi"]/
+    strXpath1.append(tagName1); // /safplusAmf/ComponentServiceInstance[@name="csi"]/data    
     KeyValueHashMap::const_iterator it = kvm.begin();    
     std::vector<std::string>child;
-    //child.push_back(std::string(tagName2));
-    //std::string value;
-
-    std::string ent("[@name=\""); // [@name="  ==>  testKey2"]
-    std::string dataXpath = strXpath1; // /safplusAmf/ComponentServiceInstance[@name="csi"]
-    dataXpath.append("/data"); // /safplusAmf/ComponentServiceInstance[@name="csi"]/data
+    
     for (;it!=kvm.end();it++)
-    {
+    {       
+       rc = amfDb.getRecord(strXpath1,value,&children);
+       logInfo("MGMT","UPT.ENT", "get record for xpath [%s], rc=[0x%x]", strXpath1.c_str(),rc);
        const std::string& key = it->first;
        const std::string& val = it->second;
-       std::string tempXpath = strXpath2; // data[@name="
-       //tempXpath.append("[@name=\"");
-       tempXpath.append(key); // data[@name="testKey2
-       tempXpath.append("\"]"); // data[@name="testKey2"]
+       std::string tempXpath = "[@name=\""; // [@name="
+       tempXpath.append(key); // [@name="testKey2
+       tempXpath.append("\"]"); // [@name="testKey2"]
        std::vector<std::string>::iterator it;
        it = std::find(children.begin(),children.end(),tempXpath);
        if (it != children.end())
@@ -579,7 +562,8 @@ namespace amfMgmtRpc {
              return rc;
           }
        }
-       // check if /safplusAmf/ComponentServiceInstance[@name="csi"]/data  --> child [@name="testKey2"] exists       
+       // check if /safplusAmf/ComponentServiceInstance[@name="csi"]/data  --> child [@name="testKey2"] exists
+#if 0   
        children.clear();
        amfDb.getRecord(dataXpath,value,&children);
        std::string sEnt = ent; // [@name="
@@ -600,12 +584,13 @@ namespace amfMgmtRpc {
              return rc;
           }
        }
+#endif
 
        // check if /safplusAmf/ComponentServiceInstance[@name="csi"]/data[@name="testKey2"] --> child [val] exists
-       std::string strTagName2 = tagName2;
-       //strXpath1.append("/"); // /safplusAmf/ComponentServiceInstance[@name="csi"]/       
-       tempXpath.insert(0,strXpath1); // /safplusAmf/ComponentServiceInstance[@name="csi"]data[@name="testKey2"]
-       tempXpath.insert(strXpath1.length(),"/"); // /safplusAmf/ComponentServiceInstance[@name="csi"]/data[@name="testKey2"]
+       std::string strTagName2 = tagName2; // val
+       // temXpath: [@name="testKey2"]
+       // strXpath1: /safplusAmf/ComponentServiceInstance[@name="csi"]/data
+       tempXpath.insert(0,strXpath1); // /safplusAmf/ComponentServiceInstance[@name="csi"]/data[@name="testKey2"]
        children.clear();
        amfDb.getRecord(tempXpath,value,&children);
        it = std::find(children.begin(),children.end(),strTagName2);
@@ -623,14 +608,14 @@ namespace amfMgmtRpc {
        rc = amfDb.setRecord(tempXpath,val);
        if (rc == CL_OK)
        {
-         logDebug("MGMT","UDT.ENT", "set record with xpath [%s], value [%s]  rc=[0x%x]", tempXpath.c_str(), value.c_str(), rc);       
+         logDebug("MGMT","UDT.ENT", "set record with xpath [%s], value [%s]  rc=[0x%x]", tempXpath.c_str(), val.c_str(), rc);       
        }
        else
        {
          break;
        }
+       children.clear();
     }    
-    //}
     
     return rc;
   }
@@ -2220,12 +2205,29 @@ namespace amfMgmtRpc {
       }
       MGMT_CALL(updateEntityAsListTypeFromDatabase("/safplusAmf/ComponentServiceInstance",csi.name(),"dependencies",deps));
     }
+
     int dataSize = 0;
     if ((dataSize=csi.data_size())>0)
     {
+      SAFplusAmf::ComponentServiceInstance* pcsi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*>(cfg.safplusAmf.componentServiceInstanceList[csi.name()]);
+      if (pcsi == NULL)
+      {
+         logError("MGMT","RPC", "csi object with name [%s] doesn't exist", csi.name().c_str());
+         return CL_ERR_NOT_EXIST;
+      }
       KeyValueHashMap data;
       for (int i=0;i<dataSize;i++)
       {
+         for (auto it = pcsi->dataList.begin(); it != pcsi->dataList.end(); it++)
+         {
+            SAFplusAmf::Data* kv = dynamic_cast<SAFplusAmf::Data*>(it->second);
+            assert(kv);
+            if (kv->name.value.compare(csi.data(i).name()) == 0) // duplicate key(name)
+            {
+               logError("MGMT","RPC", "duplicate key (name) [%s] of NVP of csi [%s]. Cannot insert or update it", csi.data(i).name().c_str(), csi.name().c_str());
+               return CL_ERR_ALREADY_EXIST;
+            }
+         }
          KeyValueMapPair kvp(csi.data(i).name(),csi.data(i).val());
          data.insert(kvp);         
       }
