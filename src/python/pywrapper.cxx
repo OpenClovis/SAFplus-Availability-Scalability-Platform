@@ -510,41 +510,15 @@ ClRcT updateComponentServiceInstance(const SAFplus::Handle& mgmtHandle, const st
           std::string key = val.substr(0, pos);
           std::string value = val.substr(pos + 1);
 
-          if(csi->data_size() == 0)
+          int index = 0;
+          if(csi->data_size() != 0)
           {
-              SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig* CSIConfig;
-              ClRcT rc = amfMgmtCSIGetConfig(mgmtHandle, csiName, &CSIConfig);
-              if(rc == CL_OK)
-              {
-                  const int numOfDatas = CSIConfig->data_size();
-                  for(int i = 0; i < numOfDatas; ++i)
-                  {
-                      std::string name = CSIConfig->data(i).name();
-                      std::string val = CSIConfig->data(i).val();
-                      csi->add_data();
-                      SAFplus::Rpc::amfMgmtRpc::Data* data = csi->mutable_data(i);
-                      data->set_name(name);
-                      data->set_val(val);
-                  }
-                  csi->add_data();
-                  SAFplus::Rpc::amfMgmtRpc::Data* data = csi->mutable_data(numOfDatas);
-                  data->set_name(key);
-                  data->set_val(value);
-              }
-              else
-              {
-                  std::cout << "amfMgmtCSIGetConfig failed with error code: " << rc << std::endl;
-                  return rc;
-              }
+              index = csi->data_size();
           }
-          else
-          {
-              int numMemberData = csi->data_size();
-              csi->add_data();
-              SAFplus::Rpc::amfMgmtRpc::Data* data = csi->mutable_data(numMemberData);
-              data->set_name(key);
-              data->set_val(value);
-          }
+          csi->add_data();
+          SAFplus::Rpc::amfMgmtRpc::Data* data = csi->mutable_data(index);
+          data->set_name(key);
+          data->set_val(value);
       }
       else
       {

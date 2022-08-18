@@ -1456,13 +1456,6 @@ By default the specified location and children are shown.  Use -N to specify how
           if "data" in ret:
             ret = access.amfMgmtCSINVPDelete(amfMgmtHandle, entityName, "")
           ret = access.amfMgmtComponentServiceInstanceDelete(amfMgmtHandle, entityName)
-        elif entityType == "CSINVP":
-          if len(args) == 1:
-            ret = access.amfMgmtCSINVPDelete(amfMgmtHandle, entityName, args[0])
-          elif len(args) == 0:
-            ret = access.amfMgmtCSINVPDelete(amfMgmtHandle, entityName, "")
-          else:
-            ret = "TypeErr"
         else:
           print("Invalid entity type, valid entity types are Component, ServiceGroup, Node, ServiceUnit, ServiceInstance and ComponentServiceInstance")
           ret = "TypeErr"
@@ -1485,6 +1478,37 @@ By default the specified location and children are shown.  Use -N to specify how
     except RuntimeError as e:
       print ("error: ", e)
     return "entityDelete failed"
+
+  def do_CSINVPDelete(self, entityName, *args):
+    """syntax: do_CSINVPDelete entityName key/value
+    Deletes the data field of a csi
+    """
+    global amfMgmtHandle
+    try:
+      ret = access.amfMgmtInitialize(amfMgmtHandle)
+      if ret == 0x0:
+        if len(args) == 1:
+          ret = access.amfMgmtCSINVPDelete(amfMgmtHandle, entityName, args[0])
+        elif len(args) == 0:
+          ret = access.amfMgmtCSINVPDelete(amfMgmtHandle, entityName, "")
+        else:
+          ret = 2 #CL_ERR_INVALID_PARAMETER = hex(0x02)
+        if ret == 0x0:
+          ret = access.amfMgmtCommit(amfMgmtHandle)
+        if ret == 0x0:
+          print("CSINVPDelete completed successfully with code [%s]"% hex(ret))
+        else:
+          print('entityDelete failed with error code [%s]'% hex(ret))
+
+        ret = access.amfMgmtFinalize(amfMgmtHandle)
+        if ret !=0:
+          print('amfMgmtFinalize failed with error code [%s]'% hex(ret))
+      else:
+        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+      return ret
+    except RuntimeError as e:
+      print ("error: ", e)
+    return "CSINVPDelete failed"
 
   def do_entityShutdown(self, entityType, entityName):
     """syntax: entityShutdown entityType entityName
