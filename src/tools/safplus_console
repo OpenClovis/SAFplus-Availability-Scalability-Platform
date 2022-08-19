@@ -2201,6 +2201,10 @@ def Modifiers2Sg(params=Dot({}), entities={}):
         entities["maxActiveWorkAssignments"] = params.get("maxActiveWorkAssignments",None)
       elif attr == "maxStandbyWorkAssignments":
         entities["maxStandbyWorkAssignments"] = params.get("maxStandbyWorkAssignments",None)
+      elif attr == "preferredNumActiveServiceUnits":
+        entities["preferredNumActiveServiceUnits"] = params.get("preferredNumActiveServiceUnits",None)
+      elif attr == "preferredNumStandbyServiceUnits":
+        entities["preferredNumStandbyServiceUnits"] = params.get("preferredNumStandbyServiceUnits",None)
   return entities
 
 def RedundancyModel2Si(params=None, entities={}):
@@ -2236,6 +2240,7 @@ def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None, amfMasterHdl=No
   ret = 0
   paramsSG = Dot({})
   paramsSI = Dot({})
+  paramsCSI = Dot({})
   entities = {}
 
   if cfg is not None:
@@ -2248,6 +2253,9 @@ def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None, amfMasterHdl=No
       paramsSG = cfg.get("modifiers",None)
       paramsSI = cfg.get("redundancyModel",None)
       paramsCSI = cfg.get("data",None)
+
+      paramsSG.preferredNumActiveServiceUnits = paramsSI.preferredActiveAssignments
+      paramsSG.preferredNumStandbyServiceUnits = paramsSI.preferredStandbyAssignments
     else:
       ret = 0x02
       print('cfg is invalid, AmfCreateApp failed with error code [%s]'% hex(ret))
