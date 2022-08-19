@@ -21,7 +21,7 @@ extern SAFplusAmf::SAFplusAmfModule cfg;
 extern Handle myHandle;
 extern Handle nodeHandle;
 extern SAFplus::Fault gfault;
-bool isNodeRegistered = false;
+extern bool isNodeRegistered;
 extern volatile bool    quitting;  // Set to true to tell all threads to quit
 extern SAFplusI::GroupServer gs;
 extern ClRcT registerInstallInfo(bool active);

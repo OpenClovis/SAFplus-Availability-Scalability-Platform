@@ -97,6 +97,7 @@ SAFplus::Fault gfault;  // Fault client global variable
 SAFplus::FaultServer fs;
 SAFplusI::GroupServer gs;
 bool initOperValues = false;
+bool isNodeRegistered = false;
 //ClAmfPolicyPlugin_1* gAmfPolicy;
 
 static void sigChildHandler(int signum)
@@ -704,10 +705,10 @@ static ClRcT refreshComponentStats(void *unused)
     return CL_OK;
 }
 
-ClRcT gracefullNodeShutdown()
+ClRcT gracefulNodeShutdown()
 {
     std::string nodeName(SAFplus::ASP_NODENAME);
-    if (nodeMonitor.currentActive == myHandle) // local node is active
+    if (nodeMonitor.active) // local node is active
     {
         std::string nodeName(SAFplus::ASP_NODENAME);
         SAFplusAmf::Node* node = dynamic_cast<SAFplusAmf::Node*>(cfg.safplusAmf.nodeList[nodeName]);
@@ -744,11 +745,16 @@ static void sigintHandler(int signum)
     {
        logAlert("MAIN","---", "got signal [%d]. Shutting down the node", signum);
        gotSignal = true;
-       ClRcT rc = gracefullNodeShutdown();
+       if (!SAFplus::SYSTEM_CONTROLLER && !isNodeRegistered)
+       {
+          quitting = true;
+          return;
+       }
+       ClRcT rc = gracefulNodeShutdown();
        if (rc != CL_OK)
        {
-           logError("MAIN","---", "node shutdown failed with error [0x%x]", rc);
-           quitting = true; //there is an error of node shutting down gracefully, so quitting immediately
+          logError("MAIN","---", "node shutdown failed with error [0x%x]", rc);
+          quitting = true; //there is an error of node shutting down gracefully, so quitting immediately
        }
     }
     else
@@ -1193,14 +1199,18 @@ int main(int argc, char* argv[])
 
   //fs.notify(nodeHandle,AlarmStateT::ALARM_STATE_ASSERT, AlarmCategoryTypeT::ALARM_CATEGORY_EQUIPMENT,...);
   logNotice("---","---","Finalizing AMF...");
-  amfMgmtRpcFinalize(mgmtRpc,mgmtRpcChannel,amfMgmtRpc);
+  if (nodeMonitor.active)
+  {
+    amfMgmtRpcFinalize(mgmtRpc,mgmtRpcChannel,amfMgmtRpc);
+  }
+  safplusFinalize();
   name.set(SAFplus::ASP_NODENAME,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE,true);
   gfault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
   nodeMonitor.finalize();
   compStatsRefresh.join();
   amfDb.finalize();
-  safplusFinalize();
   postProcessing();
+  return EXIT_SUCCESS;
   }
 
 

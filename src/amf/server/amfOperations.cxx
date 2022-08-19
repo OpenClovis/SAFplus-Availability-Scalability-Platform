@@ -1879,7 +1879,7 @@ namespace SAFplus
                     Component* comp = dynamic_cast<Component*>(*itcomp);
                     //assert(comp);
                     if (!comp) continue;
-                    while (comp->presenceState.value != SAFplusAmf::PresenceState::terminating && loopCount < MAX_TRY)
+                    while (comp->presenceState.value != SAFplusAmf::PresenceState::uninstantiated && loopCount < MAX_TRY)
                     {
                         boost::this_thread::sleep(boost::posix_time::milliseconds(100));
                         loopCount++;

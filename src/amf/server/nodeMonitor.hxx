@@ -17,6 +17,8 @@ class NodeMonitor:public SAFplus::MsgHandler
 {
 public:
   SAFplus::Handle currentActive;
+  bool active;
+  bool standby;
   NodeMonitor(): active(false), standby(false),quit(true) {};  // two step constructor
   ~NodeMonitor();
   void initialize(void);
@@ -33,8 +35,6 @@ protected:
   int64_t lastHbRequest;
   SAFplus::Handle lastHbHandle;
   boost::thread thread;
-  bool active;
-  bool standby;
   bool quit;
   std::vector<const SAFplus::GroupIdentity*> members;
 };
