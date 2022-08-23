@@ -2229,6 +2229,17 @@ def Data2Csi(params=None, entities={}):
       dataDict.update(data)
   return entities
 
+
+
+# returns data k1/v1 data k2/v2 ...
+def dict2list(dataDict):
+  l = []
+  for (key,val) in dataDict.items():
+     l.append('data')
+     l.append('%s/%s'% (key,val))
+     
+  return l
+
 def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None, amfMasterHdl=None):
   sg = "ServiceGroup_%s" % suffix
   if appDir == None or appDir == "None":
@@ -2253,9 +2264,9 @@ def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None, amfMasterHdl=No
       paramsSG = cfg.get("modifiers",None)
       paramsSI = cfg.get("redundancyModel",None)
       paramsCSI = cfg.get("data",None)
-
-      paramsSG.preferredNumActiveServiceUnits = paramsSI.preferredActiveAssignments
-      paramsSG.preferredNumStandbyServiceUnits = paramsSI.preferredStandbyAssignments
+      if paramsSG:
+        paramsSG.preferredNumActiveServiceUnits = paramsSI.preferredActiveAssignments
+        paramsSG.preferredNumStandbyServiceUnits = paramsSI.preferredStandbyAssignments
     else:
       ret = 0x02
       print('cfg is invalid, AmfCreateApp failed with error code [%s]'% hex(ret))
@@ -2269,7 +2280,7 @@ def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None, amfMasterHdl=No
 
   entities["ServiceGroup/%s" % sg] = Modifiers2Sg(paramsSG, entities["ServiceGroup/%s" % sg])
   entities["ServiceInstance/ServiceInstance_%s" % suffix] = RedundancyModel2Si(paramsSI, entities["ServiceInstance/ServiceInstance_%s" % suffix])
-  entities["ComponentServiceInstance/ComponentServiceInstance_%s" % suffix] = Data2Csi(paramsCSI, entities["ComponentServiceInstance/ComponentServiceInstance_%s" % suffix])
+  #entities["ComponentServiceInstance/ComponentServiceInstance_%s" % suffix] = Data2Csi(paramsCSI, entities["ComponentServiceInstance/ComponentServiceInstance_%s" % suffix])
 
   count = 0
   sus = []
@@ -2331,6 +2342,35 @@ def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None, amfMasterHdl=No
       print ("error: ", e)
       return "entitySet failed"
     count += 1
+
+  listNVP = dict2list(paramsCSI)
+  retFin = 0
+  if listNVP:
+      csiName = 'ComponentServiceInstance_%s'%suffix
+      csiNVP=['name']
+      csiNVP.append(csiName)
+      csiNVP+=listNVP
+      ret = access.amfMgmtInitialize(amfMgmtHandle)
+      if ret == 0x0:
+          print ("updating data of csi [%s]"%csiName)
+          ret = access.updateComponentServiceInstance(amfMgmtHandle,csiName, csiNVP)
+          if ret == 0x0:
+            ret = access.amfMgmtCommit(amfMgmtHandle)
+            if ret == 0x0:
+              print("updateComponentServiceInstance completed successfully with code [%s]"% hex(ret))
+            else:
+              print('amfMgmtCommit failed with error code [%s]'% hex(ret))
+          else:
+            print('updateComponentServiceInstance failed with error code [%s]'% hex(ret))
+
+          retFin = access.amfMgmtFinalize(amfMgmtHandle)
+          if retFin !=0:
+            print('amfMgmtFinalize failed with error code [%s]'% hex(ret))
+      else:
+          print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+
+  if ret: return ret
+  if retFin: return retFin
   return 0
 
 
