@@ -588,32 +588,25 @@ namespace SAFplus
       }
     };
 
-  void AmfOperations::removeWork(SAFplusAmf::ServiceInstance* si,Wakeable& w)
-  {
-    //auto numStandby = si->getNumStandbyAssignments()->current.value;
-    //auto numActive = si->getNumActiveAssignments()->current.value;
-    //if (numActive > 0)
+    void AmfOperations::removeWork(SAFplusAmf::ServiceInstance* si,Wakeable& w)
     {
-      SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator it;
-      SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator end = si->activeAssignments.listEnd();
-      for (it = si->activeAssignments.listBegin(); it != end; it++)
+      SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::Container assignments = si->activeAssignments.value;     
+      for (SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::Container::iterator itsu = assignments.begin(); itsu != assignments.end(); itsu++)
       {
-        ServiceUnit* su = dynamic_cast<ServiceUnit*>(*it);
-        removeWork(su,w);
+         SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::Elem elem = *itsu;
+         SAFplusAmf::ServiceUnit* su = elem.value;         
+         removeWork(su,w);         
+      }
+
+      assignments = si->standbyAssignments.value;     
+      for (SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::Container::iterator itsu = assignments.begin(); itsu != assignments.end(); itsu++)
+      {
+         SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::Elem elem = *itsu;
+         SAFplusAmf::ServiceUnit* su = elem.value;
+         removeWork(su,w);         
       }
     }
-    //if (numStandby > 0)
-    {
-      SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator it;
-      SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator end = si->standbyAssignments.listEnd();
-      for (it = si->standbyAssignments.listBegin(); it != end; it++)
-      {
-        ServiceUnit* su = dynamic_cast<ServiceUnit*>(*it);
-        removeWork(su,w);
-      }
-    }    
-  }
-
+    
     void AmfOperations::removeWork(ServiceUnit* su, Wakeable& w)
     {
       logDebug("OPS","RMV.WRK","Removing works for su [%s]", su->name.value.c_str());

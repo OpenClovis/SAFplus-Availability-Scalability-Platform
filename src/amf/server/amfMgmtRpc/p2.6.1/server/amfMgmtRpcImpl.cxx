@@ -4205,6 +4205,7 @@ namespace amfMgmtRpc {
   void amfMgmtRpcImpl::lockNodeAssignment(const ::SAFplus::Rpc::amfMgmtRpc::LockNodeAssignmentRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::LockNodeAssignmentResponse* response)
   {
+    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     const std::string& nodeName = request->nodename();
     logDebug("MGMT","RPC","enter [%s] with param node name [%s]",__FUNCTION__,nodeName.c_str());
     ClRcT rc = CL_OK;
@@ -4241,6 +4242,7 @@ namespace amfMgmtRpc {
   void amfMgmtRpcImpl::lockSGAssignment(const ::SAFplus::Rpc::amfMgmtRpc::LockSGAssignmentRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::LockSGAssignmentResponse* response)
   {
+    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     const std::string& sgName = request->sgname();
     logDebug("MGMT","RPC","enter [%s] with param sg name [%s]",__FUNCTION__,sgName.c_str());
     ClRcT rc = CL_OK;
@@ -4277,6 +4279,7 @@ namespace amfMgmtRpc {
   void amfMgmtRpcImpl::lockSUAssignment(const ::SAFplus::Rpc::amfMgmtRpc::LockSUAssignmentRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::LockSUAssignmentResponse* response)
   {
+    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     const std::string& suName = request->suname();
     logDebug("MGMT","RPC","enter [%s] with param su name [%s]",__FUNCTION__,suName.c_str());
     ClRcT rc = CL_OK;
@@ -4314,6 +4317,7 @@ namespace amfMgmtRpc {
   void amfMgmtRpcImpl::lockSIAssignment(const ::SAFplus::Rpc::amfMgmtRpc::LockSIAssignmentRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::LockSIAssignmentResponse* response)
   {
+    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     const std::string& siName = request->siname();
     logDebug("MGMT","RPC","enter [%s] with param si name [%s]",__FUNCTION__,siName.c_str());
     ClRcT rc = CL_OK;
@@ -4351,6 +4355,7 @@ namespace amfMgmtRpc {
   void amfMgmtRpcImpl::lockNodeInstantiation(const ::SAFplus::Rpc::amfMgmtRpc::LockNodeInstantiationRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::LockNodeInstantiationResponse* response)
   {
+    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     const std::string& nodeName = request->nodename();
     logDebug("MGMT","RPC","enter [%s] with param node name [%s]",__FUNCTION__,nodeName.c_str());
     ClRcT rc = CL_OK;
@@ -4395,6 +4400,7 @@ namespace amfMgmtRpc {
   void amfMgmtRpcImpl::lockSGInstantiation(const ::SAFplus::Rpc::amfMgmtRpc::LockSGInstantiationRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::LockSGInstantiationResponse* response)
   {
+    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     const std::string& sgName = request->sgname();
     logDebug("MGMT","RPC","enter [%s] with param sg name [%s]",__FUNCTION__,sgName.c_str());
     ClRcT rc = CL_OK;
@@ -4439,6 +4445,7 @@ namespace amfMgmtRpc {
   void amfMgmtRpcImpl::lockSUInstantiation(const ::SAFplus::Rpc::amfMgmtRpc::LockSUInstantiationRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::LockSUInstantiationResponse* response)
   {
+    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     const std::string& suName = request->suname();
     logDebug("MGMT","RPC","enter [%s] with param su name [%s]",__FUNCTION__,suName.c_str());
     ClRcT rc = CL_OK;
@@ -4484,6 +4491,7 @@ namespace amfMgmtRpc {
   void amfMgmtRpcImpl::unlockNode(const ::SAFplus::Rpc::amfMgmtRpc::UnlockNodeRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::UnlockNodeResponse* response)
   {
+    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     const std::string& nodeName = request->nodename();
     logDebug("MGMT","RPC","enter [%s] with param node name [%s]",__FUNCTION__,nodeName.c_str());
     ClRcT rc = CL_OK;
@@ -4527,6 +4535,7 @@ namespace amfMgmtRpc {
   void amfMgmtRpcImpl::unlockSG(const ::SAFplus::Rpc::amfMgmtRpc::UnlockSGRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::UnlockSGResponse* response)
   {
+    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     const std::string& sgName = request->sgname();
     logDebug("MGMT","RPC","enter [%s] with param sg name [%s]",__FUNCTION__,sgName.c_str());
     ClRcT rc = CL_OK;
@@ -4570,6 +4579,7 @@ namespace amfMgmtRpc {
   void amfMgmtRpcImpl::unlockSU(const ::SAFplus::Rpc::amfMgmtRpc::UnlockSURequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::UnlockSUResponse* response)
   {
+    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     const std::string& suName = request->suname();
     logDebug("MGMT","RPC","enter [%s] with param su name [%s]",__FUNCTION__,suName.c_str());
     ClRcT rc = CL_OK;
@@ -4613,6 +4623,7 @@ namespace amfMgmtRpc {
   void amfMgmtRpcImpl::unlockSI(const ::SAFplus::Rpc::amfMgmtRpc::UnlockSIRequest* request,
                                 ::SAFplus::Rpc::amfMgmtRpc::UnlockSIResponse* response)
   {
+    ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
     const std::string& siName = request->siname();
     logDebug("MGMT","RPC","enter [%s] with param si name [%s]",__FUNCTION__,siName.c_str());
     ClRcT rc = CL_OK;
