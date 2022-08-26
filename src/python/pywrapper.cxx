@@ -479,6 +479,7 @@ ClRcT addNewComponentServiceInstance(const SAFplus::Handle& mgmtHandle, const st
 ClRcT updateComponentServiceInstance(const SAFplus::Handle& mgmtHandle, const std::string & csiName, boost::python::list & argv)
 {
   SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig* csi = new SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig();
+  int index = 0;
   ssize_t len = boost::python::len(argv);
   for(int i = 0; i < len; i = i + 2)
   {
@@ -509,14 +510,8 @@ ClRcT updateComponentServiceInstance(const SAFplus::Handle& mgmtHandle, const st
           }
           std::string key = val.substr(0, pos);
           std::string value = val.substr(pos + 1);
-
-          int index = 0;
-          if(csi->data_size() != 0)
-          {
-              index = csi->data_size();
-          }
           csi->add_data();
-          SAFplus::Rpc::amfMgmtRpc::Data* data = csi->mutable_data(index);
+          SAFplus::Rpc::amfMgmtRpc::Data* data = csi->mutable_data(index++);
           data->set_name(key);
           data->set_val(value);
       }
