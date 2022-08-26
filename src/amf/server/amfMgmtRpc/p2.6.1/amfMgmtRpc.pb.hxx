@@ -3039,17 +3039,21 @@ class ComponentConfig : public ::google::protobuf::Message {
   inline bool restartable() const;
   inline void set_restartable(bool value);
 
-  // optional string csiType = 17;
-  inline bool has_csitype() const;
-  inline void clear_csitype();
-  static const int kCsiTypeFieldNumber = 17;
-  inline const ::std::string& csitype() const;
-  inline void set_csitype(const ::std::string& value);
-  inline void set_csitype(const char* value);
-  inline void set_csitype(const char* value, size_t size);
-  inline ::std::string* mutable_csitype();
-  inline ::std::string* release_csitype();
-  inline void set_allocated_csitype(::std::string* csitype);
+  // repeated string csiTypes = 17;
+  inline int csitypes_size() const;
+  inline void clear_csitypes();
+  static const int kCsiTypesFieldNumber = 17;
+  inline const ::std::string& csitypes(int index) const;
+  inline ::std::string* mutable_csitypes(int index);
+  inline void set_csitypes(int index, const ::std::string& value);
+  inline void set_csitypes(int index, const char* value);
+  inline void set_csitypes(int index, const char* value, size_t size);
+  inline ::std::string* add_csitypes();
+  inline void add_csitypes(const ::std::string& value);
+  inline void add_csitypes(const char* value);
+  inline void add_csitypes(const char* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& csitypes() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_csitypes();
 
   GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ComponentConfig)
   // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfMgmtRpc.ComponentConfig)
@@ -3084,8 +3088,6 @@ class ComponentConfig : public ::google::protobuf::Message {
   inline void clear_has_recovery();
   inline void set_has_restartable();
   inline void clear_has_restartable();
-  inline void set_has_csitype();
-  inline void clear_has_csitype();
 
   ::google::protobuf::internal::ExtensionSet _extensions_;
 
@@ -3108,7 +3110,7 @@ class ComponentConfig : public ::google::protobuf::Message {
   ::google::protobuf::uint32 delaybetweeninstantiation_;
   int recovery_;
   ::std::string* serviceunit_;
-  ::std::string* csitype_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> csitypes_;
   bool restartable_;
   friend void  protobuf_AddDesc_amfMgmtRpc_2eproto();
   friend void protobuf_AssignDesc_amfMgmtRpc_2eproto();
@@ -22862,80 +22864,58 @@ inline void ComponentConfig::set_restartable(bool value) {
   // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ComponentConfig.restartable)
 }
 
-// optional string csiType = 17;
-inline bool ComponentConfig::has_csitype() const {
-  return (_has_bits_[0] & 0x00010000u) != 0;
+// repeated string csiTypes = 17;
+inline int ComponentConfig::csitypes_size() const {
+  return csitypes_.size();
 }
-inline void ComponentConfig::set_has_csitype() {
-  _has_bits_[0] |= 0x00010000u;
+inline void ComponentConfig::clear_csitypes() {
+  csitypes_.Clear();
 }
-inline void ComponentConfig::clear_has_csitype() {
-  _has_bits_[0] &= ~0x00010000u;
+inline const ::std::string& ComponentConfig::csitypes(int index) const {
+  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentConfig.csiTypes)
+  return csitypes_.Get(index);
 }
-inline void ComponentConfig::clear_csitype() {
-  if (csitype_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-    csitype_->clear();
-  }
-  clear_has_csitype();
+inline ::std::string* ComponentConfig::mutable_csitypes(int index) {
+  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ComponentConfig.csiTypes)
+  return csitypes_.Mutable(index);
 }
-inline const ::std::string& ComponentConfig::csitype() const {
-  // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfMgmtRpc.ComponentConfig.csiType)
-  return *csitype_;
+inline void ComponentConfig::set_csitypes(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ComponentConfig.csiTypes)
+  csitypes_.Mutable(index)->assign(value);
 }
-inline void ComponentConfig::set_csitype(const ::std::string& value) {
-  set_has_csitype();
-  if (csitype_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-    csitype_ = new ::std::string;
-  }
-  csitype_->assign(value);
-  // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfMgmtRpc.ComponentConfig.csiType)
+inline void ComponentConfig::set_csitypes(int index, const char* value) {
+  csitypes_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.ComponentConfig.csiTypes)
 }
-inline void ComponentConfig::set_csitype(const char* value) {
-  set_has_csitype();
-  if (csitype_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-    csitype_ = new ::std::string;
-  }
-  csitype_->assign(value);
-  // @@protoc_insertion_point(field_set_char:SAFplus.Rpc.amfMgmtRpc.ComponentConfig.csiType)
+inline void ComponentConfig::set_csitypes(int index, const char* value, size_t size) {
+  csitypes_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.ComponentConfig.csiTypes)
 }
-inline void ComponentConfig::set_csitype(const char* value, size_t size) {
-  set_has_csitype();
-  if (csitype_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-    csitype_ = new ::std::string;
-  }
-  csitype_->assign(reinterpret_cast<const char*>(value), size);
-  // @@protoc_insertion_point(field_set_pointer:SAFplus.Rpc.amfMgmtRpc.ComponentConfig.csiType)
+inline ::std::string* ComponentConfig::add_csitypes() {
+  return csitypes_.Add();
 }
-inline ::std::string* ComponentConfig::mutable_csitype() {
-  set_has_csitype();
-  if (csitype_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-    csitype_ = new ::std::string;
-  }
-  // @@protoc_insertion_point(field_mutable:SAFplus.Rpc.amfMgmtRpc.ComponentConfig.csiType)
-  return csitype_;
+inline void ComponentConfig::add_csitypes(const ::std::string& value) {
+  csitypes_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:SAFplus.Rpc.amfMgmtRpc.ComponentConfig.csiTypes)
 }
-inline ::std::string* ComponentConfig::release_csitype() {
-  clear_has_csitype();
-  if (csitype_ == &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-    return NULL;
-  } else {
-    ::std::string* temp = csitype_;
-    csitype_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-    return temp;
-  }
+inline void ComponentConfig::add_csitypes(const char* value) {
+  csitypes_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:SAFplus.Rpc.amfMgmtRpc.ComponentConfig.csiTypes)
 }
-inline void ComponentConfig::set_allocated_csitype(::std::string* csitype) {
-  if (csitype_ != &::google::protobuf::internal::GetEmptyStringAlreadyInited()) {
-    delete csitype_;
-  }
-  if (csitype) {
-    set_has_csitype();
-    csitype_ = csitype;
-  } else {
-    clear_has_csitype();
-    csitype_ = const_cast< ::std::string*>(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  }
-  // @@protoc_insertion_point(field_set_allocated:SAFplus.Rpc.amfMgmtRpc.ComponentConfig.csiType)
+inline void ComponentConfig::add_csitypes(const char* value, size_t size) {
+  csitypes_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:SAFplus.Rpc.amfMgmtRpc.ComponentConfig.csiTypes)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+ComponentConfig::csitypes() const {
+  // @@protoc_insertion_point(field_list:SAFplus.Rpc.amfMgmtRpc.ComponentConfig.csiTypes)
+  return csitypes_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+ComponentConfig::mutable_csitypes() {
+  // @@protoc_insertion_point(field_mutable_list:SAFplus.Rpc.amfMgmtRpc.ComponentConfig.csiTypes)
+  return &csitypes_;
 }
 
 // -------------------------------------------------------------------
