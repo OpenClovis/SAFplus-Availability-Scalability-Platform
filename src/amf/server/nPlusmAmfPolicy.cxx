@@ -58,11 +58,11 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
 
     virtual void wake(int amt,void* cookie=NULL);
 
-    void start();
+    void start(Component** faultyComp=nullptr);
     void stop();
 
     // helper functions
-    int start(ServiceUnit* s,Wakeable& w);
+    int start(ServiceUnit* s, Wakeable& w,Component** faultyComp=nullptr);
     };
 
   NplusMPolicy::NplusMPolicy()
@@ -107,7 +107,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
 	  return (a->instantiateLevel.value < b->instantiateLevel.value);
   }
 
-  int ServiceGroupPolicyExecution::start(ServiceUnit* su,Wakeable& w)
+  int ServiceGroupPolicyExecution::start(ServiceUnit* su,Wakeable& w,Component** faultyComp)
     {
     int ret=0;
     std::vector<SAFplusAmf::Component*> sortedComps;
@@ -173,7 +173,11 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
 
         SAFplusAmf::AdministrativeState eas = effectiveAdminState(comp);
         assert(eas != SAFplusAmf::AdministrativeState::off); // Do not call this API if the component is administratively OFF!
-        amfOps->start(comp,w);        
+        if (*faultyComp && (*faultyComp)->name.value == comp->name.value)
+        {
+           *faultyComp = NULL; // the faulty comp is going to be restarted, so reset the fauly comp
+        }
+        amfOps->start(comp,w);
         if (comp->compProperty.value == SAFplusAmf::CompProperty::sa_aware)
           ret++;
         }
@@ -185,7 +189,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
     return ret;
     }
 
-  void ServiceGroupPolicyExecution::start()
+  void ServiceGroupPolicyExecution::start(Component** faultyComp)
     {
       const std::string& name = sg->name;
 
@@ -232,7 +236,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
               if (su->adminState != AdministrativeState::off)
                 { // if su->presenceState != ...
                   logInfo("N+M","STRT","Starting service unit [%s]", suName.c_str());
-                  waits += start(su,waitSem);  // When started, "wake" will be called on the waitSem
+                  waits += start(su,waitSem,faultyComp);  // When started, "wake" will be called on the waitSem
                   totalStarted++;
                 }
               else
@@ -614,11 +618,22 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                                   SAFplusAmf::ComponentServiceInstance *csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*> (itcsi->second);
                                   //csi->standbyComponents.value.clear();
                                   // remove the old active comp only from its CSI
-                                  if (csi->standbyComponents.contains(processedComp))
+                                  if (processedComp)
                                   {
-                                      logDebug("N+M","AUDIT","Erase faulty component [%s] from standbyComponents of csi [%s]", processedComp->name.value.c_str(),csi->name.value.c_str());
-                                      csi->standbyComponents.erase(processedComp);
-                                      break;
+                                      if (csi->standbyComponents.contains(processedComp))
+                                      {
+                                          logDebug("N+M","AUDIT","Erase faulty component [%s] from standbyComponents of csi [%s]", processedComp->name.value.c_str(),csi->name.value.c_str());
+                                          csi->standbyComponents.erase(processedComp);
+                                          break;
+                                      }                                      
+                                  }                                  
+                                  for (auto itcomp=su->components.begin(); itcomp!=su->components.end(); itcomp++)
+                                  {
+                                      Component* actComp = dynamic_cast<Component*>(itcomp->second);
+                                      if (csi->standbyComponents.contains(actComp))
+                                      {
+                                         csi->standbyComponents.erase(actComp);                  
+                                      }
                                   }
                               }
 
@@ -786,7 +801,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
           if(startSg)
           {
               ServiceGroupPolicyExecution go(sg,amfOps);
-              go.start(); // TODO: this will be put in a thread pool...
+              go.start(&processedComp); // TODO: this will be put in a thread pool...
           }
           else
           {

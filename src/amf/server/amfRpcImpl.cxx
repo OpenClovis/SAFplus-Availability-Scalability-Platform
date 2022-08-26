@@ -97,8 +97,16 @@ namespace amfRpc {
   env.push_back(strCompName);
   try
   {
+    int status = 0;
     logDebug("OPS","CLE","Cleaning up Component [%s] as [%s]", request->name().c_str(),request->command().c_str());
-    int status = executeProgramWithTimeout(request->command().c_str(), env,request->timeout(), Process::InheritEnvironment);
+    if (request->command().length() > 0)
+    {
+       status = executeProgramWithTimeout(request->command().c_str(), env,request->timeout(), Process::InheritEnvironment);
+    }
+    else
+    {
+       logInfo("OPS","CLE","Component [%s] has no cleanup command", request->name().c_str());
+    }
     response->set_err(status);
     if (status)
       {
