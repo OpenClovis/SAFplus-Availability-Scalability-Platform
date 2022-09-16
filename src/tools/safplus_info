@@ -653,6 +653,8 @@ def get_nodes_info():
                     elif n.tag == 'operState':
                         node.operstate       = _operstate_map[n.text]
                     elif n.tag == 'serviceUnits':
+                        if not n.text:
+                            continue
                         suList = amfctrl.csv2List(n.text)
                         for suName in suList:
                             su = suName[suName.rfind('/')+1:]

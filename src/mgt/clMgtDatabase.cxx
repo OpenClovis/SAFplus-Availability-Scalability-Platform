@@ -259,12 +259,19 @@ namespace SAFplus
     return rc;
   }
 
-  ClRcT MgtDatabase::deleteAllRecordsContainKey(const std::string &keypart)
+  ClRcT MgtDatabase::deleteAllRecordsContainKey(const std::string &keypart, bool deleteMetadata)
   {
-     ClRcT rc = CL_ERR_NOT_EXIST;
+     ClRcT rc = CL_OK;
      std::vector<std::string> childs;
      std::string root("/");
-     iterate(root,childs);     
+     if (!deleteMetadata)
+     {
+        iterate(root,childs);
+     }
+     else
+     {
+        iterate(root,childs,LOAD_DB_METADATA_ONLY);
+     }
      for(std::vector<std::string>::const_iterator it=childs.cbegin();it!=childs.cend();it++)
      {
         const std::string& key = *it;
@@ -289,7 +296,7 @@ namespace SAFplus
      bool entityFound = false;
      std::vector<std::string> xpaths, childs, attrChilds;
      std::string root("/"), val, attrVal;
-     iterate(root,xpaths,true);
+     iterate(root,xpaths,LOAD_DB_ALL);
      for(std::vector<std::string>::const_iterator it=xpaths.cbegin();it!=xpaths.cend();it++)
      {
         const std::string& xpath = *it;
@@ -420,7 +427,7 @@ namespace SAFplus
      return rc;
   }
 
-  void MgtDatabase::loadDb(std::vector<std::string> &result, bool includeMatadata)
+  void MgtDatabase::loadDb(std::vector<std::string> &result, LoadDBType loadDbType)
   {
     ClUint32T keySize = 0;
     ClUint32T dataSize = 0;
@@ -452,15 +459,35 @@ namespace SAFplus
         dbValue.ParseFromString(strVal);
 
         // Ignore metadata key xpath
-        if (dbValue.child_size() > 0 && !includeMatadata)
-          {
-            logDebug("MGT", "LOAD", "Ignore metadata key [%s]", dbValue.xpath().c_str());
-          }
-        else
-          {
-            result.push_back(dbValue.xpath());
-            logDebug("MGT", "LOAD", "Read [%s]", dbValue.xpath().c_str());
-          }
+        if (loadDbType == LOAD_DB_METADATA_ONLY)
+        {
+           if (dbValue.child_size() > 0)
+           {
+              result.push_back(dbValue.xpath());
+              logDebug("MGT", "LOAD", "Read [%s]", dbValue.xpath().c_str());
+           }
+           else
+           {
+              logDebug("MGT", "LOAD", "Ignore key [%s]", dbValue.xpath().c_str());
+           }
+        }
+        else if (loadDbType == LOAD_DB_NOT_INCLUDING_METADATA)
+        {
+           if (dbValue.child_size() > 0)
+           {
+              logDebug("MGT", "LOAD", "Ignore metadata key [%s]", dbValue.xpath().c_str());
+           }
+           else
+           {
+              result.push_back(dbValue.xpath());
+              logDebug("MGT", "LOAD", "Read [%s]", dbValue.xpath().c_str());
+           }
+        }
+        else // all
+        {
+           result.push_back(dbValue.xpath());
+           logDebug("MGT", "LOAD", "Read [%s]", dbValue.xpath().c_str());
+        }        
 
         if ((rc = mDbDataHdl->getNextRecord((ClDBKeyT) recKey, keySize, (ClDBKeyT*) &nextKey, &nextKeySize, (ClDBRecordT*) &recData, &dataSize)) != CL_OK)
           {
@@ -472,11 +499,11 @@ namespace SAFplus
       }
   }
 
-  void MgtDatabase::iterate(const std::string &xpath, std::vector<std::string> &result, bool includeMatadata)
+  void MgtDatabase::iterate(const std::string &xpath, std::vector<std::string> &result, LoadDBType loadDbType)
     {
       if (xpath[0] == '/' and xpath.length() == 1) // Get whole db
         {
-          return loadDb(result,includeMatadata);
+          return loadDb(result,loadDbType);
         }
 
       // Iterator through child (depth = 1)
@@ -508,6 +535,7 @@ namespace SAFplus
             }
         }
     }
+
 
   ClBoolT MgtDatabase::isInitialized()
   {

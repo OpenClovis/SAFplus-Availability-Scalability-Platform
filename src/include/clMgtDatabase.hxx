@@ -52,6 +52,12 @@ namespace SAFplus
   // Additional flags to be sent when opening the underlying database
   // extern unsigned int dbalPluginFlags;
 
+  enum LoadDBType {
+    LOAD_DB_METADATA_ONLY = 0,
+    LOAD_DB_NOT_INCLUDING_METADATA,
+    LOAD_DB_ALL,
+  };
+
   class MgtDatabase
   {
   protected:
@@ -62,7 +68,7 @@ namespace SAFplus
     DbalPlugin* mDbDataHdl;
 
   private:
-    void loadDb(std::vector<std::string> &result, bool includeMatadata = false);
+    void loadDb(std::vector<std::string> &result, LoadDBType loadDbType = LOAD_DB_NOT_INCLUDING_METADATA);
     ClRcT write2DB(const std::string &key, const std::string &value, std::vector<std::string> *child = nullptr, bool overwrite = false);
 
   public:
@@ -112,13 +118,13 @@ namespace SAFplus
      * \brief	Function to delete record out of Db
      */
     ClRcT deleteRecord(const std::string &key);
-    ClRcT deleteAllRecordsContainKey(const std::string &keypart);
+    ClRcT deleteAllRecordsContainKey(const std::string &keypart, bool deleteMetadata=false);
     ClRcT deleteAllReferencesToEntity(const std::string& xpathToDelete, const std::string &entityName, const char* entityListName);
 
     /**
      * \brief   Function to return iterators match with xpath
      */
-    void iterate(const std::string &xpath, std::vector<std::string> &result, bool includeMatadata = false);
+    void iterate(const std::string &xpath, std::vector<std::string> &result, LoadDBType loadDbType = LOAD_DB_NOT_INCLUDING_METADATA);
 
   };
 }

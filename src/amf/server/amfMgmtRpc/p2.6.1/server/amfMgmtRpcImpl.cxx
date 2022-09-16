@@ -350,6 +350,14 @@ namespace amfMgmtRpc {
        return rc;
     }
 
+    logDebug("MGMT","DELL.ENT", "start deleting all metadata records containing [%s]", temp.c_str());
+    rc = amfDb.deleteAllRecordsContainKey(temp, true);
+    if (rc != CL_OK)
+    {
+       logError("MGMT","DELL.ENT", "delete metadata records FAILED for xpath(key) containing [%s], rc=[0x%x]", temp.c_str(), rc);
+       return rc;
+    }
+
     rc = amfDb.deleteRecord(strXpath);
     if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST) rc = CL_OK; // no problem if the key to delete doesn't exist
     if (rc != CL_OK)
@@ -2181,7 +2189,7 @@ namespace amfMgmtRpc {
     return rc;
   }
 
-  ClRcT csiCommit(const ComponentServiceInstanceConfig& csi)
+  ClRcT csiCommit(const ComponentServiceInstanceConfig& csi, bool csiUpdate)
   {
     ClRcT rc = CL_OK;
     logDebug("MGMT","RPC", "server is processing [%s] for entity [%s]", __FUNCTION__, csi.name().c_str());
@@ -2208,9 +2216,9 @@ namespace amfMgmtRpc {
 
     int dataSize = 0;
     if ((dataSize=csi.data_size())>0)
-    {
+    {      
       SAFplusAmf::ComponentServiceInstance* pcsi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*>(cfg.safplusAmf.componentServiceInstanceList[csi.name()]);
-      if (pcsi == NULL)
+      if (csiUpdate && pcsi == NULL)
       {
          logError("MGMT","RPC", "csi object with name [%s] doesn't exist", csi.name().c_str());
          return CL_ERR_NOT_EXIST;
@@ -2218,14 +2226,17 @@ namespace amfMgmtRpc {
       KeyValueHashMap data;
       for (int i=0;i<dataSize;i++)
       {
-         for (auto it = pcsi->dataList.begin(); it != pcsi->dataList.end(); it++)
+         if (csiUpdate)
          {
-            SAFplusAmf::Data* kv = dynamic_cast<SAFplusAmf::Data*>(it->second);
-            assert(kv);
-            if (kv->name.value.compare(csi.data(i).name()) == 0) // duplicate key(name)
+            for (auto it = pcsi->dataList.begin(); it != pcsi->dataList.end(); it++)
             {
-               logError("MGMT","RPC", "duplicate key (name) [%s] of NVP of csi [%s]. Cannot insert or update it", csi.data(i).name().c_str(), csi.name().c_str());
-               return CL_ERR_ALREADY_EXIST;
+               SAFplusAmf::Data* kv = dynamic_cast<SAFplusAmf::Data*>(it->second);
+               assert(kv);
+               if (kv->name.value.compare(csi.data(i).name()) == 0) // duplicate key(name)
+               {
+                  logError("MGMT","RPC", "duplicate key (name) [%s] of NVP of csi [%s]. Cannot insert or update it", csi.data(i).name().c_str(), csi.name().c_str());
+                  return CL_ERR_ALREADY_EXIST;
+               }
             }
          }
          KeyValueMapPair kvp(csi.data(i).name(),csi.data(i).val());
@@ -2673,7 +2684,7 @@ namespace amfMgmtRpc {
         request.ParseFromString(strRequestData);
         const ComponentServiceInstanceConfig& csi = request.componentserviceinstanceconfig();
         logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, csi.name().c_str());
-        rc = csiCommit(csi);
+        rc = csiCommit(csi, false);
         break;
       }
     case AMF_MGMT_OP_CSI_UPDATE:
@@ -2684,7 +2695,7 @@ namespace amfMgmtRpc {
         request.ParseFromString(strRequestData);
         const ComponentServiceInstanceConfig& csi = request.componentserviceinstanceconfig();
         logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, csi.name().c_str());
-        rc = csiCommit(csi);
+        rc = csiCommit(csi, true);
         break;
       }      
     case AMF_MGMT_OP_CSI_DELETE:
