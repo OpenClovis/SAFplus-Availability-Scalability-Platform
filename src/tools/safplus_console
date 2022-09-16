@@ -21,6 +21,13 @@ access = None
 CliName = ''
 amfMgmtHandle = None
 
+# errDesc's indices match with safplus return codes
+errDesc = ["Ok", "Insufficient memory", "Invalid parameter", "Null pointer", "Entity not exists", "Invalid Handle", "Invalid buffer", "Not implemented",
+        "Duplicate", "Queue not available", "Out of range", "No resource", "Already initialized", "Buffer overrun", "Not initialized", "Version mismatch",
+        "Entity already exists", "Unspecified", "Invalid state", "Doesn't exist", "Time out", "In use", "Please try again", "No callback", "Mutex error",
+        "No operation", "Name too long", "Name not found", "Message error", "Too big", "No sections", "Operation failed", "Operation not permitted",
+        "No space", "Bad flag", "Bad operation", "Library error", "Not supported", "Interupt", "Continue", "Request ignored"]
+
 # We have to parse the args before main, because the args will determine what modules are imported
 #parser = argparse.ArgumentParser()
 #parser.add_argument("-l", "--local", action="store_true", help=('Force local access mode'))
