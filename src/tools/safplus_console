@@ -413,7 +413,7 @@ def getDictCommandHelp(d, prefix="",single=None):
         if not single or single == prefix + name:
           hlp = ["<helpCmd><helpCmdName>" + prefix + name + "</helpCmdName>"] + getFunctionHelp(val[0]) + ["</helpCmd>"]
     ret += hlp
-  print (ret)
+  # print (ret)
   return ret  
 
 def getFunctionHelp(fn):
@@ -978,6 +978,9 @@ By default the specified location and children are shown.  Use -N to specify how
 
   def do_entityLockAssignment(self, entityType, entityName):
     """syntax: entityLockAssignment entityType entityName
+      Parameters:
+        entityType: Node, ServiceGroup, ServiceUnit or ServiceInstance
+        entityName: the string name of the entity
     """
     try:
       handleTest = access.getProcessHandle(0, 0)
@@ -993,17 +996,18 @@ By default the specified location and children are shown.  Use -N to specify how
         elif entityType == "ServiceInstance":
           ret = access.amfMgmtSILockAssignment(handleTest, entityName)
         else:
+          print(self.do_entityLockAssignment.__doc__)
           ret = 0x02 #CL_ERR_INVALID_PARAMETER = hex(0x02)
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
 
       retF = access.amfMgmtFinalize(handleTest)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('entityLockAssignment failed with error code [%s]'% hex(ret))
+        print('entityLockAssignment failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
         print("entityLockAssignment completed successfully")
       return ret
@@ -1013,6 +1017,9 @@ By default the specified location and children are shown.  Use -N to specify how
 
   def do_entityLockInstantiation(self, entityType, entityName):
     """syntax: entityLockInstantiation entityType entityName
+      Parameters:
+        entityType: Node, ServiceGroup or ServiceUnit
+        entityName: the string name of the entity
     """
     try:
       handleTest = access.getProcessHandle(0, 0)
@@ -1026,17 +1033,18 @@ By default the specified location and children are shown.  Use -N to specify how
         elif entityType == "ServiceUnit":
           ret = access.amfMgmtSULockInstantiation(handleTest, entityName)
         else:
+          print(self.do_entityLockInstantiation.__doc__)
           ret = 0x02
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
 
       retF = access.amfMgmtFinalize(handleTest)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('entityLockInstantiation failed with error code [%s]'% hex(ret))
+        print('entityLockInstantiation failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
         print("entityLockInstantiation completed successfully")
       return ret
@@ -1046,6 +1054,9 @@ By default the specified location and children are shown.  Use -N to specify how
 
   def do_entityUnlock(self, entityType, entityName):
     """syntax: entityUnlock entityType entityName
+      Parameters:
+        entityType: Node, ServiceGroup, ServiceUnit or ServiceInstance
+        entityName: the string name of the entity
     """
     try:
       handleTest = access.getProcessHandle(0, 0)
@@ -1061,17 +1072,18 @@ By default the specified location and children are shown.  Use -N to specify how
         elif entityType == "ServiceInstance":
           ret = access.amfMgmtSIUnlock(handleTest, entityName)
         else:
+          print(self.do_entityUnlock.__doc__)
           ret = 0x02
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
 
       retF = access.amfMgmtFinalize(handleTest)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('entityUnlock failed with error code [%s]'% hex(ret))
+        print('entityUnlock failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
         print("entityUnlock completed successfully")
       return ret
@@ -1081,6 +1093,9 @@ By default the specified location and children are shown.  Use -N to specify how
 
   def do_entityRepaired(self, entityType, entityName):
     """syntax: entityRepaired entityType entityName
+      Parameters:
+        entityType: Node, Component or ServiceUnit
+        entityName: the string name of the entity
     """
     try:
       handleTest = access.getProcessHandle(0, 0)
@@ -1094,17 +1109,18 @@ By default the specified location and children are shown.  Use -N to specify how
         elif entityType == "ServiceUnit":
           ret = access.amfMgmtSURepair(handleTest, entityName)
         else:
+          print(self.do_entityRepaired.__doc__)
           ret = 0x02
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
 
       retF = access.amfMgmtFinalize(handleTest)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('entityRepaired failed with error code [%s]'% hex(ret))
+        print('entityRepaired failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
         print("entityRepaired completed successfully")
       return ret
@@ -1322,11 +1338,17 @@ By default the specified location and children are shown.  Use -N to specify how
 
   def do_entitySet(self, entityType, entityName, *attributesAndValuesPairs):
     """syntax: entitySet entityType entityName attribute value
+      Parameters:
+        entityType: Component, ServiceGroup, Node, ServiceUnit, ServiceInstance or ComponentServiceInstance
+        entityName: the string name of the entity
+        attributesAndValuesPairs: the pair of attribute and value
+      Example:
+        entitySet Component Component11 maxActiveAssignments 2
     Set the specified values to the attributes
     """
     if len(attributesAndValuesPairs) % 2 != 0 or len(attributesAndValuesPairs) == 0:
       ret = 0x02
-      print('entitySet failed with error code [%s]'% hex(ret))
+      print('entitySet failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       return ret
     listAttributesAndValuesPairs = list(attributesAndValuesPairs)
     listAttributesAndValuesPairs.append("name")
@@ -1348,19 +1370,20 @@ By default the specified location and children are shown.  Use -N to specify how
         elif entityType == "ComponentServiceInstance":
           ret = access.updateComponentServiceInstance(amfMgmtHandle, entityName, listAttributesAndValuesPairs)
         else:
+          print(self.do_entitySet.__doc__)
           ret = 0x02
         if ret == 0x0:
           ret = access.amfMgmtCommit(amfMgmtHandle)
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
 
       retF = access.amfMgmtFinalize(amfMgmtHandle)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('entitySet failed with error code [%s]'% hex(ret))
+        print('entitySet failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
         print("entitySet completed successfully")
       return ret
@@ -1371,11 +1394,47 @@ By default the specified location and children are shown.  Use -N to specify how
   def do_entityCreate(self, entityType, entityName, *args):
     """syntax:
     - entityCreate Component entityName suName binary
+      Parameters:
+        Component: the type of the entity
+        entityName: the string name of the Component
+        suName: the string name of the SU
+        binary: the string name of the binary Component which is a process name
+
     - entityCreate ServiceGroup entityName suName siName
+      Parameters:
+        ServiceGroup: the type of the entity
+        entityName: the string name of the ServiceGroup
+        suName: the string name of the SU
+        siName: the string name of the SI
+
     - entityCreate Node entityName suName
+      Parameters:
+        Node: the type of the entity
+        entityName: the string name of the Node
+        suName: the string name of the SU
+
     - entityCreate ServiceUnit entityName compName sgName nodeName
+      Parameters:
+        ServiceUnit: the type of the entity
+        entityName: the string name of the ServiceUnit
+        compName: the string name of the Component
+        sgName: the string name of the SG
+        nodeName: the string name of the Node
+
     - entityCreate ServiceInstance entityName sgName csiName
+      Parameters:
+        ServiceInstance: the type of the entity
+        entityName: the string name of the ServiceInstance
+        sgName: the string name of the SG
+        csiName: the string name of the CSI
+
     - entityCreate ComponentServiceInstance entityName siName key/value
+      Parameters:
+        ComponentServiceInstance: the type of the entity
+        entityName: the string name of the ComponentServiceInstance
+        siName: the string name of the SI
+        key/value: the key/value strings that will become the name/value pairs in each CSI
+
     Creates a new entityName with the specified entityType
     """
     global amfMgmtHandle
@@ -1390,6 +1449,7 @@ By default the specified location and children are shown.  Use -N to specify how
                 args[i] = ""
             ret = access.addNewComponent(amfMgmtHandle, entityName, args[0], args[1])
           else:
+            print(self.do_entityCreate.__doc__)
             ret = 0x02
         elif entityType == "ServiceGroup":
           if len(args) == 2:
@@ -1398,6 +1458,7 @@ By default the specified location and children are shown.  Use -N to specify how
                 args[i] = ""
             ret = access.addNewServiceGroup(amfMgmtHandle, entityName, args[0], args[1])
           else:
+            print(self.do_entityCreate.__doc__)
             ret = 0x02
         elif entityType == "Node":
           if len(args) == 1:
@@ -1406,6 +1467,7 @@ By default the specified location and children are shown.  Use -N to specify how
                 args[i] = ""
             ret = access.addNewNode(amfMgmtHandle, entityName, args[0])
           else:
+            print(self.do_entityCreate.__doc__)
             ret = 0x02
         elif entityType == "ServiceUnit":
           if len(args) == 3:
@@ -1414,6 +1476,7 @@ By default the specified location and children are shown.  Use -N to specify how
                 args[i] = ""
             ret = access.addNewServiceUnit(amfMgmtHandle, entityName, args[0], args[1], args[2])
           else:
+            print(self.do_entityCreate.__doc__)
             ret = 0x02
         elif entityType == "ServiceInstance":
           if len(args) == 2:
@@ -1422,6 +1485,7 @@ By default the specified location and children are shown.  Use -N to specify how
                 args[i] = ""
             ret = access.addNewServiceInstance(amfMgmtHandle, entityName, args[0], args[1])
           else:
+            print(self.do_entityCreate.__doc__)
             ret = 0x02
         elif entityType == "ComponentServiceInstance":
           if len(args) >= 1:
@@ -1432,21 +1496,23 @@ By default the specified location and children are shown.  Use -N to specify how
             listArg = list(args[1:])
             ret = access.addNewComponentServiceInstance(amfMgmtHandle, entityName, siName, listArg)
           else:
+            print(self.do_entityCreate.__doc__)
             ret = 0x02
         else:
+          print(self.do_entityCreate.__doc__)
           ret = 0x02
         if ret == 0x0:
           ret = access.amfMgmtCommit(amfMgmtHandle)
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
 
       retF = access.amfMgmtFinalize(amfMgmtHandle)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('entityCreate failed with error code [%s]'% hex(ret))
+        print('entityCreate failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
         print("entityCreate completed successfully")
       return ret
@@ -1454,8 +1520,11 @@ By default the specified location and children are shown.  Use -N to specify how
       print ("error: ", e)
       return e
 
-  def do_entityDelete(self, entityType, entityName, *args):
+  def do_entityDelete(self, entityType, entityName):
     """syntax: entityDelete entityType entityName
+      Parameters:
+        entityType: Component, ServiceGroup, Node, ServiceUnit, ServiceInstance or ComponentServiceInstance
+        entityName: the string name of the entity
     Deletes the entityNames
     """
     global amfMgmtHandle
@@ -1478,19 +1547,20 @@ By default the specified location and children are shown.  Use -N to specify how
             ret = access.amfMgmtCSINVPDelete(amfMgmtHandle, entityName, "")
           ret = access.amfMgmtComponentServiceInstanceDelete(amfMgmtHandle, entityName)
         else:
+          print(self.do_entityDelete.__doc__)
           ret = 0x02
         if ret == 0x0:
           ret = access.amfMgmtCommit(amfMgmtHandle)
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
 
       retF = access.amfMgmtFinalize(amfMgmtHandle)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('entityDelete failed with error code [%s]'% hex(ret))
+        print('entityDelete failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
         print("entityDelete completed successfully")
       return ret
@@ -1499,7 +1569,10 @@ By default the specified location and children are shown.  Use -N to specify how
       return e
 
   def do_CSINVPDelete(self, entityName, *args):
-    """syntax: CSINVPDelete entityName key/value
+    """syntax: CSINVPDelete entityName keyName
+      Parameters:
+        entityName: the string name of the CSI
+        args: the string name of the key in the key-value pair, if keyName is empty delete all key-value pairs
     Deletes the data field of a csi
     """
     global amfMgmtHandle
@@ -1511,19 +1584,20 @@ By default the specified location and children are shown.  Use -N to specify how
         elif len(args) == 0:
           ret = access.amfMgmtCSINVPDelete(amfMgmtHandle, entityName, "")
         else:
+          print(self.do_CSINVPDelete.__doc__)
           ret = 2 #CL_ERR_INVALID_PARAMETER = hex(0x02)
         if ret == 0x0:
           ret = access.amfMgmtCommit(amfMgmtHandle)
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
 
       retF = access.amfMgmtFinalize(amfMgmtHandle)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('CSINVPDelete failed with error code [%s]'% hex(ret))
+        print('CSINVPDelete failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
         print("CSINVPDelete completed successfully")
       return ret
@@ -1533,6 +1607,9 @@ By default the specified location and children are shown.  Use -N to specify how
 
   def do_entityShutdown(self, entityType, entityName):
     """syntax: entityShutdown entityType entityName
+      Parameters:
+        entityType: Node, ServiceGroup, ServiceUnit or ServiceInstance
+        entityName: the string name of the entity
     """
     try:
       handleTest = access.getProcessHandle(0, 0)
@@ -1548,17 +1625,18 @@ By default the specified location and children are shown.  Use -N to specify how
         elif entityType == "ServiceInstance":
           ret = access.amfMgmtSILockAssignment(handleTest, entityName)
         else:
+          print(self.do_entityShutdown.__doc__)
           ret = 0x02
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
 
       retF = access.amfMgmtFinalize(handleTest)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('entityShutdown failed with error code [%s]'% hex(ret))
+        print('entityShutdown failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
         print("entityShutdown completed successfully")
       return ret
@@ -1648,6 +1726,9 @@ By default the specified location and children are shown.  Use -N to specify how
 
   def do_entityRestart(self, entityType, entityName):
     """syntax: entityRestart entityType entityName
+      Parameters:
+        entityType: Node, ServiceUnit or Component
+        entityName: the string name of the entity
     """
     try:
       handleTest = access.getProcessHandle(0, 0)
@@ -1661,17 +1742,18 @@ By default the specified location and children are shown.  Use -N to specify how
         elif entityType == "Component":
           ret = access.amfMgmtCompRestart(handleTest, entityName)
         else:
+          print(self.do_entityRestart.__doc__)
           ret = 0x02
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
 
       retF = access.amfMgmtFinalize(handleTest)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('entityRestart failed with error code [%s]'% hex(ret))
+        print('entityRestart failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
         print("entityRestart completed successfully")
       return ret
@@ -1696,15 +1778,15 @@ By default the specified location and children are shown.  Use -N to specify how
       if ret == 0x0:
         ret = access.amfMgmtSGAdjust(handleTest, sgName, b)
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
       
       retF = access.amfMgmtFinalize(handleTest)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('sgAdjust failed with error code [%s]'% hex(ret))
+        print('sgAdjust failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
         print("sgAdjust completed successfully")
       return ret
@@ -1723,15 +1805,15 @@ By default the specified location and children are shown.  Use -N to specify how
       if ret == 0x0:
         ret = access.amfMgmtSISwap(handleTest, siName)
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
 
       retF = access.amfMgmtFinalize(handleTest)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('entitySISwap failed with error code [%s]'% hex(ret))
+        print('entitySISwap failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
         print("entitySISwap completed successfully")
       return ret
@@ -1768,15 +1850,15 @@ By default the specified location and children are shown.  Use -N to specify how
       if ret == 0x0:
         ret = access.amfMgmtCompErrorReport(handleTest, compName, recRecovery)
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
 
       retF = access.amfMgmtFinalize(handleTest)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('compReport failed with error code [%s]'% hex(ret))
+        print('compReport failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
         print("compReport completed successfully")
       return ret
@@ -1795,15 +1877,15 @@ By default the specified location and children are shown.  Use -N to specify how
       if ret == 0x0:
         ret = access.amfMgmtNodeErrorReport(handleTest, nodeName)
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
 
       retF = access.amfMgmtFinalize(handleTest)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('nodeErrorReport failed with error code [%s]'% hex(ret))
+        print('nodeErrorReport failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
         print("nodeErrorReport completed successfully")
       return ret
@@ -1822,15 +1904,15 @@ By default the specified location and children are shown.  Use -N to specify how
       if ret == 0x0:
         ret = access.amfMgmtNodeErrorClear(handleTest, nodeName)
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
 
       retF = access.amfMgmtFinalize(handleTest)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('nodeErrorClear failed with error code [%s]'% hex(ret))
+        print('nodeErrorClear failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
         print("nodeErrorClear completed successfully")
       return ret
@@ -1849,15 +1931,15 @@ By default the specified location and children are shown.  Use -N to specify how
       if ret == 0x0:
         ret = access.amfMgmtNodeJoin(handleTest, nodeName)
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
 
       retF = access.amfMgmtFinalize(handleTest)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('nodeJoin failed with error code [%s]'% hex(ret))
+        print('nodeJoin failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
         print("nodeJoin completed successfully")
       return ret
@@ -1876,15 +1958,15 @@ By default the specified location and children are shown.  Use -N to specify how
       if ret == 0x0:
         ret = access.amfMgmtNodeShutdown(handleTest, nodeName)
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
       
       retF = access.amfMgmtFinalize(handleTest)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('nodeShutdown failed with error code [%s]'% hex(ret))
+        print('nodeShutdown failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
         print("nodeShutdown completed successfully")
       return ret
@@ -1909,15 +1991,15 @@ By default the specified location and children are shown.  Use -N to specify how
       if ret == 0x0:
         ret = access.amfNodeRestart(handleTest, nodeName, grf)
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
 
       retF = access.amfMgmtFinalize(handleTest)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('nodeRestart failed with error code [%s]'% hex(ret))
+        print('nodeRestart failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
         print("nodeRestart completed successfully")
       return ret
@@ -1950,15 +2032,15 @@ By default the specified location and children are shown.  Use -N to specify how
         ret = access.amfMiddlewareRestart(handleTest, nodeName, grf, nrst)
       #ret = access.amfMiddlewareRestart(handleTest, nodeName, graceful, nodeReset)
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
       
       retF = access.amfMgmtFinalize(handleTest)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('middlewareRestart failed with error code [%s]'% hex(ret))
+        print('middlewareRestart failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
         print("middlewareRestart completed successfully")
       return ret
@@ -2001,15 +2083,15 @@ By default the specified location and children are shown.  Use -N to specify how
 
         ret = access.amfMgmtAssignSUtoSI(handleTest, siName, activeSUName, standbySUName)
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
 
       retF = access.amfMgmtFinalize(handleTest)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('assignSUtoSI failed with error code [%s]'% hex(ret))
+        print('assignSUtoSI failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
         print("assignSUtoSI completed successfully")
       return ret
@@ -2028,15 +2110,15 @@ By default the specified location and children are shown.  Use -N to specify how
       if ret == 0x0:
         ret = access.amfMgmtForceLockInstantiation(handleTest, entityName)
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
 
       retF = access.amfMgmtFinalize(handleTest)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('forceLockInstantiation failed with error code [%s]'% hex(ret))
+        print('forceLockInstantiation failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
         print("forceLockInstantiation completed successfully")
       return ret
@@ -2051,8 +2133,6 @@ By default the specified location and children are shown.  Use -N to specify how
       handle = access.amfMgmtCompAddressGet(entityName)
       print ("node: ", handle.getNode())
       print ("port: ", handle.getPort())
-      
-      # print "amfMgmtFinalize: ", hex(ret)
     except RuntimeError as e:
       print ("Failed get component Address: ", e)
 
@@ -2073,6 +2153,9 @@ By default the specified location and children are shown.  Use -N to specify how
 
   def do_entityGetConfig(self, entityType, entityName):
     """syntax: entityGetConfig entityType entityName
+      Parameters:
+        entityType: Component, Node, ServiceGroup, ServiceUnit, ServiceInstance or ComponentServiceInstance
+        entityName: the string name of the entity
     """
     try:
       handleTest = access.getProcessHandle(0, 0)
@@ -2092,20 +2175,24 @@ By default the specified location and children are shown.  Use -N to specify how
         elif entityType == "ComponentServiceInstance":
           ret = access.amfMgmtCSIGetConfig(handleTest, entityName)
         else:
+          print(self.do_entityGetConfig.__doc__)
           ret = 0x02
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
 
       retF = access.amfMgmtFinalize(handleTest)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if isinstance(ret, dict):
+        if "error" in ret:
+          print('entityGetConfig failed with error code [%s]: %s'% (hex(ret["error"]), errDesc[ret["error"]]))
+          return ret["error"]
         print("entityGetConfig completed successfully")
         print("dictionary: ", ret)
       else:
-        print('entityGetConfig failed with error code [%s]'% hex(ret))
+        print('entityGetConfig failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       return ret
     except RuntimeError as e:
       print("error: ", e)
@@ -2113,6 +2200,9 @@ By default the specified location and children are shown.  Use -N to specify how
 
   def do_CSIGetStatus(self, entityType, entityName):
     """syntax: CSIGetStatus entityType entityName
+      Parameters:
+        entityType: ComponentServiceInstance
+        entityName: the string name of the entity
     """
     try:
       handleTest = access.getProcessHandle(0, 0)
@@ -2122,20 +2212,24 @@ By default the specified location and children are shown.  Use -N to specify how
         if entityType == "ComponentServiceInstance":
           ret = access.amfMgmtCSIGetStatus(handleTest, entityName)
         else:
+          print(self.do_CSIGetStatus.__doc__)
           ret = 0x2
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
 
       retF = access.amfMgmtFinalize(handleTest)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if isinstance(ret, dict):
+        if "error" in ret:
+          print('CSIGetStatus failed with error code [%s]: %s'% (hex(ret["error"]), errDesc[ret["error"]]))
+          return ret["error"]
         print("CSIGetStatus completed successfully")
         print("dictionary: ", ret)
       else:
-        print('CSIGetStatus failed with error code [%s]'% hex(ret))
+        print('CSIGetStatus failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       return ret
     except RuntimeError as e:
       print("error: ", e)
@@ -2147,7 +2241,7 @@ By default the specified location and children are shown.  Use -N to specify how
     if entityType not in ["Node", "ServiceGroup", "ServiceUnit", "ServiceInstance"]:
       print("Invalid entity type, valid entity types are Node, ServiceGroup, ServiceUnit and ServiceInstance")
       ret = 2 #CL_ERR_INVALID_PARAMETER = hex(0x02)
-      print('startApp failed with error code [%s]'% hex(ret))
+      print('startApp failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       return ret
     ret = self.do_entityUnlock(entityType, entityName)
     if ret == 0x00:
@@ -2161,7 +2255,7 @@ By default the specified location and children are shown.  Use -N to specify how
           if ret == 0x00:
               print("startApp completed successfully")
               return ret
-    print('startApp failed with error code [%s]'% hex(ret))
+    print('startApp failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
 
     return ret
 
@@ -2171,7 +2265,7 @@ By default the specified location and children are shown.  Use -N to specify how
     if entityType not in ["Node", "ServiceGroup", "ServiceUnit"]:
       print("Invalid entity type, valid entity types are Node, ServiceGroup and ServiceUnit")
       ret = 2 #CL_ERR_INVALID_PARAMETER = hex(0x02)
-      print('stopApp failed with error code [%s]'% hex(ret))
+      print('stopApp failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       return ret
     ret = self.do_entityLockInstantiation(entityType, entityName)
     if ret == 0x00:
@@ -2185,7 +2279,7 @@ By default the specified location and children are shown.  Use -N to specify how
           if ret == 0x00:
               print("stopApp completed successfully")
               return ret
-    print('stopApp failed with error code [%s]'% hex(ret))
+    print('stopApp failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
 
     return ret
 
@@ -2200,15 +2294,15 @@ By default the specified location and children are shown.  Use -N to specify how
         if ret == 0x0:
           ret = access.amfMgmtCommit(amfMgmtHandle)
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
 
       retF = access.amfMgmtFinalize(amfMgmtHandle)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('addSUIntoNode failed with error code [%s]'% hex(ret))
+        print('addSUIntoNode failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
         print("addSUIntoNode completed successfully")
       return ret
@@ -2227,15 +2321,15 @@ By default the specified location and children are shown.  Use -N to specify how
         if ret == 0x0:
           ret = access.amfMgmtCommit(amfMgmtHandle)
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
 
       retF = access.amfMgmtFinalize(amfMgmtHandle)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('addSUIntoSG failed with error code [%s]'% hex(ret))
+        print('addSUIntoSG failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
         print("addSUIntoSG completed successfully")
       return ret
@@ -2254,15 +2348,15 @@ By default the specified location and children are shown.  Use -N to specify how
         if ret == 0x0:
           ret = access.amfMgmtCommit(amfMgmtHandle)
       else:
-        print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+        print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
 
       retF = access.amfMgmtFinalize(amfMgmtHandle)
       if retF != 0x0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(retF))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('addCompIntoSU failed with error code [%s]'% hex(ret))
+        print('addCompIntoSU failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
         print("addCompIntoSU completed successfully")
       return ret
@@ -2375,7 +2469,7 @@ def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None, amfMasterHdl=No
         paramsSG.preferredNumStandbyServiceUnits = paramsSI.preferredStandbyAssignments
     else:
       ret = 0x02
-      print('cfg is invalid, AmfCreateApp failed with error code [%s]'% hex(ret))
+      print('cfg is invalid, AmfCreateApp failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       return ret
 
   entities["ServiceGroup/%s" % sg] = { "adminState":"off", "serviceInstances" :  "ServiceInstance_%s" % suffix}
@@ -2425,7 +2519,7 @@ def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None, amfMasterHdl=No
     try:
       if len(listAttributesAndValuesPairs) % 2 != 0 or len(listAttributesAndValuesPairs) == 0:
         ret = 0x02
-        print('entitySet failed with error code [%s]'% hex(ret))
+        print('entitySet failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
       ret = access.amfMgmtInitialize(amfMgmtHandle)
       if ret == 0x0:
@@ -2433,17 +2527,17 @@ def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None, amfMasterHdl=No
           if ret == 0x0:
             ret = access.amfMgmtCommit(amfMgmtHandle)
             if ret == 0x0:
-              print("entitySet completed successfully with code [%s]"% hex(ret))
+              print('entitySet completed successfully with code [%s] %s'% (hex(ret), errDesc[ret]))
             else:
-              print('amfMgmtCommit failed with error code [%s]'% hex(ret))
+              print('amfMgmtCommit failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
           else:
-            print('updateNode failed with error code [%s]'% hex(ret))
+            print('updateNode failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
 
           ret = access.amfMgmtFinalize(amfMgmtHandle)
           if ret !=0:
-            print('amfMgmtFinalize failed with error code [%s]'% hex(ret))
+            print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
-          print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+          print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
     except RuntimeError as e:
       print ("error: ", e)
       return "entitySet failed"
@@ -2463,17 +2557,17 @@ def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None, amfMasterHdl=No
           if ret == 0x0:
             ret = access.amfMgmtCommit(amfMgmtHandle)
             if ret == 0x0:
-              print("updateComponentServiceInstance completed successfully with code [%s]"% hex(ret))
+              print('updateComponentServiceInstance completed successfully')
             else:
-              print('amfMgmtCommit failed with error code [%s]'% hex(ret))
+              print('amfMgmtCommit failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
           else:
-            print('updateComponentServiceInstance failed with error code [%s]'% hex(ret))
+            print('updateComponentServiceInstance failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
 
           retFin = access.amfMgmtFinalize(amfMgmtHandle)
           if retFin !=0:
-            print('amfMgmtFinalize failed with error code [%s]'% hex(ret))
+            print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
-          print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+          print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
 
   if ret: return ret
   if retFin: return retFin
@@ -2489,7 +2583,7 @@ def deleteSusInNode(nodeName, suName):
     listSus.append(suName)
     if nodeName == None or suName == None:
       ret = 0x02
-      print('deleteSusInNode failed with error code [%s]'% hex(ret))
+      print('deleteSusInNode failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       return ret
     ret = access.amfMgmtInitialize(amfMgmtHandle)
     if ret == 0x0:
@@ -2497,17 +2591,17 @@ def deleteSusInNode(nodeName, suName):
       if ret == 0x0:
         ret = access.amfMgmtCommit(amfMgmtHandle)
         if ret == 0x0:
-          print("deleteSusInNode completed successfully with code [%s]"% hex(ret))
+          print("deleteSusInNode completed successfully")
         else:
-          print('amfMgmtCommit failed with error code [%s]'% hex(ret))
+          print('amfMgmtCommit failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
-        print('amfMgmtNodeSUListDelete failed with error code [%s]'% hex(ret))
+        print('amfMgmtNodeSUListDelete failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
 
       ret = access.amfMgmtFinalize(amfMgmtHandle)
       if ret !=0:
-        print('amfMgmtFinalize failed with error code [%s]'% hex(ret))
+        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
     else:
-      print('amfMgmtInitialize failed with error code [%s]'% hex(ret))
+      print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
 
     return ret
   except RuntimeError as e:
@@ -2604,7 +2698,7 @@ class RunScript:
       sg = ET.fromstring(self.cli.run("ls " + sgName))
       if len(sg) == 0:
         ret = 2 #CL_ERR_INVALID_PARAMETER = hex(0x02)
-        print('deleteApp failed with error code [%s]'% hex(ret))
+        print('deleteApp failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
       else: sg=sg[0]
     except self.cli.Error as e:
@@ -2612,7 +2706,7 @@ class RunScript:
     if sg:
       if str(sg.find("adminState").text) != "off":
         ret = 18 #CL_ERR_INVALID_STATE = hex(0x12)
-        print('deleteApp failed with error code [%s]'% hex(ret))
+        print('deleteApp failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
       siNameText = sg.find("serviceInstances").text
       siNames = [ str(x) for x in siNameText.split(",")]
@@ -2680,7 +2774,7 @@ class RunScript:
     """
     if appName == None or appCommandLine == None or nodes == None:
       ret = 0x02
-      print('createApp failed with error code [%s]'% hex(ret))
+      print('createApp failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       return ret
 
     # test if there is a amf failover in progress
@@ -2705,7 +2799,7 @@ class RunScript:
       print("createApp completed successfully")
       return ret
 
-    print('createApp failed with error code [%s]'% hex(ret))
+    print('createApp failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
     return ret
 
   # All commands are defined as do_<command>.  So this function defines the "basicStatus" command.

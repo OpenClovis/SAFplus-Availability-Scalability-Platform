@@ -160,7 +160,9 @@ class XmlResolver:
                 frame = last_frame().tb_frame
                 pdb.post_mortem()
               # TODO: print the command's help and try to hint at the problem
-              print ('Error:', e)
+              cmd = ["help", sp[0]]
+              self.executeOne(cmd, xmlterm)
+              # print ('Error:', e)
               #xmlterm.doc.append("<error>" + str(e) + "</error>")
               return
 
