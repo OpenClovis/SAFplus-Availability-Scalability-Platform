@@ -742,7 +742,7 @@ module SAFplusAmf
         config false;
       }
 
-      leaf csiType
+      leaf-list csiTypes
       {
         description "type of csi assigned for component";
         type string;
@@ -1192,7 +1192,7 @@ are switched over to other nodes (component service instances are not abruptly r
         config false;
       }
 
-      leaf csiType
+      leaf-list csiTypes
       {
         description "type of csi assigned for component";
         type string;

@@ -316,7 +316,7 @@ static dict ComponentGetConfig(const Handle & self, const std::string & key)
     // set information into dictionary
     dictionary["capabilityModel"] = std::to_string(ComponentConfig->capabilitymodel());
 //    dictionary["cleanup"] = std::to_string(ComponentConfig->cleanup());
-    dictionary["csiType"] = ComponentConfig->csitype();
+    dictionary["csiTypes"] = ComponentConfig->csitypes();
 //    dictionary["currentRecovery"] = std::to_string(ComponentConfig->currentRecovery());
     dictionary["delayBetweenInstantiation"] = std::to_string(ComponentConfig->delaybetweeninstantiation());
 //    dictionary["id"] = std::to_string(ComponentConfig->id());
@@ -925,9 +925,9 @@ ClRcT updateComponent(const SAFplus::Handle& mgmtHandle, const std::string & com
         {
             comp->set_restartable(std::stoi(val));
         }
-        else if(!attr.compare("csiType"))
+        else if(!attr.compare("csiTypes"))
         {
-            comp->set_csitype(val);
+            comp->add_csitypes(val);
         }
         else
         {

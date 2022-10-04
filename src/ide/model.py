@@ -53,7 +53,7 @@ instantiated  <instances>     instances                         instances     (e
     self.entityTypes = {}
     self.entities = {}
     self.instances = {}
-
+    self.csi2comp = {}
   def directory(self):
     """Returns the location of this model on disk """
     return os.path.dirname(self.filename)
@@ -320,7 +320,7 @@ instantiated  <instances>     instances                         instances     (e
     return ca
 
   def isProxyOf(self,proxy, proxied):
-    if proxy.data['csiType']==proxied.data['proxyCSI']:
+    if proxy.data['csiTypes']==proxied.data['proxyCSI']:
       #print 'same csi for proxied [%s]'%proxied.data['name']
       for ca in proxy.containmentArrows:
         #print 'ca of [%s]: container [%s]. contained [%s]' %(proxy.data['name'],ca.container.data['name'],ca.contained.data['name'])
@@ -665,12 +665,18 @@ instantiated  <instances>     instances                         instances     (e
         for val in vals:
           instance.addChild(microdom.MicroDom({"tag_":key},[val],""))  # TODO: do we really need to pluralize?  Also validate comma separation is ok
 
+      if "csiTypes" in instance.child_: instance.delChild("csiTypes")
+      if e.entity.et.name == "Component":
+        csiTypes = self.csi2comp.get(e.entity.data["name"],[])
+        for csiType in csiTypes:
+          instance.addChild(microdom.MicroDom({"tag_":"csiTypes"},[csiType],""))
+
       # Extra parent entity name
       entityParentVal = e.entity.data["name"]
       entityParentKey = "%sType"%e.et.name
       if entityParentKey in instance.child_: instance.delChild(entityParentKey)
       instance.addChild(microdom.MicroDom({"tag_":entityParentKey},[entityParentVal],""))
-  
+
   def createChild(self, parent, childName):
     name = childName
     childTag = parent.getElementsByTagName(name)
@@ -808,6 +814,13 @@ instantiated  <instances>     instances                         instances     (e
             children.append(ch)
       else:
         print('model::recursiveInstantiation: do not create recursive instance for [%s], type [%s]' % (name, ent.et.name))
+
+        for ca in ent.containmentArrows:
+          if ca.contained.et.name == "Component":
+            tmp = self.csi2comp.get(ca.contained.data["name"],[])
+            tmp.append(ent.data["type"])
+            self.csi2comp[ca.contained.data["name"]] = tmp
+
       return (ei, instances)
 
   def recursiveDuplicateInst(self,inst,instances=None, depth=1):

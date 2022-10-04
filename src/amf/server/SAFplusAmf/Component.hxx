@@ -153,7 +153,7 @@ namespace SAFplusAmf
         SAFplus::MgtIdentifier<Component*> proxy;
         //SAFplus::MgtProv<std::string> proxy;
 
-        SAFplus::MgtProv<std::string> csiType;
+        SAFplus::MgtProvList<std::string> csiTypes;
         SAFplus::MgtProv<std::string> proxyCSI;
 
         /*

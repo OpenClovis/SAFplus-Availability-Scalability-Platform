@@ -817,21 +817,12 @@ namespace SAFplus
      return false;
   }
 
-  void AmfOperations::assignWork(ServiceUnit* su, ServiceInstance* si, HighAvailabilityState state,Wakeable& w)
+  bool AmfOperations::assignWork(ServiceUnit* su, ServiceInstance* si, HighAvailabilityState state,Wakeable& w)
     {
     ComponentServiceInstance* csi = nullptr;
 
     //assert(su->assignedServiceInstances.contains(si) == false);  // We can only assign a particular SI to a particular SU once.
-    if(su->assignedServiceInstances.contains(si) == false)su->assignedServiceInstances.push_back(si);
-    if (state == HighAvailabilityState::active)
-    {
-        su->numActiveServiceInstances.current.value=su->assignedServiceInstances.value.size();
-    }
-    if (state == HighAvailabilityState::standby)
-    {
-        su->numStandbyServiceInstances.current.value=su->assignedServiceInstances.value.size();
-    }
-
+    bool compAssigned = false;
     //SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
     //SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
     SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp;
@@ -877,14 +868,18 @@ namespace SAFplus
       SAFplusAmf::ComponentServiceInstance* csi = NULL;
       for (itcsi = si->componentServiceInstances.listBegin(); itcsi != endcsi; itcsi++)
         {
-        csi = *itcsi;
-        if (!csi) continue;
-        if((csi->type.value.length()>0) && (!(csi->type.value.compare(comp->csiType.value)))) break;// We found one!
-        // TODO: figure out number of assignments allowed if (csi->getComponent()) continue;  // We can't assign a CSI to > 1 component.
-        // TODO validate CSI dependencies are assigned
-        //break;
+          csi = *itcsi;
+          if (!csi) continue;
+          for (std::string csiType : comp->csiTypes.value ) {
+            if((csi->type.value.length()>0) && (!(csi->type.value.compare(csiType)))) {
+              goto found;// We found one!
+            }
+          }        
+          // TODO: figure out number of assignments allowed if (csi->getComponent()) continue;  // We can't assign a CSI to > 1 component.
+          // TODO validate CSI dependencies are assigned
+          //break;
         }
-
+    found:
       if (itcsi != endcsi)  // We found an assignable CSI and it is the variable "csi"
         {
         logInfo("OPS","SRT","Component [%s] handle [%" PRIx64 ":%" PRIx64 "] is being assigned [%s] work", comp->name.value.c_str(),hdl.id[0],hdl.id[1], c_str(state));
@@ -981,6 +976,7 @@ namespace SAFplus
                 break;
             }
           }
+          compAssigned = true;
         }
       else
         {
@@ -988,7 +984,19 @@ namespace SAFplus
         }
 
       }
-
+      if (compAssigned) {
+        //assert(su->assignedServiceInstances.contains(si) == false);  // We can only assign a particular SI to a particular SU once.
+        if(su->assignedServiceInstances.contains(si) == false)su->assignedServiceInstances.push_back(si);
+        if (state == HighAvailabilityState::active)
+        {
+            su->numActiveServiceInstances.current.value=su->assignedServiceInstances.value.size();
+        }
+        if (state == HighAvailabilityState::standby)
+        {
+            su->numStandbyServiceInstances.current.value=su->assignedServiceInstances.value.size();
+        }
+      }
+      return compAssigned;
     }
 
 

@@ -207,10 +207,10 @@ class LinkTool(Tool):
                 [line[2]] if len(line)>1 else None)
                 self.startEntity.containmentArrows.append(ca)
                 if (self.endEntity.data['entityType'] == 'Component' or self.endEntity.data['entityType'] == 'NonSafComponent') and self.startEntity.data['entityType']=='ComponentServiceInstance':
-                   self.endEntity.data['csiType'] = self.startEntity.data['name']
+                   self.endEntity.data['csiTypes'] = self.startEntity.data['name']
                    self.updateProxyCSI(self.endEntity)
                 if self.startEntity.data['entityType'] == 'Component' and self.endEntity.data['entityType']=='NonSafComponent':
-                   self.endEntity.data['proxyCSI'] = self.startEntity.data['csiType']
+                   self.endEntity.data['proxyCSI'] = self.startEntity.data['csiTypes']
                 #print str(self.startEntity.data)
                 #print '\n\n'
                 #print str(self.endEntity.data)
@@ -229,7 +229,7 @@ class LinkTool(Tool):
        proxiedComp = arrow.contained
        for name,e in list(share.umlEditorPanel.model.entities.items()):
           if proxiedComp.data['name'] == e.data['name']:
-             proxiedComp.data['proxyCSI'] = proxyComp.data['csiType']
+             proxiedComp.data['proxyCSI'] = proxyComp.data['csiTypes']
              break
 
 class SelectTool(Tool):
@@ -506,7 +506,7 @@ class DeleteTool(Tool):
         l2 = self.getDistance(pos_2, pos)
         if math.fabs(l1+l2-l) < 0.08:          
           if (arrow.contained.data['entityType'] == 'Component' or arrow.contained.data['entityType'] == 'NonSafComponent') and arrow.container.data['entityType']=='ComponentServiceInstance':
-             arrow.contained.data['csiType'] = ''
+             arrow.contained.data['csiTypes'] = ''
              self.removeProxyCSI(arrow.contained)
           if arrow.container.data['entityType'] == 'Component' and arrow.contained.data['entityType']=='NonSafComponent':
              arrow.contained.data['proxyCSI'] = ''

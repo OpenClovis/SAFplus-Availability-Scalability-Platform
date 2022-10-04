@@ -215,10 +215,6 @@ class Entity:
         if arrow.contained.et.name == "ServiceUnit":
           if entity.et.name=="ServiceUnit":
             return RLS_ERR_EXISTS
-      for arrow in self.containmentArrows:
-        if arrow.contained.et.name == "ServiceInstance":
-          if entity.et.name=="ServiceInstance":
-            return RLS_ERR_EXISTS
       if isRelationshipExist(entity, RELATIONSHIP_TYPE.SG_TO_SU):
         return RLS_ERR_EXISTS
       return RLS_OK
@@ -227,11 +223,6 @@ class Entity:
         return RLS_ERR_EXISTS
       return RLS_OK
     if self.et.name=="ComponentServiceInstance" and (entity.et.name=="Component" or entity.et.name=="NonSafComponent"):
-      for arrow in self.containmentArrows:
-        if arrow.contained == entity:
-          return RLS_ERR_EXISTS
-      if isRelationshipExist(entity, RELATIONSHIP_TYPE.CSI_TO_COMP):
-        return RLS_ERR_EXISTS
       return RLS_OK
     if self.et.name=="Component" and entity.et.name=="NonSafComponent":
       for arrow in self.containmentArrows:

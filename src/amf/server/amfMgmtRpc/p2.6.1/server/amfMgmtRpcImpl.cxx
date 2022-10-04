@@ -1142,11 +1142,15 @@ namespace amfMgmtRpc {
         MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"timeouts/workAssignment",ss.str()));
       }
     }
-    if (comp.has_csitype())
-    {
-      const std::string& csiType  = comp.csitype();
-      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"csiType",csiType));
-    }
+    int csitypesSize = 0;
+    if ((csitypesSize = comp.csitypes_size()) > 0) {
+      std::vector<std::string>  csiTypes;
+      for (int i=0; i < csitypesSize;i++) {
+        const std::string& csiType = comp.csitypes(i);
+        csiTypes.push_back(csiType);
+      }
+      MGMT_CALL(updateEntityAsListTypeFromDatabase("/safplusAmf/Component",comp.name(),"csiTypes",csiTypes));
+     }
    
     return rc;
   }
@@ -1260,7 +1264,11 @@ namespace amfMgmtRpc {
     timeouts->set_allocated_workassignment(workAssignment);
     compConfig->set_allocated_timeouts(timeouts);
 
-    compConfig->set_csitype(comp->csiType.value);
+    const std::vector<std::string>& csiTypes = comp->csiTypes.value;
+    for(std::vector<std::string>::const_iterator it = csiTypes.begin();it!=csiTypes.end();it++)
+    {
+      compConfig->add_csitypes(*it);
+    }
  
     return rc;
   }

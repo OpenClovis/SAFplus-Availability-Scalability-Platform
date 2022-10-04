@@ -909,7 +909,7 @@ By default the specified location and children are shown.  Use -N to specify how
                   "serviceUnitRestart",  "serviceUnits",  "assignedServiceInstances",  "compRestartCount",\
                     "components",  "failover",  "lastCompRestart",  "lastRestart",  "node",  "rank",\
                       "saAmfSUHostNodeOrNodeGroup",  "serviceGroup",  "capabilityModel",  "cleanup",\
-                        "csiType",  "delayBetweenInstantiation",  "instantiate",  "instantiateLevel",\
+                        "csiTypes",  "delayBetweenInstantiation",  "instantiate",  "instantiateLevel",\
                           "maxInstantInstantiations",  "maxStandbyAssignments",  "proxied",  "proxyCSI",  "recovery",\
                             "serviceUnit",  "terminate",  "timeouts",  "isFullStandbyAssignment",  "isFullActiveAssignment",\
                               "preferredActiveAssignments",  "preferredStandbyAssignments",  "dependencies",  "type",\
@@ -965,9 +965,25 @@ By default the specified location and children are shown.  Use -N to specify how
             for child1 in root1.iter('current'):
               d = [child.tag, child1.text]
         if child.tag in configureItems:
-          configureList.append(d)
+          found = False
+          for tmp in configureList:
+            if tmp[0] == child.tag:
+              found = True
+              break
+          if found == False:
+            configureList.append(d)
+          else:
+            tmp[1] = tmp[1] + ', ' + d[1]
         elif child.tag in statusItems:
-          statusList.append(d)
+          found = False
+          for tmp in statusList:
+            if tmp[0] == child.tag:
+              found = True
+              break
+          if found == False:
+            statusList.append(d)
+          else:
+            tmp[1] = tmp[1] + ', ' + d[1]
         else:
           print ("not in configure and status: %s %s" %(child.tag, child.text))
       headers = ["Name", entityName]
@@ -2495,7 +2511,7 @@ def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None, amfMasterHdl=No
         cname = "%s_in_%s_%d" % (name,suname,idx)
         idx+=1
 
-      entities["Component/%s" % cname] = { "maxActiveAssignments":1, "maxStandbyAssignments":1, "serviceUnit": suname, "csiType": "ComponentServiceInstance_%s" % suffix, "instantiate": { "command" : appDir + c, "timeout":15*1000 }}
+      entities["Component/%s" % cname] = { "maxActiveAssignments":1, "maxStandbyAssignments":1, "serviceUnit": suname, "csiTypes": "ComponentServiceInstance_%s" % suffix, "instantiate": { "command" : appDir + c, "timeout":15*1000 }}
       comps.append(cname)
 
     entities["ServiceUnit/%s" % suname] = { "components":",".join(comps),"node":n, "serviceGroup": sg }

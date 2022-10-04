@@ -63,6 +63,47 @@ namespace SAFplus
     ContainerType value;
     SORT sortby;
     std::function<bool(const T&, const T&)> funcSortByUser;
+
+  private:
+    template<class U>
+    ClRcT doRead(MgtDatabase *db, std::string parentXPath, const U & type) {
+      MgtObject::read(db, parentXPath);
+    }
+
+    ClRcT doRead(MgtDatabase *db, std::string parentXPath, std::string & type) {
+      std::string key;
+      if(parentXPath.size() > 0)
+      {
+        key.assign(parentXPath);
+        key.append(getFullXpath(false));
+      }
+      else
+        key.assign(getFullXpath(true));
+      if(db == nullptr) db = getDb();
+      if(!db->isInitialized())
+      {
+        return CL_ERR_NOT_INITIALIZED;
+      }
+
+      std::vector<std::string> iter;
+      db->iterate(key, iter);
+
+      value.clear();
+      for (std::vector<std::string>::iterator it=iter.begin(); it!=iter.end(); it++)
+      {
+        std::string val;
+        if (db->getRecord(*it, val) == CL_OK)
+        {
+          if (val.length()>0)
+          {
+            value.push_back(val);
+          }
+        }
+        else {
+        }
+      }
+    }
+
   public:
     MgtProvList(const char* name);
 
@@ -101,6 +142,11 @@ namespace SAFplus
     {
       copy(std::istream_iterator < T > (is), std::istream_iterator<T>(), std::back_inserter(b));
       return is;
+    }
+
+    virtual ClRcT read(MgtDatabase *db=nullptr, std::string parentXPath = "") {
+      T type;
+      return doRead(db, parentXPath, type);
     }
   };
 

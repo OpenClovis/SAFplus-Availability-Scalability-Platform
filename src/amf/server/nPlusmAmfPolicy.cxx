@@ -595,22 +595,12 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                           ServiceUnit* su = findPromotableServiceUnit(standbySus,si->activeWeightList,HighAvailabilityState::active);
                           if (su)
                           {
-                              if(si->standbyAssignments.contains(su))
-                              {
-                                  si->standbyAssignments.erase(su);
-                                  si->getNumStandbyAssignments()->current.value = si->standbyAssignments.value.size();
-                              }
+                              bool suContainedSi = false; // For rollback later if assignwork fail
                               if(su->assignedServiceInstances.contains(si))
                               {
-                                  su->assignedServiceInstances.erase(si);
+                                su->assignedServiceInstances.erase(si);
+                                suContainedSi = true;
                               }
-                              // TODO: remove other SI standby assignments from this SU if the component capability model is OR
-                              if(!si->activeAssignments.contains(su))
-                              {
-                                  si->activeAssignments.value.push_back(su);  // assign the si to the su
-                                  si->getNumActiveAssignments()->current.value = si->activeAssignments.value.size();
-                              }
-
                               SAFplus::MgtObject::Iterator itcsi;
                               SAFplus::MgtObject::Iterator endcsi = si->componentServiceInstances.end();
                               for (itcsi = si->componentServiceInstances.begin(); itcsi != endcsi; itcsi++)
@@ -636,8 +626,24 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                                       }
                                   }
                               }
-
-                              amfOps->assignWork(su,si,HighAvailabilityState::active);
+                              if (amfOps->assignWork(su,si,HighAvailabilityState::active)) {
+                                if(si->standbyAssignments.contains(su))
+                                {
+                                    si->standbyAssignments.erase(su);
+                                    si->getNumStandbyAssignments()->current.value = si->standbyAssignments.value.size();
+                                }
+                                // TODO: remove other SI standby assignments from this SU if the component capability model is OR
+                                if(!si->activeAssignments.contains(su))
+                                {
+                                    si->activeAssignments.value.push_back(su);  // assign the si to the su
+                                    si->getNumActiveAssignments()->current.value = si->activeAssignments.value.size();
+                                }
+                              }
+                              else { // Rollback incase assignwork fail
+                                if (suContainedSi) {
+                                    su->assignedServiceInstances.push_back(si);
+                                }
+                              }
                           }
                       }
                   }
@@ -658,14 +664,15 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                                   // TODO: assert(si is not already assigned to this su)
                                   /*si->activeAssignments.value.push_back(su);  // assign the si to the su
                   si->getNumActiveAssignments()->current.value++;
-                  */
+                  */                
+                                if (amfOps->assignWork(su,si,HighAvailabilityState::active)) {
                                   if(!si->activeAssignments.contains(su))
                                   {
                                       si->activeAssignments.value.push_back(su);
                                       si->getNumActiveAssignments()->current.value = si->activeAssignments.value.size();
                                   }
-                                  amfOps->assignWork(su,si,HighAvailabilityState::active);
-                                  boost::sort(sus,suOrder);  // Sort order may have changed based on the assignment.
+                                }
+                                boost::sort(sus,suOrder);  // Sort order may have changed based on the assignment.
                               }
                               else
                               {
@@ -674,7 +681,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                               }
                           }
                       }
-                      if (si->getNumActiveAssignments()->current.value > 0 && si->isFullActiveAssignment)  // If there is at least 1 active, try to assign the standbys
+                      if (si->getNumActiveAssignments()->current.value > 0 /*&& si->isFullActiveAssignment*/)  // If there is at least 1 active, try to assign the standbys
                       {
                           for (int cnt = si->getNumStandbyAssignments()->current.value; cnt < si->preferredStandbyAssignments /*|| (!si->isFullStandbyAssignment.value )*/; cnt++)
                           {
@@ -692,14 +699,15 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                                   // TODO: assert(si is not already assigned to this su)
                                   /*si->standbyAssignments.value.push_back(su);  // assign the si to the su
                   si->getNumStandbyAssignments()->current.value++;
-                  */
+                  */                              
+                                if (amfOps->assignWork(su,si,HighAvailabilityState::standby)) {
                                   if(!si->standbyAssignments.contains(su))
                                   {
                                       si->standbyAssignments.value.push_back(su);
                                       si->getNumStandbyAssignments()->current.value = si->standbyAssignments.value.size();
                                   }
-                                  amfOps->assignWork(su,si,HighAvailabilityState::standby);
                                   boost::sort(sus,suOrder);  // Sort order may have changed based on the assignment.
+                                }
                               }
                               else
                               {
@@ -748,10 +756,11 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                               ServiceUnit* su = findAssignableServiceUnit(sus,si,HighAvailabilityState::active);
                               if (su)
                               {
+                                if (amfOps->assignWork(su,si,HighAvailabilityState::active)){
                                   // TODO: assert(si is not already assigned to this su)
                                   si->activeAssignments.value.push_back(su);  // assign the si to the su
                                   si->getNumActiveAssignments()->current.value++;
-                                  amfOps->assignWork(su,si,HighAvailabilityState::active);
+                                }
                                   boost::sort(sus,suOrder);  // Sort order may have changed based on the assignment.
                               }
                               else
@@ -768,11 +777,11 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                               ServiceUnit* su = findAssignableServiceUnit(sus,si->standbyWeightList,HighAvailabilityState::standby);
                               if (su)
                               {
+                                if (amfOps->assignWork(su,si,HighAvailabilityState::standby)){
                                   // TODO: assert(si is not already assigned to this su)
                                   si->standbyAssignments.value.push_back(su);  // assign the si to the su
                                   si->getNumStandbyAssignments()->current.value++;
-
-                                  amfOps->assignWork(su,si,HighAvailabilityState::standby);
+                                }
                                   boost::sort(sus,suOrder);  // Sort order may have changed based on the assignment.
                               }
                               else
@@ -973,18 +982,20 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
       // Look for which CSI is assigned to the dead component and remove the assignment.
       for (itcsi = si->componentServiceInstances.begin(); itcsi != endcsi; itcsi++)
         {
-          csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*> (itcsi->second);
-        if (!csi || !(csi->type == comp->csiType.value)) continue;
-        found = csi->activeComponents.erase(comp);
-        if(found){
-            isPartiallyAssignment=true;
-            si->isFullActiveAssignment=false;
-        }
-        found = csi->standbyComponents.erase(comp);
-        if(found){
-            isPartiallyAssignment=true;
-            si->isFullStandbyAssignment=false;
-        }
+            csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*> (itcsi->second);
+            for (std::string csiType : comp->csiTypes.value) {
+                if (!csi || !(csi->type == csiType)) continue;
+                found = csi->activeComponents.erase(comp);
+                if(found){
+                    isPartiallyAssignment=true;
+                    si->isFullActiveAssignment=false;
+                }
+                found = csi->standbyComponents.erase(comp);
+                if(found){
+                    isPartiallyAssignment=true;
+                    si->isFullStandbyAssignment=false;
+                }
+            }
 #if 0
         if (1)
           {
