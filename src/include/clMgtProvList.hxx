@@ -41,6 +41,7 @@
 
 #include <clMgtBaseCommon.hxx>
 #include <clMgtObject.hxx>
+#include <clMgtRoot.hxx>
 using namespace std;
 namespace SAFplus
 {
@@ -104,6 +105,93 @@ namespace SAFplus
       }
     }
 
+    template<class U>
+    ClRcT doSetObject(const std::string &val, const U & type) {
+      MgtObject::setObj(val);
+    }
+
+    ClRcT doSetObject(const std::string &val, std::string & type) {
+      std::vector<std::string> refs;
+      boost::split(refs, val, boost::is_any_of(", "));
+      value.clear();
+      for(auto i = refs.begin(); i != refs.end(); i++)
+      {
+        if ((*i).length()>0)
+        {
+          value.push_back(*i);
+        }
+      }
+
+      MgtRoot::getInstance()->addReference(this);
+      updateReference();
+      lastChange = beat++;
+      return CL_OK;
+    }
+
+    template<class U>
+    ClRcT doSetDb(std::string pxp, MgtDatabase *db, const U & type) {
+    }
+
+    ClRcT doSetDb(std::string pxp, MgtDatabase *db, std::string type)
+    {
+      if (!loadDb)  // Not a configuration item
+        return CL_OK;
+
+      if(db == nullptr)
+        {
+          db = getDb();
+        }
+
+      std::string basekey;
+      if (pxp.size() > 0)
+        {
+        basekey = pxp;
+        basekey.append("/");
+        basekey.append(tag);
+        }
+      else if (dataXPath.size() > 0)
+        basekey = dataXPath;
+      else basekey = getFullXpath(true);
+
+      // First, delete all existing records
+      int idx;
+      db->deleteRecord(basekey);
+      int rc = CL_OK;
+      for (idx=1; rc==CL_OK; idx++) // Keep deleting as long as there are records.  This assumes that the list records are not sparse!
+        {
+          std::string key = basekey;
+          key.append("[");
+          key.append(boost::lexical_cast<std::string>(idx));
+          key.append("]");
+          rc = db->deleteRecord(key);
+        }
+
+      // Now add the new records
+      
+      std::vector<std::string> children;
+      if (value.size()==1)
+      {       
+        rc = db->setRecord(basekey, value[0], nullptr);
+        return rc;
+      }
+      rc = CL_OK;
+      /* TODO: Should be base on refs or value??? refs is configuration but 'value' is real assignment */
+      idx = 1;
+      for (typename ContainerType::iterator i = value.begin(); i != value.end(); ++i,++idx)
+        {
+          //typedef boost::array<char, 64> buf_t;
+          std::string key = basekey;
+          std::string childidx = "[";
+          childidx.append(boost::lexical_cast<std::string>(idx));
+          childidx.append("]");
+          key.append(childidx);
+          db->setRecord(key, *i, nullptr);
+          children.push_back(childidx);
+        } 
+      rc = db->setRecord(basekey,"",&children);
+      return rc;    
+    }
+
   public:
     MgtProvList(const char* name);
 
@@ -147,6 +235,33 @@ namespace SAFplus
     virtual ClRcT read(MgtDatabase *db=nullptr, std::string parentXPath = "") {
       T type;
       return doRead(db, parentXPath, type);
+    }
+
+    virtual ClRcT setObj(const std::string &val) {
+      T type;
+      return doSetObject(val, type);
+    }
+
+        //? Function to write data to the database.
+    virtual ClRcT write(MgtDatabase* db, std::string xpath = "")
+    {
+      return setDb(xpath, db);
+    }
+
+    //? Function to write changed data to the database.
+    virtual ClRcT writeChanged(uint64_t firstBeat, uint64_t beat, MgtDatabase *db = nullptr, std::string xpath = "")
+    {
+      if ((lastChange > firstBeat)&&(lastChange <= beat))
+          { 
+          logDebug("MGT", "OBJ", "write [%s/%s] dataXpath [%s]", xpath.c_str(), tag.c_str(), dataXPath.c_str());
+          return setDb(xpath, db);
+          }
+        return CL_OK;
+    }
+
+    ClRcT setDb(std::string pxp = "", MgtDatabase *db = nullptr) {
+      T type;
+      return doSetDb(pxp, db, type);
     }
   };
 
