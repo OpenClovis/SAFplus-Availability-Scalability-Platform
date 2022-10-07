@@ -17,9 +17,11 @@ import localaccess as access
 import xml.etree.ElementTree as ET
 import amfMgmtApi
 import aspApp
+import upgrade
 
 handle = 0
 refreshInterval = 1.9
+badNames = ["?", None, ""]
 
 class ClusterInfo:
     """This class represents the current cluster state and configuration"""
@@ -131,7 +133,7 @@ class data:
         try:
             global appDatabase
             appDatabase.ConnectToServiceGroups()    # attach apps to sgs and vice versa
-        except NameError:
+        except (NameError, AttributeError):
             pass # appDatabase is not initialized when ci.load() is first ever called
 
     def loadNodes(self, oldObject = None):
@@ -336,39 +338,51 @@ def parseKvpair(dataPath):
     
     return kvpair
 
-def getDependentEntites(entity):
+def getDependentEntities(entity):
     ret = []
     entities = []
 
     #if a child entity got deleted, it's name in parent's attr will be replaced with "?", ignore it.
     if entity.entityType == "Node":
-        suNames = [] if entity.serviceUnits == "" else entity.serviceUnits.split(", ")
-        entities = [getInformationOfEntity("ServiceUnit", suName) for suName in suNames if suName != "?"]
+        suNames = entity.serviceUnits.split(", ")
+        entities = [getInformationOfEntity("ServiceUnit", suName) for suName in suNames if suName not in badNames]
 
     elif entity.entityType == "ServiceGroup":
-        suNames = [] if entity.serviceUnits == "" else entity.serviceUnits.split(", ")
-        siNames = [] if entity.serviceInstances == "" else entity.serviceInstances.split(", ")
+        suNames = entity.serviceUnits.split(", ")
+        siNames = entity.serviceInstances.split(", ")
 
-        entities += [getInformationOfEntity("ServiceUnit", suName) for suName in suNames if suName != "?"]
-        entities += [getInformationOfEntity("ServiceInstance", siName) for siName in siNames if siName != "?"]
+        entities += [getInformationOfEntity("ServiceUnit", suName) for suName in suNames if suName not in badNames]
+        entities += [getInformationOfEntity("ServiceInstance", siName) for siName in siNames if siName not in badNames]
 
     elif entity.entityType == "ServiceUnit":
-        compNames = [] if entity.components == "" else entity.components.split(", ")
+        compNames = entity.components.split(", ")
 
-        entities = [getInformationOfEntity("Component", compName) for compName in compNames if compName != "?"]
+        entities = [getInformationOfEntity("Component", compName) for compName in compNames if compName not in badNames]
 
     elif entity.entityType == "ServiceInstance":
-        csiNames = [] if entity.componentServiceInstances == "" else entity.componentServiceInstances.split(", ")
+        csiNames = entity.componentServiceInstances.split(", ")
 
-        entities = [getInformationOfEntity("ComponentServiceInstance", csiName) for csiName in csiNames if csiName != "?"]
+        entities = [getInformationOfEntity("ComponentServiceInstance", csiName) for csiName in csiNames if csiName not in badNames]
 
     for ent in entities:
         if ent != "":   #ent == "" when it's already deleted but ci.refresh() hasn't been called, so getInformationOfEntity returns ""
-            ret += getDependentEntites(ent)
+            ret += getDependentEntities(ent)
 
     ret.append(entity)
 
     return ret
+
+def calcCompToCsiType(sg):
+    ret = {}    #stores componentType - csiType pairs
+    for comp in sg.getAllComps():
+        prog = comp.command()
+        prog = os.path.basename(prog)
+        ret[prog] = comp.csiTypes
+
+    return ret
+
+def getNameFromPath(path):  #   path: safplusAmf/ServiceUnit/ServiceUnit_ServiceGroupTest
+    return os.path.basename(path)
 
 class initialObject:
     """Initial all attributes in an entity"""
@@ -418,7 +432,7 @@ class initialObject:
         self.serviceGroup = ""
         self.capabilityModel = ""
         self.cleanup = ""
-        self.csiType = ""
+        self.csiTypes = ""
         self.delayBetweenInstantiation = ""
         self.instantiate = ""
         self.instantiateLevel = ""
@@ -495,6 +509,28 @@ class initialObject:
     def isIdle(self):
          return self.isRunning() and self.adminState=='idle'
 
+    def isActive(self,sg=None):
+        """Return true if this node has any active SUs"""
+        for su in self.getAllServiceUnits():
+            sgName = getNameFromPath(su.serviceGroup)
+            if not sg or sg.name == sgName:
+                if su.haState == "active": return True
+        return False
+
+    def isStandby(self,sg=None):
+        """Return true if this node has any standby SUs"""
+        for su in self.getAllServiceUnits():
+            sgName = getNameFromPath(su.serviceGroup)
+            if not sg or sg.name == sgName:
+                if su.haState == "standby": return True
+        return False
+
+    def nodeHaRole(self,sg=None):
+        """Return 'none', 'active', 'standby', or 'active/standby' depending on the roles of SUs on this node"""
+        active = self.isActive(sg) and 1 or 0  # Inline if
+        standby = self.isStandby(sg) and 1 or 0    
+        return ["none","active","standby","active/standby"][active + (standby*2)]
+
     def command(self):
 
         t = os.path.normpath(os.path.join("/safplusAmf/Component",self.name,"instantiate"))
@@ -554,9 +590,9 @@ class initialObject:
                 return child.text
 
     def getTotalRestartCount(self):
-        suNames = [] if self.serviceUnits == "" else self.serviceUnits.split(", ")
+        suNames = self.serviceUnits.split(", ")
 
-        suEntities = [getInformationOfEntity("ServiceUnit", suName) for suName in suNames if suName != "?"]
+        suEntities = [getInformationOfEntity("ServiceUnit", suName) for suName in suNames if suName not in badNames]
 
         totalCount = 0
 
@@ -568,22 +604,22 @@ class initialObject:
 
     def getAllComps(self):
         #function works for Node, SG, SU
-        suNames = [] if self.serviceUnits == "" else self.serviceUnits.split(", ")
+        suNames = self.serviceUnits.split(", ")
         
-        suEntities = [getInformationOfEntity("ServiceUnit", suName) for suName in suNames if suName != "?"]
+        suEntities = [getInformationOfEntity("ServiceUnit", suName) for suName in suNames if suName not in badNames]
 
-        compNames = [] if self.components == "" else self.components.split(", ")
+        compNames = self.components.split(", ")
         for suEntity in suEntities:
-            compNames += [] if suEntity.components == "" else suEntity.components.split(", ")
+            compNames += suEntity.components.split(", ")
 
-        compEntities = [getInformationOfEntity("Component", compName) for compName in compNames if compName != "?"]
+        compEntities = [getInformationOfEntity("Component", compName) for compName in compNames if compName not in badNames]
 
         return compEntities
 
     def getAllDeployments(self):
-        suNames = [] if self.serviceUnits == "" else self.serviceUnits.split(", ")
+        suNames = self.serviceUnits.split(", ")
         
-        suEntities = [getInformationOfEntity("ServiceUnit", suName) for suName in suNames if suName != "?"]
+        suEntities = [getInformationOfEntity("ServiceUnit", suName) for suName in suNames if suName not in badNames]
 
         sgNames = []
         sgEntities = []
@@ -605,12 +641,12 @@ class initialObject:
         return sgEntities
 
     def getAllNodes(self):
-        suNames = [] if self.serviceUnits == "" else self.serviceUnits.split(", ")
+        suNames = self.serviceUnits.split(", ")
 
         nodeNames = []  # for duplicate checking
         nodeEntities = []
         for suName in suNames:
-            suEntity = getInformationOfEntity("ServiceUnit", suName) if suName != "?" else None
+            suEntity = getInformationOfEntity("ServiceUnit", suName) if suName not in badNames else None
 
             if suEntity and suEntity.node not in nodeNames:
                 nodeNames.append(suEntity.node)
@@ -621,11 +657,11 @@ class initialObject:
 
     def getAllServiceInstances(self):
         # works for SG
-        siNames = [] if self.serviceInstances == "" else self.serviceInstances.split(", ")
+        siNames = self.serviceInstances.split(", ")
 
         siEntities = []
         for siName in siNames:
-            siEntity = getInformationOfEntity("ServiceInstance", siName) if siName != "?" else None
+            siEntity = getInformationOfEntity("ServiceInstance", siName) if siName not in badNames else None
 
             if siEntity:
                 siEntities.append(siEntity)
@@ -634,11 +670,11 @@ class initialObject:
 
     def getAllCSIs(self):
         # works for SI
-        csiNames = [] if self.componentServiceInstances == "" else self.componentServiceInstances.split(", ")
+        csiNames = self.componentServiceInstances.split(", ")
 
         csiEntities = []
         for csiName in csiNames:
-            siEntity = getInformationOfEntity("ComponentServiceInstance", csiName) if csiName != "?" else None
+            siEntity = getInformationOfEntity("ComponentServiceInstance", csiName) if csiName not in badNames else None
 
             if siEntity:
                 csiEntities.append(siEntity)
@@ -646,21 +682,21 @@ class initialObject:
         return csiEntities
 
     def getActiveSu(self):
-        suNames = [] if self.serviceUnits == "" else self.serviceUnits.split(", ")  # for SG
-        suNames += [] if self.activeAssignments == "" else self.activeAssignments.split(", ")   # for SI
+        suNames = self.serviceUnits.split(", ")  # for SG
+        suNames += self.activeAssignments.split(", ")   # for SI
 
         for suName in suNames:
-            suEntity = getInformationOfEntity("ServiceUnit", suName) if suName != "?" else None
+            suEntity = getInformationOfEntity("ServiceUnit", suName) if suName not in badNames else None
             if suEntity and suEntity.haState == "active":
                 return suEntity
         return None
 
     def getStandbySu(self):
-        suNames = [] if self.serviceUnits == "" else self.serviceUnits.split(", ")
-        suNames += [] if self.standbyAssignments == "" else self.standbyAssignments.split(", ")
+        suNames = self.serviceUnits.split(", ")
+        suNames += self.standbyAssignments.split(", ")
 
         for suName in suNames:
-            suEntity = getInformationOfEntity("ServiceUnit", suName) if suName != "?" else None
+            suEntity = getInformationOfEntity("ServiceUnit", suName) if suName not in badNames else None
             if suEntity and suEntity.haState == "standby":
                 return suEntity
         return None
@@ -683,8 +719,38 @@ class initialObject:
 
         return None
 
+    def getAllServiceUnits(self):
+        # function works for Node, SG
+        suNames = self.serviceUnits.split(", ")
+        suEntities = [getInformationOfEntity("ServiceUnit", suName) for suName in suNames if suName not in badNames]
+
+        return suEntities
+
+    def getNode(self):
+        # function works for Su, Comp
+        nodeEntity = None
+        suName = self.serviceUnit
+
+        nodeName = None
+        suEntity = getInformationOfEntity("ServiceUnit", suName) if suName not in badNames else None
+        if suEntity:
+            nodeName = suEntity.node    #for Comp
+        else:
+            nodeName = self.node    #for Su
+
+        nodeEntity = getInformationOfEntity("Node", nodeName) if nodeName not in badNames else None
+
+        obsoleteNode = ci.entities[nodeEntity.name]
+        accessAttr = ["localIp", "localUser", "localPasswd", "aspDir"]
+        for attr in accessAttr:
+            value = obsoleteNode.__getattribute__(attr)
+            nodeEntity.__setattr__(attr, value)
+
+        return nodeEntity
+
 ci = ClusterInfo()
 appDatabase = aspApp.AppDb()
+upgradeMgr = upgrade.UpgradeMgr()
 
 def main():
     print("start clusterinfo")

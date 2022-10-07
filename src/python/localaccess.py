@@ -101,6 +101,7 @@ amfMgmtServiceInstanceDelete = safplus.amfMgmtServiceInstanceDelete
 amfMgmtComponentServiceInstanceDelete = safplus.amfMgmtComponentServiceInstanceDelete
 amfMgmtCSINVPDelete = safplus.amfMgmtCSINVPDelete
 amfMgmtNodeSUListDelete = safplus.amfMgmtNodeSUListDelete
+amfMgmtSICSIListDelete = safplus.amfMgmtSICSIListDelete
 
 amfMgmtSafplusInstallInfoGet = safplus.amfMgmtSafplusInstallInfoGet
 amfMgmtSafplusInstallInfoSet = safplus.amfMgmtSafplusInstallInfoSet

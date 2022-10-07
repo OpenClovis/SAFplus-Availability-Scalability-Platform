@@ -932,7 +932,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
     comp->presenceState = PresenceState::uninstantiated;
     comp->activeAssignments = 0;
     comp->standbyAssignments = 0;
-    comp->assignedWork = "";
+    //comp->assignedWork = "";
     comp->readinessState = ReadinessState::outOfService;
     // right now, only the customer changes this; with presence uninstantiated, this comp obviously can't take an assignment: comp->haReadinessState = HighAvailabilityReadinessState::notReadyForAssignment;
     comp->haState = HighAvailabilityState::idle;
