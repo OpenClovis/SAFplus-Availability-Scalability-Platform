@@ -958,6 +958,11 @@ namespace amfMgmtRpc {
     {
       return CL_ERR_INVALID_PARAMETER;      
     }
+    if (comp.has_serviceunit())
+    {
+      const std::string& su  = comp.serviceunit();
+      CHECK_ENTITY("ServiceUnit",su);
+    }
     rc = addEntityToDatabase("/safplusAmf","Component",comp.name());
     if (rc == CL_ERR_ALREADY_EXIST)
     {
@@ -1092,7 +1097,6 @@ namespace amfMgmtRpc {
     if (comp.has_serviceunit())
     {
       const std::string& su  = comp.serviceunit();
-      CHECK_ENTITY("ServiceUnit",su);
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/Component",comp.name(),"serviceUnit",su));
     }
     if (comp.has_recovery())
@@ -1150,7 +1154,7 @@ namespace amfMgmtRpc {
         csiTypes.push_back(csiType);
       }
       MGMT_CALL(updateEntityAsListTypeFromDatabase("/safplusAmf/Component",comp.name(),"csiTypes",csiTypes));
-     }
+    }
    
     return rc;
   }
@@ -1361,6 +1365,27 @@ namespace amfMgmtRpc {
     {
       return CL_ERR_INVALID_PARAMETER;      
     }
+
+    int compsSize = 0;
+    if ((compsSize=su.components_size())>0)
+    {
+      for (int i=0;i<compsSize;i++)
+      {
+         const std::string& compName = su.components(i);
+         CHECK_ENTITY("Component", compName);         
+      }
+    }
+    if (su.has_node())
+    {
+      const std::string& node  = su.node();
+      CHECK_ENTITY("Node", node);      
+    }
+    if (su.has_servicegroup())
+    {
+      const std::string& sg  = su.servicegroup();
+      CHECK_ENTITY("ServiceGroup", sg);
+    }
+
     rc = addEntityToDatabase("/safplusAmf","ServiceUnit", su.name());
     if (rc == CL_ERR_ALREADY_EXIST)
     {
@@ -1389,15 +1414,13 @@ namespace amfMgmtRpc {
       bool failover = su.failover();
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceUnit",su.name(),"failover",B2S(failover)));
     }    
-    int compsSize = 0;
-    if ((compsSize=su.components_size())>0)
+    if (compsSize>0)
     {
       //std::string value;
       std::vector<std::string> comps;
       for (int i=0;i<compsSize;i++)
       {
          const std::string& compName = su.components(i);
-         CHECK_ENTITY("Component", compName);
          comps.push_back(compName);
       }
       MGMT_CALL(updateEntityAsListTypeFromDatabase("/safplusAmf/ServiceUnit",su.name(),"components",comps));
@@ -1405,13 +1428,11 @@ namespace amfMgmtRpc {
     if (su.has_node())
     {
       const std::string& node  = su.node();
-      CHECK_ENTITY("Node", node);
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceUnit",su.name(),"node",node));
     }
     if (su.has_servicegroup())
     {
       const std::string& sg  = su.servicegroup();
-      CHECK_ENTITY("ServiceGroup", sg);
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceUnit",su.name(),"serviceGroup",sg));
     }
     if (su.has_probationtime())
@@ -1441,9 +1462,14 @@ namespace amfMgmtRpc {
       SAFplusAmf::Component* comp = dynamic_cast<SAFplusAmf::Component*>(*itcomp);
       suConfig->add_components(comp->name.value);
     }
-
-    suConfig->set_node(su->node.value->name.value);
-    suConfig->set_servicegroup(su->serviceGroup.value->name.value);
+    if (su->node.value)
+    {
+      suConfig->set_node(su->node.value->name.value);
+    }
+    if (su->serviceGroup.value)
+    {
+      suConfig->set_servicegroup(su->serviceGroup.value->name.value);
+    }
     suConfig->set_probationtime(su->probationTime.value);   
     
     return rc;
@@ -1498,6 +1524,24 @@ namespace amfMgmtRpc {
     if (sg.name().length()==0)
     {
       return CL_ERR_INVALID_PARAMETER;      
+    }
+    int susSize = 0;
+    if ((susSize=sg.serviceunits_size())>0)
+    {
+      for (int i=0;i<susSize;i++)
+      {
+         const string& suName = sg.serviceunits(i);
+         CHECK_ENTITY("ServiceUnit", suName);
+      }
+    }
+    int sisSize = 0;
+    if ((sisSize=sg.serviceinstances_size())>0)
+    {
+      for (int i=0;i<sisSize;i++)
+      {
+         const string& siName = sg.serviceinstances(i);
+         CHECK_ENTITY("ServiceInstance", siName);
+      }
     }
     rc = addEntityToDatabase("/safplusAmf","ServiceGroup", sg.name());
     if (rc == CL_ERR_ALREADY_EXIST)
@@ -1620,26 +1664,22 @@ namespace amfMgmtRpc {
         }
       }
     }
-    int susSize = 0;
-    if ((susSize=sg.serviceunits_size())>0)
+    if (susSize>0)
     {
       std::vector<std::string> sus;
       for (int i=0;i<susSize;i++)
       {
          const string& suName = sg.serviceunits(i);
-         CHECK_ENTITY("ServiceUnit", suName);
          sus.push_back(suName);
       }
       MGMT_CALL(updateEntityAsListTypeFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"serviceUnits",sus));
     }
-    int sisSize = 0;
-    if ((sisSize=sg.serviceinstances_size())>0)
+    if (sisSize>0)
     {
       std::vector<std::string> sis;
       for (int i=0;i<sisSize;i++)
       {
          const string& siName = sg.serviceinstances(i);
-         CHECK_ENTITY("ServiceInstance", siName);
          sis.push_back(siName);
       }
       MGMT_CALL(updateEntityAsListTypeFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"serviceInstances",sis));
@@ -1803,6 +1843,15 @@ namespace amfMgmtRpc {
     {
       return CL_ERR_INVALID_PARAMETER;      
     }
+    int susSize = 0;
+    if ((susSize=node.serviceunits_size())>0)
+    {
+      for (int i=0;i<susSize;i++)
+      {
+         const string& suName = node.serviceunits(i);
+         CHECK_ENTITY("ServiceUnit", suName);
+      }
+    }
     rc = addEntityToDatabase("/safplusAmf","Node", node.name());
     if (rc == CL_ERR_ALREADY_EXIST)
     {
@@ -1857,14 +1906,13 @@ namespace amfMgmtRpc {
         }
       }
     }
-    int susSize = 0;
-    if ((susSize=node.serviceunits_size())>0)
+
+    if (susSize>0)
     {
       std::vector<std::string> sus;
       for (int i=0;i<susSize;i++)
       {
          const string& suName = node.serviceunits(i);
-         CHECK_ENTITY("ServiceUnit", suName);
          sus.push_back(suName);
       }
       MGMT_CALL(updateEntityAsListTypeFromDatabase("/safplusAmf/Node",node.name(),"serviceUnits",sus));
@@ -2078,6 +2126,11 @@ namespace amfMgmtRpc {
     {
       return CL_ERR_INVALID_PARAMETER;      
     }
+    if (si.has_servicegroup())
+    {
+      const std::string& sg = si.servicegroup();
+      CHECK_ENTITY("ServiceGroup", sg);
+    }
     rc = addEntityToDatabase("/safplusAmf","ServiceInstance", si.name());
     if (rc == CL_ERR_ALREADY_EXIST)
     {
@@ -2130,7 +2183,6 @@ namespace amfMgmtRpc {
     if (si.has_servicegroup())
     {
       const std::string& sg = si.servicegroup();
-      CHECK_ENTITY("ServiceGroup", sg);
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceInstance",si.name(),"serviceGroup",sg));
     }
 
@@ -2154,8 +2206,10 @@ namespace amfMgmtRpc {
       SAFplusAmf::ComponentServiceInstance* csi = dynamic_cast<SAFplusAmf::ComponentServiceInstance*>(*itcsi);
       siConfig->add_componentserviceinstances(csi->name.value);
     }
-        
-    siConfig->set_servicegroup(si->serviceGroup.value->name.value);   
+    if (si->serviceGroup.value)
+    {
+      siConfig->set_servicegroup(si->serviceGroup.value->name.value);
+    }
 
     return rc;
   }
@@ -2204,6 +2258,11 @@ namespace amfMgmtRpc {
     if (csi.name().length()==0)
     {
       return CL_ERR_INVALID_PARAMETER;      
+    }
+    if (csi.has_serviceinstance())
+    {     
+      const std::string& si = csi.serviceinstance();
+      CHECK_ENTITY("ServiceInstance", si);
     }
     rc = addEntityToDatabase("/safplusAmf","ComponentServiceInstance", csi.name());
     if (rc == CL_ERR_ALREADY_EXIST)
@@ -2255,13 +2314,17 @@ namespace amfMgmtRpc {
     if (csi.has_serviceinstance())
     {     
       const std::string& si = csi.serviceinstance();
-      CHECK_ENTITY("ServiceInstance", si);
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ComponentServiceInstance",csi.name(),"serviceInstance",si));
     }
     if (csi.has_type())
     {
       const std::string& type = csi.type();
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ComponentServiceInstance",csi.name(),"type",type));
+    }
+
+    if (!csiUpdate) // csi creation, add csiName as the default type for this csi
+    {
+      MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ComponentServiceInstance",csi.name(),"type",csi.name()));
     }
 
     return rc;
@@ -2294,8 +2357,10 @@ namespace amfMgmtRpc {
       data->set_val(kv->val);
       i++;
     }
-    
-    csiConfig->set_serviceinstance(csi->serviceInstance.value->name.value);
+    if (csi->serviceInstance.value)
+    {
+      csiConfig->set_serviceinstance(csi->serviceInstance.value->name.value);
+    }
     csiConfig->set_type(csi->type.value);
 
     return rc;
@@ -2974,6 +3039,8 @@ namespace amfMgmtRpc {
     case AMF_MGMT_OP_SI_CSI_LIST_DELETE:
       {
         SAFplusAmf::ServiceInstance* si = dynamic_cast<SAFplusAmf::ServiceInstance*>(containingEntity);
+        if (si->adminState.value != SAFplusAmf::AdministrativeState::idle) return CL_ERR_INVALID_STATE;
+#if 0
         for (int i=0;i<list.size();i++)
         {
           const std::string& csiName = list.Get(i);
@@ -2982,6 +3049,7 @@ namespace amfMgmtRpc {
           if (si->componentServiceInstances.contains(csi) == false) return CL_ERR_INVALID_PARAMETER;
           if (SAFplus::effectiveAdminState(csi) != SAFplusAmf::AdministrativeState::idle) return CL_ERR_INVALID_STATE;
         }
+#endif
         break;
       }
 #endif

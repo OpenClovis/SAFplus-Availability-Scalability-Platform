@@ -1821,7 +1821,7 @@ namespace SAFplus
                 if (!su) continue;
                 // remove work first
                 logDebug("OPS","NODE.ERR","Removing work assignments for all components running in su [%s]", su->name.value.c_str());
-                if ((su->numActiveServiceInstances.current > 0) || (su->numStandbyServiceInstances.current > 0))
+                if ((su->adminState.value != AdministrativeState::off) && (su->numActiveServiceInstances.current > 0 || su->numStandbyServiceInstances.current > 0))
                 {
                     removeWork(su);
                 }
@@ -1865,7 +1865,10 @@ namespace SAFplus
                     //assert(comp);
                     if (!comp) continue;
                     logDebug("OPS","NODE.ERR","Terminating component [%s]", comp->name.value.c_str());
-                    stop(comp);
+                    if (effectiveAdminState(comp) != AdministrativeState::off)
+                    {
+                       stop(comp);
+                    }
                 }
             }
             loopCount=0;
