@@ -255,14 +255,57 @@ class Extensions:
       menu.Append(self.npnpHAWizardId, "App Creator","Create all the entities required for a SAF-unaware compliant HA application")
       menu.Bind(wx.EVT_MENU, self.OnNPNPWizardMenu, id=self.npnpHAWizardId)
 
-  def isNameExisted(self, sgName, processName):
-    entitiesName = [sgName+"SG", sgName+"SU", processName, sgName+"ComponentServiceInstance"]
-    existedNames = []
-    for entity in list(self.model.model.entities.values()):
-      existedNames.append(entity.data['name'])
-    print("existedName %r" % existedNames)
-    check = any(name in entitiesName for name in existedNames)
-    return check
+  def compNameListCreator(self, sgName, processesName, numProcess):
+    result = list(processesName)
+    i = n = len(processesName)
+    while(n < numProcess):
+      i+=1
+      procName = sgName + "Comp" + str(i)
+      if procName in processesName:
+        continue
+      else:
+        result.append(procName)
+        n+=1
+    return result
+
+  def isNameConflicted(self, sgName, processesName, numProcess):
+    newEntitiesName = [sgName+"SG", sgName+"SU", sgName+"SI"]
+    compNameList = self.compNameListCreator(sgName, processesName, numProcess)
+    csiNameList = [compName+"CSI" for compName in compNameList]
+
+    newEntitiesName = newEntitiesName + compNameList + csiNameList
+    existedNames = list(share.umlEditorPanel.entities.keys())
+    
+    if any(name in newEntitiesName for name in existedNames):
+      return True
+    return False
+  
+  def modelPosition(self, numbProcs):
+    positionArray = []
+    lArray = {}
+    # Transverse through entities postion
+    for key in share.umlEditorPanel.entities:
+      if share.umlEditorPanel.entities[key].pos[1] < 800:
+        positionArray.append(share.umlEditorPanel.entities[key].pos[0])
+    # Sort the postion array by x_codinator (first value of position)
+    positionArray = [*set(positionArray)]
+    tmp = positionArray.copy()
+    positionArray.append(0)
+    positionArray.sort()
+    tmp.append(positionArray[-1]  + 400)
+    tmp.sort()
+    for x, y in zip(positionArray, tmp):
+      lArray.update({x: (y - x)})
+    modelLength = 800 if numbProcs <= 2 else numbProcs*450 + 100
+    for key in lArray:
+      if lArray[key] >= modelLength:
+        if key == 0:
+          return 100
+        else:
+          return key + 400
+    if (tmp[-1] == 400):
+      return 100
+    return tmp[-1]
 
   def OnSAFWizardMenu(self, event):
     dlg = SAFWizardDialog()
@@ -272,9 +315,15 @@ class Extensions:
     warning = ConflictNameWarning()
     warning.what = None
     if dlg.what == "OK":
-      position = self.position
-      size = None
       name = dlg.nameGui.GetValue()
+      procNames = dlg.procNameList
+      nProc = int(dlg.nProc.GetValue())
+      if self.isNameConflicted(name, procNames, nProc):
+        warning.ShowModal()
+        warning.Destroy()
+        return
+      position = (self.modelPosition(nProc), 100)
+      size = None
       newEntities = []
       SG = self.model.model.entityTypes["ServiceGroup"].createEntity(position, size,name=name + "SG")
       newEntities.append(SG)
@@ -294,22 +343,11 @@ class Extensions:
         newEntities.append(SI)
 
       position = (position[0], position[1] + LevelStep)
-      nProc = int(dlg.nProc.GetValue())
       pos = position
 
-      procNames = dlg.procNameList
-
       #for n in max(len(procNames), list(range(1,nProc+1))):
-      for n in range(1, nProc + 1):
-        if procNames:
-          compName = procNames[0]
-          del procNames[0]
-        else:
-          compName = name + "Comp" + str(n)
-        if self.isNameExisted(name, compName):
-          warning.ShowModal()
-          warning.Destroy()
-          return
+      compNameList = self.compNameListCreator(name, procNames, nProc)
+      for compName in compNameList:
         comp = self.model.model.entityTypes["Component"].createEntity(pos, size,name=compName)
         ca = ContainmentArrow(SU, (50,50), comp, (100,50), None)
         SU.containmentArrows.append(ca)
@@ -349,7 +387,7 @@ class Extensions:
       share.umlEditorPanel.tool = seltool
       
       self.posAdjust = (SpacerStep*(nProc+1)+5,0)
-      self.position = (self.position[0] + self.posAdjust[0], self.position[1] + self.posAdjust[1])
+      # self.position = (self.position[0] + self.posAdjust[0], self.position[1] + self.posAdjust[1])
 
   def OnNPNPWizardMenu(self,event):
     dlg = NPNPWizardDialog()
@@ -359,9 +397,15 @@ class Extensions:
     warning = ConflictNameWarning()
     warning.what = None
     if dlg.what == "OK":
-      position = self.position
-      size = None
       name = dlg.nameGui.GetValue()
+      procNames = dlg.procNameList
+      nProc = int(dlg.nProc.GetValue())
+      if self.isNameConflicted(name, procNames, nProc):
+        warning.ShowModal()
+        warning.Destroy()
+        return
+      position = (self.modelPosition(nProc), 100)
+      size = None
       newEntities = []
       SG = self.model.model.entityTypes["ServiceGroup"].createEntity(position, size,name=name + "SG")
       newEntities.append(SG)
@@ -381,22 +425,11 @@ class Extensions:
         newEntities.append(SI)
 
       position = (position[0], position[1] + LevelStep)
-      nProc = int(dlg.nProc.GetValue())
       pos = position
 
-      procNames = dlg.procNameList
-
       #for n in max(len(procNames), list(range(1,nProc+1))):
-      for n in range(1, nProc + 1):
-        if procNames:
-          compName = procNames[0]
-          del procNames[0]
-        else:
-          compName = name + "Comp" + str(n)
-        if self.isNameExisted(name, compName):
-          warning.ShowModal()
-          warning.Destroy()
-          return
+      compNameList = self.compNameListCreator(name, procNames, nProc)
+      for compName in compNameList:
         comp = self.model.model.entityTypes["Component"].createEntity(pos, size,name=compName)
         ca = ContainmentArrow(SU, (50,50), comp, (100,50), None)
         SU.containmentArrows.append(ca)
@@ -436,7 +469,7 @@ class Extensions:
       share.umlEditorPanel.tool = seltool
 
       self.posAdjust = (SpacerStep*(nProc+1)+5 ,0)
-      self.position = (self.position[0] + self.posAdjust[0], self.position[1] + self.posAdjust[1])
+      # self.position = (self.position[0] + self.posAdjust[0], self.position[1] + self.posAdjust[1])
 
 ext = None
 
