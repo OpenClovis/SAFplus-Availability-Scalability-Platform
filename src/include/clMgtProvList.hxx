@@ -122,8 +122,6 @@ namespace SAFplus
         }
       }
 
-      MgtRoot::getInstance()->addReference(this);
-      updateReference();
       lastChange = beat++;
       return CL_OK;
     }
