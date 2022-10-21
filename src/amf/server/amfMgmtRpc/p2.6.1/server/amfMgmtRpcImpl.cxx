@@ -3097,6 +3097,10 @@ namespace amfMgmtRpc {
           rc = CL_ERR_NOT_EXIST;
           break;
         }
+        /*if (comp.has_instantiatelevel()) // instantiatelevel is not added to ComponentConfig
+        {
+           if (comp.
+        }*/
         #if 0 // no check except instantiateLevel set!!!
         if (SAFplus::effectiveAdminState(safComp) != SAFplusAmf::AdministrativeState::off)
         {
@@ -3292,7 +3296,7 @@ namespace amfMgmtRpc {
           logError("MGMT","VALIDATE.OP","su with name [%s] doesn't exist, cannot update it", su.name().c_str());
           rc = CL_ERR_NOT_EXIST;         
         }
-        if (su.has_rank())
+        if (su.has_rank() && su.rank() != safSu->rank.value)
         {
           if (SAFplus::effectiveAdminState(safSu) != SAFplusAmf::AdministrativeState::off)
           {
@@ -3358,9 +3362,9 @@ namespace amfMgmtRpc {
           logError("MGMT","VALIDATE.OP","si with name [%s] doesn't exist, cannot update it", si.name().c_str());
           rc = CL_ERR_NOT_EXIST;         
         }
-        if (si.has_rank())
+        if (si.has_rank() && si.rank() != safSi->rank.value)
         {
-          if (SAFplus::effectiveAdminState(safSi) != SAFplusAmf::AdministrativeState::off)
+          if (safSi->adminState.value != SAFplusAmf::AdministrativeState::idle)
           {
             rc = CL_ERR_INVALID_STATE;
           }

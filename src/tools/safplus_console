@@ -2450,9 +2450,10 @@ def Data2Csi(params=None, entities={}):
 # returns data k1/v1 data k2/v2 ...
 def dict2list(dataDict):
   l = []
-  for (key,val) in dataDict.items():
-     l.append('data')
-     l.append('%s/%s'% (key,val))
+  if dataDict:
+    for (key,val) in dataDict.items():
+      l.append('data')
+      l.append('%s/%s'% (key,val))
      
   return l
 
