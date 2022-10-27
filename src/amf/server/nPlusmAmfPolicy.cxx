@@ -169,8 +169,6 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
       logInfo("N+M","STRT","Starting component [%s], with instantiateLevel = %d", comp->name.value.c_str(), minInstantiateLevel);
       try
         {
-        CompStatus status = amfOps->getCompState(comp);
-
         SAFplusAmf::AdministrativeState eas = effectiveAdminState(comp);
         assert(eas != SAFplusAmf::AdministrativeState::off); // Do not call this API if the component is administratively OFF!
         if (*faultyComp && (*faultyComp)->name.value == comp->name.value)

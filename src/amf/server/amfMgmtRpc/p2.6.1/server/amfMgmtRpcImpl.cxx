@@ -163,6 +163,11 @@ namespace SAFplus {
 namespace Rpc {
 namespace amfMgmtRpc {
 
+  ClRcT siCommit(const ServiceInstanceConfig& si);
+  ClRcT suCommit(const ServiceUnitConfig& su);
+  ClRcT compCommit(const ComponentConfig& comp);
+  ClRcT csiCommit(const ComponentServiceInstanceConfig& csi, bool csiUpdate);
+
   ClRcT addEntityConfigToDatabase(const std::string& xpath, const std::string& entityName)
   {
     // check if the xpath exists in the DB
@@ -1424,6 +1429,16 @@ namespace amfMgmtRpc {
          comps.push_back(compName);
       }
       MGMT_CALL(updateEntityAsListTypeFromDatabase("/safplusAmf/ServiceUnit",su.name(),"components",comps));
+
+      // update su of the comp
+      std::vector<std::string>::iterator it;
+      ComponentConfig compConfig;
+      compConfig.set_serviceunit(su.name());
+      for (it=comps.begin(); it!=comps.end();it++)
+      {
+         compConfig.set_name(*it);         
+         MGMT_CALL(compCommit(compConfig));
+      }
     }
     if (su.has_node())
     {
@@ -1673,6 +1688,15 @@ namespace amfMgmtRpc {
          sus.push_back(suName);
       }
       MGMT_CALL(updateEntityAsListTypeFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"serviceUnits",sus));
+      // update sg of the su
+      std::vector<std::string>::iterator it;
+      ServiceUnitConfig suConfig;
+      suConfig.set_servicegroup(sg.name());
+      for (it=sus.begin(); it!=sus.end();it++)
+      {
+         suConfig.set_name(*it);         
+         MGMT_CALL(suCommit(suConfig));
+      }
     }
     if (sisSize>0)
     {
@@ -1683,6 +1707,15 @@ namespace amfMgmtRpc {
          sis.push_back(siName);
       }
       MGMT_CALL(updateEntityAsListTypeFromDatabase("/safplusAmf/ServiceGroup",sg.name(),"serviceInstances",sis));
+      // update sg of the si
+      std::vector<std::string>::iterator it;   
+      ServiceInstanceConfig siConfig;
+      siConfig.set_servicegroup(sg.name());
+      for (it=sis.begin(); it!=sis.end();it++)
+      {
+         siConfig.set_name(*it);
+         MGMT_CALL(siCommit(siConfig));
+      }      
     }    
 
     return rc;
@@ -1916,6 +1949,15 @@ namespace amfMgmtRpc {
          sus.push_back(suName);
       }
       MGMT_CALL(updateEntityAsListTypeFromDatabase("/safplusAmf/Node",node.name(),"serviceUnits",sus));
+      // update node of the su
+      std::vector<std::string>::iterator it;
+      ServiceUnitConfig suConfig;
+      suConfig.set_node(node.name());
+      for (it=sus.begin(); it!=sus.end();it++)
+      {
+         suConfig.set_name(*it);         
+         MGMT_CALL(suCommit(suConfig));
+      }
     }
 
     return rc;
@@ -2179,6 +2221,15 @@ namespace amfMgmtRpc {
          csis.push_back(si.componentserviceinstances(i));
       }
       MGMT_CALL(updateEntityAsListTypeFromDatabase("/safplusAmf/ServiceInstance",si.name(),"componentServiceInstances",csis));
+      // update si of the csi
+      ComponentServiceInstanceConfig csiConfig;
+      csiConfig.set_serviceinstance(si.name());     
+      std::vector<std::string>::iterator it;      
+      for (it=csis.begin(); it!=csis.end();it++)
+      {
+         csiConfig.set_name(*it);         
+         MGMT_CALL(csiCommit(csiConfig,true));
+      }
     }        
     if (si.has_servicegroup())
     {

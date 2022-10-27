@@ -93,6 +93,10 @@ ClRcT amfMgmtComponentConfigSet(const Handle& mgmtHandle,SAFplus::Rpc::amfMgmtRp
    {
      return CL_ERR_NOT_INITIALIZED;
    }
+   if (comp->has_serviceunit())
+   {
+      return CL_ERR_INVALID_PARAMETER;
+   }
    ClRcT rc;
    SAFplus::Rpc::amfMgmtRpc::UpdateComponentRequest request;
    request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
@@ -168,6 +172,10 @@ ClRcT amfMgmtServiceUnitConfigSet(const Handle& mgmtHandle,SAFplus::Rpc::amfMgmt
    if (!gAmfMgmtInitialized)
    {
      return CL_ERR_NOT_INITIALIZED;
+   }
+   if (su->has_servicegroup() || su->has_node())
+   {
+      return CL_ERR_INVALID_PARAMETER;
    }
    ClRcT rc;
    SAFplus::Rpc::amfMgmtRpc::UpdateSURequest request;
@@ -389,9 +397,13 @@ ClRcT amfMgmtServiceInstanceCreate(const Handle& mgmtHandle, SAFplus::Rpc::amfMg
 }
 ClRcT amfMgmtServiceInstanceConfigSet(const Handle& mgmtHandle, SAFplus::Rpc::amfMgmtRpc::ServiceInstanceConfig* si)
 {
-  if (!gAmfMgmtInitialized)
+   if (!gAmfMgmtInitialized)
    {
      return CL_ERR_NOT_INITIALIZED;
+   }
+   if (si->has_servicegroup())
+   {
+      return CL_ERR_INVALID_PARAMETER;
    }
    ClRcT rc;
    SAFplus::Rpc::amfMgmtRpc::UpdateSIRequest request;
@@ -467,6 +479,10 @@ ClRcT amfMgmtComponentServiceInstanceConfigSet(const Handle& mgmtHandle, SAFplus
    if (!gAmfMgmtInitialized)
    {
      return CL_ERR_NOT_INITIALIZED;
+   }
+   if (csi->has_serviceinstance())
+   {
+      return CL_ERR_INVALID_PARAMETER;
    }
    ClRcT rc;
    SAFplus::Rpc::amfMgmtRpc::UpdateCSIRequest request;

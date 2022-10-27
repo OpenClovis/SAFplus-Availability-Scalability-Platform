@@ -518,7 +518,7 @@ ClRcT updateComponentServiceInstance(const SAFplus::Handle& mgmtHandle, const st
       else
       {
           std::cout << "Doesn't support setting this attribute: " << attr << std::endl;
-          return CL_ERR_UNSPECIFIED;
+          return CL_ERR_INVALID_PARAMETER;
       }
   }
 
@@ -565,7 +565,7 @@ ClRcT updateServiceInstance(const SAFplus::Handle& mgmtHandle, boost::python::li
       else
       {
           std::cout << "Doesn't support setting this attribute: " << attr << std::endl;
-          return CL_ERR_UNSPECIFIED;
+          return CL_ERR_INVALID_PARAMETER;
       }
   }
 
@@ -612,7 +612,7 @@ ClRcT updateServiceUnit(const SAFplus::Handle& mgmtHandle, boost::python::list &
       else
       {
           std::cout << "Doesn't support setting this attribute: " << attr << std::endl;
-          return CL_ERR_UNSPECIFIED;
+          return CL_ERR_INVALID_PARAMETER;
       }
   }
 
@@ -655,7 +655,7 @@ ClRcT updateNode(const SAFplus::Handle& mgmtHandle, boost::python::list & argv)
         else
         {
             std::cout << "Doesn't support setting this attribute: " << attr << std::endl;
-            return CL_ERR_UNSPECIFIED;
+            return CL_ERR_INVALID_PARAMETER;
         }
     }
 
@@ -724,7 +724,7 @@ ClRcT updateServiceGroup(const SAFplus::Handle& mgmtHandle, boost::python::list 
         else
         {
             std::cout << "Doesn't support setting this attribute: " << attr << std::endl;
-            return CL_ERR_UNSPECIFIED;
+            return CL_ERR_INVALID_PARAMETER;
         }
 
     }
@@ -795,7 +795,7 @@ ClRcT updateComponent(const SAFplus::Handle& mgmtHandle, const std::string & com
             else
             {
                 std::cout << "Doesn't support capabilityModel value: " << val << std::endl;
-                return CL_ERR_UNSPECIFIED;
+                return CL_ERR_INVALID_PARAMETER;
             }
         }
         else if(!attr.compare("maxActiveAssignments"))
@@ -918,7 +918,7 @@ ClRcT updateComponent(const SAFplus::Handle& mgmtHandle, const std::string & com
             else
             {
                 std::cout << "Doesn't support recovery value: " << val << std::endl;
-                return CL_ERR_UNSPECIFIED;
+                return CL_ERR_INVALID_PARAMETER;
             }
         }
         else if(!attr.compare("restartable"))
@@ -932,7 +932,7 @@ ClRcT updateComponent(const SAFplus::Handle& mgmtHandle, const std::string & com
         else
         {
             std::cout << "Doesn't support setting this attribute: " << attr << std::endl;
-            return CL_ERR_UNSPECIFIED;
+            return CL_ERR_INVALID_PARAMETER;
         }
     }
 

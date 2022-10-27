@@ -175,15 +175,9 @@ namespace SAFplus
             }
 
           if (obj) value = (T)obj;
-          else
-            {
-              logWarning("MGT", "READ", "Object [%s] contains unresolved management tree reference [%s]", getFullXpath(true).c_str(), ref.c_str());
-            }
-
         }
         else
         {
-            logNotice("MGT", "READ", "ref for [%s] is empty --> set its value object to null",dataXPath.c_str());
             value = nullptr;
         }
     }
