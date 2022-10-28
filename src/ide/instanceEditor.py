@@ -2234,6 +2234,11 @@ class Panel(scrolled.ScrolledPanel):
       return None
 
     def notifyValueChange(self, ent, key, query, newValue):
+      names = self.model.instances.keys()
+      validator = query.GetValidator()
+      if (key.split("_")[-1] == "name") and (newValue in names):
+        self.statusBar.SetStatusText("Instance name [%s] existed. Name [%s] is being used" % (newValue, validator.currentValue))
+        return
       for (name, e) in list(self.model.instances.items()):
         if e == ent:
           iterKeys = iter(key.split("_"))
@@ -2252,8 +2257,8 @@ class Panel(scrolled.ScrolledPanel):
               break
           d[token] = newValue          
           # set the name (as a key) of self.model.instances dict
-          validator = query.GetValidator()
           if token == "name":
+            self.statusBar.SetStatusText("Instance name changed from [%s] to [%s]." % (validator.currentValue, newValue))
             if validator:
               self.model.deleteInstanceFromMicrodom(validator.currentValue)
             self.model.instances[newValue] = self.model.instances.pop(name)
@@ -2265,6 +2270,7 @@ class Panel(scrolled.ScrolledPanel):
 
           if token=="canBeInherited":
             self.updateMenuUserDefineNodeTypes(ent=ent, oldValue=None, flag=d["canBeInherited"])
+          break
 
       self.Refresh()
 

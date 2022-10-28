@@ -84,6 +84,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
   {
   assert(a);
   assert(b);
+  if (a->rank.value == b->rank.value) return false;
   if (b->rank.value == 0) return true;
   if (a->rank.value == 0) return false;
   return (a->rank.value < b->rank.value);
@@ -93,6 +94,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
   {
   assert(a);
   assert(b);
+  if (a->rank.value == b->rank.value) return false;
   if (b->rank.value == 0) return true;
   if (a->rank.value == 0) return false;
   return (a->rank.value < b->rank.value);

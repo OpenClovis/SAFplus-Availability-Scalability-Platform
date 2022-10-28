@@ -1016,6 +1016,11 @@ class Panel(scrolled.ScrolledPanel):
       return ret
 
     def notifyValueChange(self, ent, key, query, newValue):      
+      names = self.entities.keys()
+      validator = query.GetValidator()
+      if (key.split("_")[-1] == "name") and (newValue in names):
+        self.statusBar.SetStatusText("Entity name [%s] existed. Name [%s] is being used" % (newValue, validator.currentValue))
+        return
       if share.instancePanel:
         share.instancePanel.modifyEntityTool(ent, newValue)
       for (name, e) in list(self.entities.items()):
@@ -1035,8 +1040,8 @@ class Panel(scrolled.ScrolledPanel):
             except StopIteration:
               break
           d[token] = newValue
-          validator = query.GetValidator()
           if token == "name":
+            self.statusBar.SetStatusText("Entity name changed from [%s] to [%s]." % (validator.currentValue, newValue))
             if validator:              
               self.model.deleteEntityFromMicrodom(validator.currentValue, e.et.name)
             self.entities[newValue] = self.entities.pop(name)          
@@ -1045,6 +1050,8 @@ class Panel(scrolled.ScrolledPanel):
           else:
             print('umlEditor::notifyValueChange: validator is null')
           e.recreateBitmap()
+          break
+
       self.Refresh()
 
     def deleteEntities(self, ents):
