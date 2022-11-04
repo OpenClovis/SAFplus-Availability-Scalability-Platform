@@ -1409,46 +1409,36 @@ By default the specified location and children are shown.  Use -N to specify how
 
   def do_entityCreate(self, entityType, entityName, *args):
     """syntax:
-    - entityCreate Component entityName suName binary
+    - entityCreate Component entityName binary
       Parameters:
         Component: the type of the entity
-        entityName: the string name of the Component
-        suName: the string name of the SU
+        entityName: the string name of the Component        
         binary: the string name of the binary Component which is a process name
 
-    - entityCreate ServiceGroup entityName suName siName
+    - entityCreate ServiceGroup entityName
       Parameters:
         ServiceGroup: the type of the entity
-        entityName: the string name of the ServiceGroup
-        suName: the string name of the SU
-        siName: the string name of the SI
+        entityName: the string name of the ServiceGroup        
 
-    - entityCreate Node entityName suName
+    - entityCreate Node entityName
       Parameters:
         Node: the type of the entity
         entityName: the string name of the Node
-        suName: the string name of the SU
 
-    - entityCreate ServiceUnit entityName compName sgName nodeName
+    - entityCreate ServiceUnit entityName
       Parameters:
         ServiceUnit: the type of the entity
         entityName: the string name of the ServiceUnit
-        compName: the string name of the Component
-        sgName: the string name of the SG
-        nodeName: the string name of the Node
 
-    - entityCreate ServiceInstance entityName sgName csiName
+    - entityCreate ServiceInstance entityName
       Parameters:
         ServiceInstance: the type of the entity
-        entityName: the string name of the ServiceInstance
-        sgName: the string name of the SG
-        csiName: the string name of the CSI
+        entityName: the string name of the ServiceInstance      
 
-    - entityCreate ComponentServiceInstance entityName siName key/value
+    - entityCreate ComponentServiceInstance entityName [key/value]
       Parameters:
         ComponentServiceInstance: the type of the entity
-        entityName: the string name of the ComponentServiceInstance
-        siName: the string name of the SI
+        entityName: the string name of the ComponentServiceInstance        
         key/value: the key/value strings that will become the name/value pairs in each CSI
 
     Creates a new entityName with the specified entityType
@@ -1459,58 +1449,61 @@ By default the specified location and children are shown.  Use -N to specify how
       ret = access.amfMgmtInitialize(amfMgmtHandle)
       if ret == 0x0:
         if entityType == "Component":
-          if len(args) == 2:
-            for i in range(len(args)):
-              if args[i] == "\'\'":
-                args[i] = ""
-            ret = access.addNewComponent(amfMgmtHandle, entityName, args[0], args[1])
+          if len(args) == 1:
+            #for i in range(len(args)):
+            #  if args[i] == "\'\'":
+            #    args[i] = ""
+            ret = access.addNewComponent(amfMgmtHandle, entityName, args[0])
           else:
             print(self.do_entityCreate.__doc__)
             ret = 0x02
         elif entityType == "ServiceGroup":
-          if len(args) == 2:
-            for i in range(len(args)):
-              if args[i] == "\'\'":
-                args[i] = ""
-            ret = access.addNewServiceGroup(amfMgmtHandle, entityName, args[0], args[1])
+          if len(args) == 0:
+            #for i in range(len(args)):
+            #  if args[i] == "\'\'":
+            #    args[i] = ""
+            ret = access.addNewServiceGroup(amfMgmtHandle, entityName)
           else:
             print(self.do_entityCreate.__doc__)
             ret = 0x02
         elif entityType == "Node":
-          if len(args) == 1:
-            for i in range(len(args)):
-              if args[i] == "\'\'":
-                args[i] = ""
-            ret = access.addNewNode(amfMgmtHandle, entityName, args[0])
+          if len(args) == 0:
+            #for i in range(len(args)):
+            #  if args[i] == "\'\'":
+            #    args[i] = ""
+            ret = access.addNewNode(amfMgmtHandle, entityName)
           else:
             print(self.do_entityCreate.__doc__)
             ret = 0x02
         elif entityType == "ServiceUnit":
-          if len(args) == 3:
-            for i in range(len(args)):
-              if args[i] == "\'\'":
-                args[i] = ""
-            ret = access.addNewServiceUnit(amfMgmtHandle, entityName, args[0], args[1], args[2])
+          if len(args) == 0:
+            #for i in range(len(args)):
+            #  if args[i] == "\'\'":
+            #    args[i] = ""
+            ret = access.addNewServiceUnit(amfMgmtHandle, entityName)
           else:
             print(self.do_entityCreate.__doc__)
             ret = 0x02
         elif entityType == "ServiceInstance":
-          if len(args) == 2:
-            for i in range(len(args)):
-              if args[i] == "\'\'":
-                args[i] = ""
-            ret = access.addNewServiceInstance(amfMgmtHandle, entityName, args[0], args[1])
+          if len(args) == 0:
+            #for i in range(len(args)):
+            #  if args[i] == "\'\'":
+            #    args[i] = ""
+            ret = access.addNewServiceInstance(amfMgmtHandle, entityName)
           else:
             print(self.do_entityCreate.__doc__)
             ret = 0x02
         elif entityType == "ComponentServiceInstance":
-          if len(args) >= 1:
-            for i in range(len(args)):
-              if args[i] == "\'\'":
-                args[i] = ""
-            siName = args[0]
-            listArg = list(args[1:])
-            ret = access.addNewComponentServiceInstance(amfMgmtHandle, entityName, siName, listArg)
+          if len(args) == 1:
+            #for i in range(len(args)):
+            #  if args[i] == "\'\'":
+            #    args[i] = ""
+            #siName = args[0]
+            listArg = list(args[0:])
+            ret = access.addNewComponentServiceInstance(amfMgmtHandle, entityName, listArg)
+          elif len(args) == 0:
+            listArg = list()
+            ret = access.addNewComponentServiceInstance(amfMgmtHandle, entityName, listArg)
           else:
             print(self.do_entityCreate.__doc__)
             ret = 0x02

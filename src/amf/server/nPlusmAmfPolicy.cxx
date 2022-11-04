@@ -939,7 +939,8 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
     comp->pendingOperation = PendingOperation::none;
     comp->pendingOperationExpiration.value.value = 0;
     comp->processId = 0;
-    SAFplus::name.set(comp->name,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE);  // remove the handle in the name service because the component is dead
+    //SAFplus::name.set(comp->name,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE);  // remove the handle in the name service because the component is dead
+    SAFplus::name.remove(comp->name);  // remove the handle in the name service because the component is dead
     comp->currentRecovery = Recovery::None;
     comp->serviceUnit.value->currentRecovery = Recovery::None;
     comp->serviceUnit.value->node.value->currentRecovery = Recovery::None;
@@ -1518,7 +1519,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
               Component* iterComp = dynamic_cast<Component*>(*itcomp);
               if(comp->name.value.compare(iterComp->name.value)!=0)
               {
-                  amfOps->stop(iterComp);
+                  amfOps->abort(iterComp);
               }
               amfOps->cleanup(iterComp);
               updateStateDueToProcessDeath(iterComp);

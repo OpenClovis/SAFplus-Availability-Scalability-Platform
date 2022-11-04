@@ -921,7 +921,7 @@ namespace amfMgmtRpc {
 
   bool isEntityExist(const char* entityType, const std::string& entityName)
   {     
-     if (entityName.length() == 0 || entityName.compare("") == 0) return true;
+     //if (entityName.length() == 0 || entityName.compare("") == 0) return true;
      SAFplus::MgtList<std::string>* entityList = nullptr;
      if (!strcmp(entityType, "Node")) entityList = &cfg.safplusAmf.nodeList;
      else if (!strcmp(entityType, "ServiceGroup")) entityList = &cfg.safplusAmf.serviceGroupList;
@@ -2173,6 +2173,15 @@ namespace amfMgmtRpc {
       const std::string& sg = si.servicegroup();
       CHECK_ENTITY("ServiceGroup", sg);
     }
+    int csiSize = 0;
+    if ((csiSize=si.componentserviceinstances_size())>0)
+    {      
+      for (int i=0;i<csiSize;i++)
+      {
+         const string& csiName = si.componentserviceinstances(i);
+         CHECK_ENTITY("ComponentServiceInstance", csiName);
+      }
+    }
     rc = addEntityToDatabase("/safplusAmf","ServiceInstance", si.name());
     if (rc == CL_ERR_ALREADY_EXIST)
     {
@@ -2212,8 +2221,8 @@ namespace amfMgmtRpc {
       std::string strRank = temp;
       MGMT_CALL(updateEntityFromDatabase("/safplusAmf/ServiceInstance",si.name(),"rank",strRank));
     }
-    int csiSize = 0;
-    if ((csiSize=si.componentserviceinstances_size())>0)
+    
+    if (csiSize > 0)
     {
       std::vector<std::string> csis;
       for (int i=0;i<csiSize;i++)

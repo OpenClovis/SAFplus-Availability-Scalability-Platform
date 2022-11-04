@@ -369,7 +369,7 @@ static ClRcT addCompIntoSU(const Handle & mgmtHandle, const std::string & suName
     return rc;
 }
 
-ClRcT addNewComponent(const SAFplus::Handle& mgmtHandle, const std::string & compName, const std::string & suName, const std::string & binary)
+ClRcT addNewComponent(const SAFplus::Handle& mgmtHandle, const std::string & compName, const std::string & binary)
 {
     SAFplus::Rpc::amfMgmtRpc::ComponentConfig* comp = new SAFplus::Rpc::amfMgmtRpc::ComponentConfig();
     comp->set_name(compName.c_str());
@@ -385,7 +385,7 @@ ClRcT addNewComponent(const SAFplus::Handle& mgmtHandle, const std::string & com
     SAFplus::Rpc::amfMgmtRpc::Instantiate* inst = new SAFplus::Rpc::amfMgmtRpc::Instantiate();
     inst->set_allocated_execution(exe);
     comp->set_allocated_instantiate(inst);
-    comp->set_serviceunit(suName.c_str());
+    //comp->set_serviceunit(suName.c_str());
 
     SAFplus::Rpc::amfMgmtRpc::Timeouts* timeouts = new SAFplus::Rpc::amfMgmtRpc::Timeouts();
     SAFplus::Rpc::amfMgmtRpc::SaTimeT* terminateTimeout = new SAFplus::Rpc::amfMgmtRpc::SaTimeT();
@@ -406,55 +406,55 @@ ClRcT addNewComponent(const SAFplus::Handle& mgmtHandle, const std::string & com
     return rc;
 }
 
-ClRcT addNewServiceUnit(const SAFplus::Handle& mgmtHandle, const std::string & suName, const std::string & compName, const std::string & sgName, const std::string & nodeName)
+ClRcT addNewServiceUnit(const SAFplus::Handle& mgmtHandle, const std::string & suName)
 {
   SAFplus::Rpc::amfMgmtRpc::ServiceUnitConfig* su = new SAFplus::Rpc::amfMgmtRpc::ServiceUnitConfig();
   su->set_name(suName.c_str());
   su->set_adminstate(SAFplus::Rpc::amfMgmtRpc::AdministrativeState::AdministrativeState_on);
-  su->add_components(compName.c_str(), strlen(compName.c_str()));
+  /*su->add_components(compName.c_str(), strlen(compName.c_str()));
   su->set_servicegroup(sgName.c_str(), strlen(sgName.c_str()));
-  su->set_node(nodeName.c_str(), strlen(nodeName.c_str()));
+  su->set_node(nodeName.c_str(), strlen(nodeName.c_str()));*/
   ClRcT rc = SAFplus::amfMgmtServiceUnitCreate(mgmtHandle,su);
   return rc;
 }
 
-ClRcT addNewServiceGroup(const SAFplus::Handle& mgmtHandle, const std::string & sgName, const std::string & suName, const std::string & siName)
+ClRcT addNewServiceGroup(const SAFplus::Handle& mgmtHandle, const std::string & sgName)
 {
   SAFplus::Rpc::amfMgmtRpc::ServiceGroupConfig* sg = new SAFplus::Rpc::amfMgmtRpc::ServiceGroupConfig();
   sg->set_name(sgName.c_str());
-  sg->add_serviceunits(suName.c_str(), strlen(suName.c_str()));
-  sg->add_serviceinstances(siName.c_str(), strlen(siName.c_str()));
+  /*sg->add_serviceunits(suName.c_str(), strlen(suName.c_str()));
+  sg->add_serviceinstances(siName.c_str(), strlen(siName.c_str()));*/
   sg->set_autorepair(true);
   ClRcT rc = SAFplus::amfMgmtServiceGroupCreate(mgmtHandle,sg);
   return rc;
 }
 
-ClRcT addNewNode(const SAFplus::Handle& mgmtHandle, const std::string & nodeName, const std::string & suName)
+ClRcT addNewNode(const SAFplus::Handle& mgmtHandle, const std::string & nodeName)
 {
   SAFplus::Rpc::amfMgmtRpc::NodeConfig* node = new SAFplus::Rpc::amfMgmtRpc::NodeConfig();
   node->set_name(nodeName.c_str());
   node->set_adminstate(SAFplus::Rpc::amfMgmtRpc::AdministrativeState::AdministrativeState_on);
-  node->add_serviceunits(suName.c_str(), strlen(suName.c_str()));
+  //node->add_serviceunits(suName.c_str(), strlen(suName.c_str()));
   ClRcT rc = SAFplus::amfMgmtNodeCreate(mgmtHandle,node);
   return rc;
 }
 
-ClRcT addNewServiceInstance(const SAFplus::Handle& mgmtHandle, const std::string & siName, const std::string & sgName, const std::string & csiName)
+ClRcT addNewServiceInstance(const SAFplus::Handle& mgmtHandle, const std::string & siName)
 {
   SAFplus::Rpc::amfMgmtRpc::ServiceInstanceConfig* si = new SAFplus::Rpc::amfMgmtRpc::ServiceInstanceConfig();
   si->set_name(siName.c_str());
   si->set_adminstate(SAFplus::Rpc::amfMgmtRpc::AdministrativeState::AdministrativeState_on);
-  si->add_componentserviceinstances(csiName.c_str(), strlen(csiName.c_str()));
-  si->set_servicegroup(sgName.c_str(), strlen(sgName.c_str()));
+  //si->add_componentserviceinstances(csiName.c_str(), strlen(csiName.c_str()));
+  //si->set_servicegroup(sgName.c_str(), strlen(sgName.c_str()));
   ClRcT rc = SAFplus::amfMgmtServiceInstanceCreate(mgmtHandle,si);
   return rc;
 }
 
-ClRcT addNewComponentServiceInstance(const SAFplus::Handle& mgmtHandle, const std::string & csiName, const std::string & siName, boost::python::list & listData)
+ClRcT addNewComponentServiceInstance(const SAFplus::Handle& mgmtHandle, const std::string & csiName, boost::python::list & listData)
 {
   SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig* csi = new SAFplus::Rpc::amfMgmtRpc::ComponentServiceInstanceConfig();
   csi->set_name(csiName.c_str());
-  csi->set_serviceinstance(siName.c_str(), strlen(siName.c_str()));
+  //csi->set_serviceinstance(siName.c_str(), strlen(siName.c_str()));
 
   ssize_t len = boost::python::len(listData);
   for(int index = 0; index < len; ++index)
@@ -1188,12 +1188,12 @@ BOOST_PYTHON_MODULE(pySAFplus)
   def("updateServiceInstance",static_cast< ClRcT (*)(const Handle &, boost::python::list&) > (&updateServiceInstance));
   def("updateComponentServiceInstance",static_cast< ClRcT (*)(const Handle &, const std::string &, boost::python::list&) > (&updateComponentServiceInstance));
 
-  def("addNewComponent",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &, const std::string &) > (&addNewComponent));
-  def("addNewServiceGroup",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &, const std::string &) > (&addNewServiceGroup));
-  def("addNewNode",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &) > (&addNewNode));
-  def("addNewServiceUnit",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &, const std::string &, const std::string &) > (&addNewServiceUnit));
-  def("addNewServiceInstance",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &, const std::string &) > (&addNewServiceInstance));
-  def("addNewComponentServiceInstance",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &, boost::python::list&) > (&addNewComponentServiceInstance));
+  def("addNewComponent",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &) > (&addNewComponent));
+  def("addNewServiceGroup",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&addNewServiceGroup));
+  def("addNewNode",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&addNewNode));
+  def("addNewServiceUnit",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&addNewServiceUnit));
+  def("addNewServiceInstance",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&addNewServiceInstance));
+  def("addNewComponentServiceInstance",static_cast< ClRcT (*)(const Handle &, const std::string &, boost::python::list&) > (&addNewComponentServiceInstance));
 
   def("amfMgmtComponentDelete",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&amfMgmtComponentDelete));
   def("amfMgmtServiceGroupDelete",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&amfMgmtServiceGroupDelete));

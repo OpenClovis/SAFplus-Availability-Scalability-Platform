@@ -378,8 +378,6 @@ void dispatchLoop(void)
       else 
         {
         clprintf(SAFplus::LOG_SEV_INFO,"csa101: idle");
-        SAFplus::name.set(SAFplus::ASP_COMPNAME,SAFplus::myHandle,SAFplus::NameRegistrar::MODE_NO_CHANGE);
-
         }
     }while(!quitting);
 }
