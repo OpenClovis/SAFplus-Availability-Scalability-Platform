@@ -66,11 +66,15 @@ namespace SAFplus
       const std::string& suName = su->name;
       if (su->adminState.value != tgt)
         {
-          logInfo("N+M","AUDIT","Setting service unit [%s] to admin state [%s]",suName.c_str(),c_str(tgt));
-          if (!writeChanges)
-            su->adminState.value = tgt; // do not change the beat, so, the AMF will not write changes again
-          else
-            su->adminState = tgt; // DO change the beat, so, the AMF will write changes next time
+          Node* node = su->node.value;
+          if (tgt <= node->adminState.value)
+          {
+             logInfo("N+M","AUDIT","Setting service unit [%s] to admin state [%s]",suName.c_str(),c_str(tgt));
+             if (!writeChanges)
+               su->adminState.value = tgt; // do not change the beat, so, the AMF will not write changes again
+             else
+               su->adminState = tgt; // DO change the beat, so, the AMF will write changes next time
+          }
         // TODO: transactional and event
         }       
       }
@@ -104,11 +108,15 @@ namespace SAFplus
       const std::string& suName = su->name;
       if (su->adminState.value != tgt)
         {
-        logInfo("N+M","AUDIT","Setting service unit [%s] to admin state [%s]",suName.c_str(),c_str(tgt));
-        if (!writeChanges)
-          su->adminState.value = tgt;
-        else
-          su->adminState = tgt;
+        ServiceGroup* sg = su->serviceGroup.value;
+        if (tgt <= sg->adminState.value)
+          {
+            logInfo("N+M","AUDIT","Setting service unit [%s] to admin state [%s]",suName.c_str(),c_str(tgt));
+            if (!writeChanges)
+              su->adminState.value = tgt;
+            else
+              su->adminState = tgt;
+          }
         // TODO: transactional and event
         }
       }

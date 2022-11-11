@@ -233,7 +233,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
           if (!su->node.value) continue;
           if (su->node.value->presenceState == SAFplusAmf::PresenceState::instantiated)
             {
-              if (su->adminState != AdministrativeState::off)
+              if (effectiveAdminState(su) != AdministrativeState::off)
                 { // if su->presenceState != ...
                   logInfo("N+M","STRT","Starting service unit [%s]", suName.c_str());
                   waits += start(su,waitSem,faultyComp);  // When started, "wake" will be called on the waitSem
