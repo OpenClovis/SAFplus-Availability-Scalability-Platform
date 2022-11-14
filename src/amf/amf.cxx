@@ -236,8 +236,7 @@ SaAisErrorT saAmfComponentUnregister(SaAmfHandleT amfHandle, const SaNameT *comp
   {
   // Maybe send a message to AMF telling it that I am no longer the component, for now just remove the name from the name server
   logInfo("AMF","INI","Unregistering component name [%s] as invalid handle", SAFplus::ASP_COMPNAME);
-  //name.set(SAFplus::ASP_COMPNAME,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE);
-  name.remove(SAFplus::ASP_COMPNAME);
+  name.set(SAFplus::ASP_COMPNAME,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE);
   return SA_AIS_OK;
   }
 

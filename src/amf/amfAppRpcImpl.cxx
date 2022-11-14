@@ -36,8 +36,8 @@ namespace amfAppRpc {
   // TODO: protect against double termination requests
 
   // remove myself from the name server.
-  //name.set(SAFplus::ASP_COMPNAME,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE);
-  name.remove(SAFplus::ASP_COMPNAME);
+  name.set(SAFplus::ASP_COMPNAME,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE);
+
   if ((SAFplusI::amfSession)&&(SAFplusI::amfSession->callbacks.saAmfComponentTerminateCallback))
     {
       SAFplusI::amfSession->callbacks.saAmfComponentTerminateCallback((SaInvocationT) request->invocation(),&compName);
