@@ -2450,8 +2450,35 @@ def dict2list(dataDict):
      
   return l
 
-def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None, amfMasterHdl=None):
+def extractData(cfg):
+  data = None
+  cfg = cfg.replace("'", "")
+  cfg = ast.literal_eval(cfg)
+  if cfg is not None:
+    if isinstance(cfg, dict):
+      cfg = Dot(cfg)
+      data = cfg.get("data",None)
+
+  return data
+
+def fixName(name):
+  # add idx if name is taken
+  global namesTaken
+  idx = namesTaken.get(name, None)
+  if idx is not None:
+    namesTaken[name] += 1
+    name = "%s_%d" % (name, idx)
+  else:
+    namesTaken[name] = 0
+  return name
+
+namesTaken = {}
+
+def AmfCreateApp(suffix, svcInsts, compList, nodes, appDir=None, cfg=None, amfMasterHdl=None):
   sg = "ServiceGroup_%s" % suffix
+  defaultSi = "ServiceInstance_%s" % suffix
+  defaultCsi = "ComponentServiceInstance_%s" % suffix
+
   if appDir == None or appDir == "None":
     appDir = "./"
   else:
@@ -2461,7 +2488,7 @@ def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None, amfMasterHdl=No
   ret = 0
   paramsSG = Dot({})
   paramsSI = Dot({})
-  paramsCSI = Dot({})
+  # paramsCSI = Dot({})
   entities = {}
 
   if cfg is not None:
@@ -2473,7 +2500,7 @@ def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None, amfMasterHdl=No
       cfg = Dot(cfg)
       paramsSG = cfg.get("modifiers",None)
       paramsSI = cfg.get("redundancyModel",None)
-      paramsCSI = cfg.get("data",None)
+      # paramsCSI = cfg.get("data",None)
       if paramsSG:
         paramsSG.preferredNumActiveServiceUnits = paramsSI.preferredActiveAssignments
         paramsSG.preferredNumStandbyServiceUnits = paramsSI.preferredStandbyAssignments
@@ -2482,17 +2509,43 @@ def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None, amfMasterHdl=No
       print('cfg is invalid, AmfCreateApp failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       return ret
 
-  entities["ServiceGroup/%s" % sg] = { "adminState":"off", "serviceInstances" :  "ServiceInstance_%s" % suffix}
+  # entities["ServiceGroup/%s" % sg] = { "adminState":"off", "serviceInstances" :  "ServiceInstance_%s" % suffix}
+  entities["ServiceGroup/%s" % sg] = { "adminState":"off"}
 
   # entities["ServiceInstance/ServiceInstance_%s" % suffix] = { "serviceGroup": sg, "componentServiceInstances" :"ComponentServiceInstance_%s" % suffix }
-  entities["ServiceInstance/ServiceInstance_%s" % suffix] = { "serviceGroup": sg }
+  # entities["ServiceInstance/ServiceInstance_%s" % suffix] = { "serviceGroup": sg }
+  csiLut = {} # prog - csiTypes
+  createdSis = []
+  for (svcInst, data) in svcInsts.items():
+    csiBase = siName = ""
+    if svcInst == "":
+      siName = defaultSi
+      csiBase = defaultCsi
+    else:
+      siName = fixName(svcInst)
+      csiBase = "ComponentServiceInstance_%s" % siName
+
+    entities["ServiceInstance/%s" % siName] = { "serviceGroup": sg }
 
   # entities["ComponentServiceInstance/ComponentServiceInstance_%s" % suffix] ={ "serviceInstance": "ServiceInstance_%s" % suffix, "name/testKey" : "testVal", "type" : "ComponentServiceInstance_%s" % suffix }
-  for csiIdx in range(0, len(compList)):
-    entities["ComponentServiceInstance/ComponentServiceInstance_%s_%d" % (suffix, csiIdx)] ={ "serviceInstance": "ServiceInstance_%s" % suffix, "name/testKey" : "testVal", "type" : "ComponentServiceInstance_%s_%d" % (suffix, csiIdx) }
+    csiIdx = 0
+    createdCsis = []
+    for prog in compList:
+      csiName = "%s_%d" % (csiBase, csiIdx)
+      entities["ComponentServiceInstance/%s" % csiName] ={ "serviceInstance": siName, "type" : csiName }
+
+      if prog not in csiLut.keys():
+        csiLut[prog] = []
+      csiLut[prog].append(csiName)
+      createdCsis.append(csiName)
+      csiIdx += 1
+
+    createdSi = (siName, createdCsis, data)
+    createdSis.append(createdSi)
+    entities["ServiceInstance/%s" % siName] = RedundancyModel2Si(paramsSI, entities["ServiceInstance/%s" % siName])
 
   entities["ServiceGroup/%s" % sg] = Modifiers2Sg(paramsSG, entities["ServiceGroup/%s" % sg])
-  entities["ServiceInstance/ServiceInstance_%s" % suffix] = RedundancyModel2Si(paramsSI, entities["ServiceInstance/ServiceInstance_%s" % suffix])
+  # entities["ServiceInstance/ServiceInstance_%s" % suffix] = RedundancyModel2Si(paramsSI, entities["ServiceInstance/ServiceInstance_%s" % suffix])
   #entities["ComponentServiceInstance/ComponentServiceInstance_%s" % suffix] = Data2Csi(paramsCSI, entities["ComponentServiceInstance/ComponentServiceInstance_%s" % suffix])
 
   count = 0
@@ -2509,7 +2562,10 @@ def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None, amfMasterHdl=No
         cname = "%s_in_%s_%d" % (name,suname,idx)
         idx+=1
 
-      entities["Component/%s" % cname] = { "maxActiveAssignments":1, "maxStandbyAssignments":1, "serviceUnit": suname, "csiTypes": "ComponentServiceInstance_%s_%d" % (suffix, csiIdx), "instantiate": { "command" : appDir + c, "timeout":15*1000 }}
+      # entities["Component/%s" % cname] = { "maxActiveAssignments":1, "maxStandbyAssignments":1, "serviceUnit": suname, "csiTypes": "ComponentServiceInstance_%s_%d" % (suffix, csiIdx), "instantiate": { "command" : appDir + c, "timeout":15*1000 }}
+      entities["Component/%s" % cname] = { "maxActiveAssignments":1, "maxStandbyAssignments":1, "serviceUnit": suname, "instantiate": { "command" : appDir + c, "timeout":15*1000 }}
+      entities["Component/%s" % cname]["csiTypes"] = ",".join(csiLut[c])
+      entities["Component/%s" % cname]["capabilityModel"] = "x_active_or_y_standby"
       comps.append(cname)
       csiIdx += 1
 
@@ -2518,6 +2574,7 @@ def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None, amfMasterHdl=No
     count += 1
 
   entities["ServiceGroup/%s" % sg]["serviceUnits"] = ",".join(sus)
+  entities["ServiceGroup/%s" % sg]["serviceInstances"] = ",".join([createdSi[0] for createdSi in createdSis]) # createdSi[0] is the name
   amfctrl.commit(entities, amfMasterHdl=amfMasterHdl)
 
   # ADD serviceUnit into Node
@@ -2564,61 +2621,33 @@ def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None, amfMasterHdl=No
     count += 1
 
   # Add csi to si and add data to csi
-  listNVP = dict2list(paramsCSI)
-  siName = "ServiceInstance_%s" % suffix
-  for csiIdx in range(0, len(compList)):
-    retFin = 0
-    csiName = 'ComponentServiceInstance_%s_%d' % (suffix, csiIdx)
+  for (createdSi, createdCsis, data) in createdSis:
+    listNVP = dict2list(data)
+    siName = createdSi
+    for createdCsi in createdCsis:
+      retFin = 0
+      csiName = createdCsi
 
-    listAttributesAndValuesPairs = []
-    listAttributesAndValuesPairs.append("name")
-    listAttributesAndValuesPairs.append(siName)
-    listAttributesAndValuesPairs.append("componentServiceInstances")
-    listAttributesAndValuesPairs.append(csiName)
+      listAttributesAndValuesPairs = []
+      listAttributesAndValuesPairs.append("name")
+      listAttributesAndValuesPairs.append(siName)
+      listAttributesAndValuesPairs.append("componentServiceInstances")
+      listAttributesAndValuesPairs.append(csiName)
 
-    ret = access.amfMgmtInitialize(amfMgmtHandle)
-    if ret == 0x0:
-      print ("Adding csi [%s] to si [%s]" % (csiName, siName))
-      ret = access.updateServiceInstance(amfMgmtHandle, listAttributesAndValuesPairs)
-      if ret == 0x0:
-        ret = access.amfMgmtCommit(amfMgmtHandle)
-        if ret == 0x0:
-          print("updateServiceInstance completed successfully with code [%s]"% hex(ret))
-        else:
-          wrongRet = ret
-          print('amfMgmtCommit failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
-      else:
-        wrongRet = ret
-        print('updateServiceInstance failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
-
-      retFin = access.amfMgmtFinalize(amfMgmtHandle)
-      if retFin !=0:
-        wrongRet = retFin
-        print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
-    else:
-      wrongRet = ret
-      print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
-
-    time.sleep(1)
-
-    if listNVP:
-      csiNVP=['name']
-      csiNVP.append(csiName)
-      csiNVP+=listNVP
       ret = access.amfMgmtInitialize(amfMgmtHandle)
       if ret == 0x0:
-        print ("updating data of csi [%s]"%csiName)
-        ret = access.updateComponentServiceInstance(amfMgmtHandle,csiName, csiNVP)
+        print ("Adding csi [%s] to si [%s]" % (csiName, siName))
+        ret = access.updateServiceInstance(amfMgmtHandle, listAttributesAndValuesPairs)
         if ret == 0x0:
           ret = access.amfMgmtCommit(amfMgmtHandle)
           if ret == 0x0:
-            print('updateComponentServiceInstance completed successfully')
+            print("updateServiceInstance completed successfully with code [%s]"% hex(ret))
           else:
             wrongRet = ret
             print('amfMgmtCommit failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         else:
           wrongRet = ret
-          print('updateComponentServiceInstance failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
+          print('updateServiceInstance failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
 
         retFin = access.amfMgmtFinalize(amfMgmtHandle)
         if retFin !=0:
@@ -2628,6 +2657,34 @@ def AmfCreateApp(suffix, compList, nodes, appDir=None, cfg=None, amfMasterHdl=No
         wrongRet = ret
         print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
 
+      time.sleep(1)
+
+      if listNVP:
+        csiNVP=['name']
+        csiNVP.append(csiName)
+        csiNVP+=listNVP
+        ret = access.amfMgmtInitialize(amfMgmtHandle)
+        if ret == 0x0:
+          print ("updating data of csi [%s]"%csiName)
+          ret = access.updateComponentServiceInstance(amfMgmtHandle,csiName, csiNVP)
+          if ret == 0x0:
+            ret = access.amfMgmtCommit(amfMgmtHandle)
+            if ret == 0x0:
+              print('updateComponentServiceInstance completed successfully')
+            else:
+              wrongRet = ret
+              print('amfMgmtCommit failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
+          else:
+            wrongRet = ret
+            print('updateComponentServiceInstance failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
+
+          retFin = access.amfMgmtFinalize(amfMgmtHandle)
+          if retFin !=0:
+            wrongRet = retFin
+            print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
+        else:
+          wrongRet = ret
+          print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
   # if ret: return ret
   # if retFin: return retFin
   # return 0
@@ -2887,7 +2944,10 @@ class RunScript:
       print(("\n".join(errors)))
       return ""
 
-    ret = AmfCreateApp(appName, appCommandLine, nodes, appDir, cfg, self.resolver.handle)
+    data = extractData(cfg)
+    svcInsts = {"" : data} # one si and it will have default name
+
+    ret = AmfCreateApp(appName, svcInsts, appCommandLine, nodes, appDir, cfg, self.resolver.handle)
     if ret == 0:
       print("createApp completed successfully")
       return ret

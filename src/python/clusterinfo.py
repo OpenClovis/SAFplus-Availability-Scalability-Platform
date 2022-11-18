@@ -295,6 +295,7 @@ def getInformationOfEntity(entityType, entityName):
         return ""
     initObject = initialObject()
     kvpairs = {}
+    csiTypes = []
     for child in root:
         if child.text == None:
             if child.tag == "data":
@@ -314,11 +315,14 @@ def getInformationOfEntity(entityType, entityName):
                 if hasattr(initObject, child.tag):
                     setattr(initObject, child.tag, child1.text)
         else:
-            if hasattr(initObject, child.tag):
+            if child.tag == "csiTypes":
+                csiTypes.append(child.text)
+            elif hasattr(initObject, child.tag):
                 setattr(initObject, child.tag, child.text)
 
     initObject.entityType = entityType
     initObject.data = kvpairs
+    initObject.csiTypes = ", ".join(csiTypes)
 
     return initObject
 
@@ -377,8 +381,16 @@ def calcCompToCsiType(sg):
     for comp in sg.getAllComps():
         prog = comp.command()
         prog = os.path.basename(prog)
-        ret[prog] = comp.csiTypes
+        ret[prog] = comp.csiTypes.split(", ")
 
+    return ret
+
+def calcSiToCsi(sg):
+    ret = {}
+    for si in sg.getAllServiceInstances():
+        csis = si.componentServiceInstances.split(", ")
+        ret[si.name] = [getNameFromPath(csi) for csi in csis]
+    
     return ret
 
 def getNameFromPath(path):  #   path: safplusAmf/ServiceUnit/ServiceUnit_ServiceGroupTest
