@@ -232,14 +232,14 @@ namespace SAFplus
                     fe->dependecyNum=0;
                     tmpShrEntity->state=faultState;
                     tmpShrEntity->dependecyNum=0;
-                    logDebug(FAULT,"MSG","Entity JOIN message with fault state [%d]",fe->state);
+                    logDebug(FAULT,"MSG","Entity JOIN message with fault state [%d]",(int)fe->state);
                     registerFaultEntity(fe,faultEntity,true);
                     logDebug(FAULT,"MSG","write to checkpoint");
                     faultCheckpoint.write(*key,*val);
                     }
                   else
                     {
-                      logDebug(FAULT,"MSG","Repeated entity JOIN message for entity [%d.%d.%" PRIx64 "], entity handle [%" PRIx64 ":%" PRIx64 "] state %d",faultEntity.getNode(),faultEntity.getProcess(),faultEntity.getIndex(),faultEntity.id[0], faultEntity.id[1], faultState);
+                      logDebug(FAULT,"MSG","Repeated entity JOIN message for entity [%d.%d.%" PRIx64 "], entity handle [%" PRIx64 ":%" PRIx64 "] state %d",faultEntity.getNode(),faultEntity.getProcess(),faultEntity.getIndex(),faultEntity.id[0], faultEntity.id[1], (int)faultState);
                       setFaultState(faultEntity,faultState);
                       if (faultEntity.getProcess() == 0 && faultEntity.getNode() != SAFplus::ASP_NODEADDR && faultState == FaultState::STATE_UP) // other node is up
                       {
@@ -253,7 +253,7 @@ namespace SAFplus
                         }
                         catch(NameException& ex)
                         {
-                            logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+                            logError(FAULT,"MSG","getHandle got exception [%s]", ex.what());
                         }
                       }
                     }
@@ -274,7 +274,7 @@ namespace SAFplus
                   //logDebug(FAULT,"MSG","Process fault event message");
                     if (created) registerFaultEntity(fe,faultEntity,true);
                     processFaultEvent(pluginId,eventData,faultEntity,reporterHandle);
-                    logDebug("POL","AMF","Fault event data severity [%s] , cause [%s] , catagory [%s] , state [%d] ", SAFplus::strFaultSeverity[int(eventData.severity)],SAFplus::strFaultProbableCause[int(eventData.cause)],SAFplus::strFaultCategory[int(eventData.category)],eventData.alarmState);
+                    logDebug("POL","AMF","Fault event data severity [%s] , cause [%s] , catagory [%s] , state [%d] ", SAFplus::strFaultSeverity[int(eventData.severity)],SAFplus::strFaultProbableCause[int(eventData.cause)],SAFplus::strFaultCategory[int(eventData.category)],(int)eventData.alarmState);
                     FaultHistoryEntity faultHistoryEntry;
                     time_t now;
                     time(&now);
@@ -382,7 +382,7 @@ namespace SAFplus
                  }
              break;
           default:
-            logDebug(FAULT,"MSG","Unknown message type [%d] from node [%d]",rxMsg->messageType,fromHandle.getNode());
+            logDebug(FAULT,"MSG","Unknown message type [%d] from node [%d]",(int)rxMsg->messageType,fromHandle.getNode());
             break;
         }
     }
@@ -648,7 +648,7 @@ namespace SAFplus
             return SAFplus::FaultState::STATE_UNDEFINED;
         }
         FaultShmEntry *fse = &entryPtr->second;
-        logError(FAULT,FAULT_SERVER,"Fault Entity [%" PRIx64 ":%" PRIx64 "] State  [%d]",faultHandle.id[0],faultHandle.id[1],fse->state);
+        logError(FAULT,FAULT_SERVER,"Fault Entity [%" PRIx64 ":%" PRIx64 "] State  [%d]",faultHandle.id[0],faultHandle.id[1],(int)fse->state);
         return fse->state;
     }
 

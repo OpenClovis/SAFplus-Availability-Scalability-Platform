@@ -1365,26 +1365,35 @@ void preprocessDb(SAFplusAmf::SAFplusAmfModule& cfg)
 
 void setNodeOperState(const SAFplus::Handle& nodeHdl, bool state)
 {
-   try
+   int maxTry = 15; // try in 1.5s
+   int tries = 0;
+   do
    {
-       char* nodeName = name.getName(nodeHdl);
-       std::string strNode(nodeName);
-       SAFplusAmf::Node* node = dynamic_cast<SAFplusAmf::Node*>(cfg.safplusAmf.nodeList[strNode]);
-       if (node && node->operState.value != state)
-       {
-           bool oldState = node->operState.value;
-           node->operState.value = state;
-           logInfo("MAIN","OPS","operState of Node [%s] changed from [%s] to [%s]", node->name.value.c_str(),oldState?"Enabled":"Disabled", node->operState.value?"Enabled":"Disabled");
-       }
-       else if (!node)
-       {
-           logError("MAIN","OPS", "object for node [%s] doesn't exist", nodeName);
-       }
+      try
+      {
+         char* nodeName = name.getName(nodeHdl);
+         std::string strNode(nodeName);
+         SAFplusAmf::Node* node = dynamic_cast<SAFplusAmf::Node*>(cfg.safplusAmf.nodeList[strNode]);
+         if (node && node->operState.value != state)
+         {
+	    bool oldState = node->operState.value;
+	    node->operState = state;
+	    logInfo("MAIN","OPS","operState of Node [%s] changed from [%s] to [%s]", node->name.value.c_str(),oldState?"Enabled":"Disabled", node->operState.value?"Enabled":"Disabled");
+         }
+         else if (!node)
+         {
+	    logError("MAIN","OPS", "object for node [%s] doesn't exist", nodeName);
+         }
+         break;
+      }
+      catch (NameException& ne)
+      {
+         logError("MAIN","OPS", "get name by handle [%" PRIx64 ":%" PRIx64 "] fail. Error message: %s", nodeHdl.id[0], nodeHdl.id[1], ne.what());
+         boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+         tries++;
+      }
    }
-   catch (NameException& ne)
-   {
-       logError("MAIN","OPS", "get name by handle [%" PRIx64 ":%" PRIx64 "] fail. Error message: %s", nodeHdl.id[0], nodeHdl.id[1], ne.what());
-   }
+   while(tries<maxTry);
 }
 
 void amfMgmtRpcInitialize(SAFplus::Rpc::amfMgmtRpc::amfMgmtRpcImpl** mgmtRpc, SAFplus::Rpc::RpcChannel** mgmtRpcChannel, SAFplus::Rpc::amfMgmtRpc::amfMgmtRpc_Stub** amfMgmtRpc)
