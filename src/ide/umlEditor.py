@@ -81,7 +81,7 @@ class EntityTypeTool(Tool):
     self.box = BoxGesture()
 
   def OnSelect(self, panel,event):
-    panel.statusBar.SetStatusText("Click to create a new %s" % self.entityType.name,0);
+    panel.statusBarText.SetLabel("Click to create a new %s" % self.entityType.name);
     return True
 
   def OnUnselect(self,panel,event):
@@ -102,7 +102,7 @@ class EntityTypeTool(Tool):
         if self.entityType.name == 'Cluster':
           for name,e in list(share.umlEditorPanel.model.entities.items()):
             if e.et.name == 'Cluster':
-              panel.statusBar.SetStatusText("Model can't contain more than one Cluster",0);
+              panel.statusBarText.SetLabel("Model can't contain more than one Cluster");
               panel.drawers.discard(self.box)
               panel.Refresh()
               return ret
@@ -123,7 +123,7 @@ class EntityTypeTool(Tool):
     
   def CreateNewInstance(self,panel,position,size=None):
     """Create a new instance of this entity type at this position"""
-    panel.statusBar.SetStatusText("Created %s" % self.entityType.name,0);
+    panel.statusBarText.SetLabel("Created %s" % self.entityType.name);
     
     ent = self.entityType.createEntity((list(position)[0]-self.panel.translating['horizontal'], list(position)[1]-self.panel.translating['vertical']), size)
     if(ent.data["entityType"] == "ComponentServiceInstance"):
@@ -150,7 +150,7 @@ class LinkTool(Tool):
     self.err = None
 
   def OnSelect(self, panel,event):
-    panel.statusBar.SetStatusText("Click on an entity and drag to another entity to create a relationship.",0);
+    panel.statusBarText.SetLabel("Click on an entity and drag to another entity to create a relationship.");
     return True
 
   def OnUnselect(self,panel,event):
@@ -163,7 +163,7 @@ class LinkTool(Tool):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
         entities = panel.findEntitiesAt(pos)
         if len(entities) != 1:
-          panel.statusBar.SetStatusText("You must choose a single starting entity!",0);
+          panel.statusBarText.SetLabel("You must choose a single starting entity!");
           # TODO show a red X under the cursor
           self.err = FadingX(panel,pos,2)
         else:
@@ -180,19 +180,19 @@ class LinkTool(Tool):
           line = convertToRealPos(self.line.finish(panel,pos), panel.scale)
           entities = panel.findEntitiesAt(pos)
           if len(entities) != 1:
-            panel.statusBar.SetStatusText("You must choose a single ending entity!",0);
+            panel.statusBarText.SetLabel("You must choose a single ending entity!");
             self.err = FadingX(panel,pos,1)
           else:
             self.endEntity = entities.pop()
             rc = self.startEntity.canContain(self.endEntity)
             if rc != RLS_OK:
-              panel.statusBar.SetStatusText("Relationship is not allowed.  Most likely %s entities cannot contain %s entities.  Or maybe you've exceeded the number of containments allowed" % (self.startEntity.et.name, self.endEntity.et.name),0);
+              panel.statusBarText.SetLabel("Relationship is not allowed.  Most likely %s entities cannot contain %s entities.  Or maybe you've exceeded the number of containments allowed" % (self.startEntity.et.name, self.endEntity.et.name));
               if rc!=RLS_ERR_EXISTS:
                 self.err = FadingX(panel,pos,1)
             else:
               rc = self.endEntity.canBeContained(self.startEntity)
               if rc != RLS_OK:
-                panel.statusBar.SetStatusText("Relationship is not allowed.  Most likely %s entities can only be contained by one %s entity."  % (self.endEntity.et.name, self.startEntity.et.name),0);
+                panel.statusBarText.SetLabel("Relationship is not allowed.  Most likely %s entities can only be contained by one %s entity."  % (self.endEntity.et.name, self.startEntity.et.name));
                 self.err = FadingX(panel,pos,1)
               else:
                 # Add the arrow into the model.  the arrow's location is relative to the objects it connects
@@ -219,7 +219,7 @@ class LinkTool(Tool):
     
   def CreateNewInstance(self,panel,position,size=None):
     """Create a new instance of this entity type at this position"""
-    panel.statusBar.SetStatusText("Created %s" % self.entityType.name,0);
+    panel.statusBarText.SetLabel("Created %s" % self.entityType.name);
     panel.entities.append(self.entityType.createEntity(position, size))
     panel.Refresh()
     return True
@@ -243,7 +243,7 @@ class SelectTool(Tool):
     self.boxSel = BoxGesture()
 
   def OnSelect(self, panel,event):
-    panel.statusBar.SetStatusText(self.defaultStatusText,0);
+    panel.statusBarText.SetLabel(self.defaultStatusText);
     self.touching.clear()
     self.selected.clear()
     return True
@@ -271,12 +271,12 @@ class SelectTool(Tool):
         entities = panel.findEntitiesAt(pos)
         self.dragPos = pos
         if not entities:
-          panel.statusBar.SetStatusText(self.defaultStatusText,0);
+          panel.statusBarText.SetLabel(self.defaultStatusText);
           self.touching = set()
           self.boxSel.start(panel,pos)
           return False
         print("Touching %s" % ", ".join([ e.data["name"] for e in entities]))
-        panel.statusBar.SetStatusText("Touching %s" % ", ".join([ e.data["name"] for e in entities]),0);
+        panel.statusBarText.SetLabel("Touching %s" % ", ".join([ e.data["name"] for e in entities]));
 
         self.touching = set(entities)
         # If the control key is down, then add to the currently selected group, otherwise replace it.
@@ -371,7 +371,7 @@ class ZoomTool(Tool):
     self.handBmp = wx.Bitmap(common.fileResolver("hand.png"))
 
   def OnSelect(self, panel,event):
-    panel.statusBar.SetStatusText(self.defaultStatusText,0);
+    panel.statusBarText.SetLabel(self.defaultStatusText);
     zoomImg =  self.ScaleBitmap(self.handBmp, 16*self.panel.scale, 25*self.panel.scale)
     cursor = wx.CursorFromImage(zoomImg)
     self.panel.SetCursor(cursor)
@@ -593,6 +593,7 @@ class Panel(scrolled.ScrolledPanel):
       self.menuBar = self.guiPlaces.menubar
       self.toolBar = self.guiPlaces.toolbar
       self.statusBar = self.guiPlaces.statusbar
+      self.statusBarText = self.guiPlaces.statusBarText
       self.model=model
       self.tool = None  # The current tool
       self.drawers = set()
@@ -1016,11 +1017,24 @@ class Panel(scrolled.ScrolledPanel):
       return ret
 
     def notifyValueChange(self, ent, key, query, newValue):      
-      names = self.entities.keys()
+      names = list()
+      for name, value in self.entities.items():
+        if value != ent:
+          names.append(name)
       validator = query.GetValidator()
       if (key.split("_")[-1] == "name") and (newValue in names):
-        self.statusBar.SetStatusText("Entity name [%s] existed. Name [%s] is being used" % (newValue, validator.currentValue))
-        return
+        self.statusBarText.SetWarning("Entity name [%s] existed. Name [%s] is being used" % (newValue, validator.currentValue))
+        query.ChangeValue(validator.currentValue)
+        return False
+      elif (key.split("_")[-1] == "name") and (newValue == ""):
+        self.statusBarText.SetWarning("Entity name must not be empty.")
+        query.ChangeValue(validator.currentValue)
+        return False
+      elif (key.split("_")[-1] != "name") and (newValue.isdigit() == False):
+        self.statusBarText.SetWarning("Invalid input, must contains numbers only")
+        query.ChangeValue(validator.currentValue)
+        return False
+      self.statusBarText.SetLabel(" ")
       if share.instancePanel:
         share.instancePanel.modifyEntityTool(ent, newValue)
       for (name, e) in list(self.entities.items()):
@@ -1041,7 +1055,7 @@ class Panel(scrolled.ScrolledPanel):
               break
           d[token] = newValue
           if token == "name":
-            self.statusBar.SetStatusText("Entity name changed from [%s] to [%s]." % (validator.currentValue, newValue))
+            self.statusBarText.SetLabel("Entity name changed from [%s] to [%s]." % (validator.currentValue, newValue))
             if validator:              
               self.model.deleteEntityFromMicrodom(validator.currentValue, e.et.name)
             self.entities[newValue] = self.entities.pop(name)          
@@ -1053,6 +1067,7 @@ class Panel(scrolled.ScrolledPanel):
           break
 
       self.Refresh()
+      return True
 
     def deleteEntities(self, ents):
       self.drawSelectionBox = False

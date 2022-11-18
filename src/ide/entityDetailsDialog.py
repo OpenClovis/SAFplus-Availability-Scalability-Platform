@@ -99,9 +99,22 @@ class SliderCustom(wx.PyControl):
     self.SetSizer(sizer)
     self.Fit()
 
+  def Bind(self, event, handler, source=None, id=-1, id2=-1):
+    self.slider.Bind(event, handler)
+    self.sliderText.Bind(event, handler)
+
+  def IsModified(self):
+    return self.sliderText.IsModified()
+
+  def SetValue(self, value):
+    return self.sliderText.SetValue(str(value))
+
+  def ChangeValue(self, value):
+    return self.sliderText.ChangeValue(str(value))
+    
   def sliderHandler(self, evt):
     value = evt.GetInt()
-    self.sliderText.SetValue(str(value))
+    self.sliderText.ChangeValue(str(value))
     evt.Skip()
 
   def sliderTextHandler(self, evt):
@@ -175,7 +188,7 @@ class GenericObjectValidator(wx.PyValidator):
       self.isError = False
       self.errorStr = ''
 
-    def getModified(self, modify):
+    def getModified(self):
       textCtrl = self.GetWindow()
       return (self.currentValue != textCtrl.GetValue())
 
@@ -234,6 +247,7 @@ class NumberObjectValidator(GenericObjectValidator):
         GenericObjectValidator.__init__(self)
         self.rang=rang
         self.mask=mask
+        self.currentValue = rang[0] if rang else 0
 
     def Clone(self):
         """ Standard cloner.
@@ -387,14 +401,18 @@ class Panel(scrolled.ScrolledPanel):
             # TODO: Disable "SAVE_BUTTON"
             return
 
-          # TODO: Enable "SAVE_BUTTON" if mark dirty and handle only dirty (actually value changed) entity
+          # TODO: Enable "SAVE_BUTTON" if mark dirty and handle only dirty (actually value changed) entity\
           self.ChangedValue(proposedValue, event.GetEventObject(), obj[0])
         else:
-          self.ChangedValue(query.GetValue(), query, obj[0])
+          if query.GetValidator().getModified():
+            self.ChangedValue(query.GetValue(), query, obj[0])
+          else:
+            return
       else:
         # Notify name change to umlEditor to validate and render
         # TODO: Enable "SAVE_BUTTON"
-        self.ChangedValue(event.GetEventObject().GetValue(), event.GetEventObject())
+        if query.GetValidator().getModified():
+            self.ChangedValue(event.GetEventObject().GetValue(), event.GetEventObject())
 
     def ChangedValue(self, proposedValue, query, obj = None):
       if not self.treeItemSelected: return
@@ -403,15 +421,17 @@ class Panel(scrolled.ScrolledPanel):
         self.entity = self.tree.GetPyData(self.treeItemSelected)
 
       name = query.GetName()
-      if obj == None:
-        self.tree.SetItemText(self.treeItemSelected, proposedValue)
 
+      result = False
       if isinstance(self.entity,entity.Instance):
         if share.instancePanel:
-          share.instancePanel.notifyValueChange(self.entity, name, query, proposedValue)              
+          result = share.instancePanel.notifyValueChange(self.entity, name, query, proposedValue)              
       else:
         if share.umlEditorPanel:          
-          share.umlEditorPanel.notifyValueChange(self.entity, name, query, proposedValue)
+          result = share.umlEditorPanel.notifyValueChange(self.entity, name, query, proposedValue)
+      if result:
+        if obj == None:
+          self.tree.SetItemText(self.treeItemSelected, proposedValue)
       self.guiPlaces.frame.modelChange()
 
     def OnUnfocus(self,event):
@@ -536,10 +556,12 @@ class Panel(scrolled.ScrolledPanel):
           if v > rang[1]:
             query  = wx.TextCtrl(self.tree.GetMainWindow(),id,str(v),style = wx.BORDER_SIMPLE | wx.TE_PROCESS_ENTER)
             query.SetValidator(NumberObjectValidator())
+            query.GetValidator().currentValue = str(v)
           else:
             query = SliderCustom(self.tree.GetMainWindow(),id, v, rang)
             # TODO: getcustom validator from yang
             query.SetValidator(NumberObjectValidator(rang))
+            query.GetValidator().currentValue = str(v)
 
           # TODO create a control that contains both a slider and a small text box
           # TODO size the slider properly using min an max hints 
@@ -946,11 +968,11 @@ class Panel(scrolled.ScrolledPanel):
 
     def BuildChangeEvent(self, ctrl):
         mapEvents = {
-            'TextCtrl': [wx.EVT_TEXT, wx.EVT_TEXT_ENTER],
+            'TextCtrl': [wx.EVT_KILL_FOCUS],
             'CheckBox': [wx.EVT_CHECKBOX],
             'Slider': [wx.EVT_SCROLL, wx.EVT_SLIDER, wx.EVT_SCROLL_CHANGED],
             'ComboBox': [wx.EVT_COMBOBOX, wx.EVT_TEXT, wx.EVT_TEXT_ENTER], # , wx.EVT_COMBOBOX_CLOSEUP],  # wx.EVT_COMBOBOX_DROPDOWN,
-            'SliderCustom':[wx.EVT_TEXT, wx.EVT_TEXT_ENTER]
+            'SliderCustom': [wx.EVT_KILL_FOCUS]
             # TBD 
         }
 

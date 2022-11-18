@@ -154,8 +154,10 @@ class SAFplusFrame(wx.Frame):
         self.SetMenuBar(self.menuBar)
 
         self.sb = self.CreateStatusBar()
-        
-        self.guiPlaces = common.GuiPlaces(self,self.menuBar, self.tb, self.sb, { "File": self.menu, "Edit": self.menuEdit,
+        # Using wx.StaticText for red warning
+        self.sbtext = common.statusBarText(self.sb, -1, '', pos=(8, 4)) 
+
+        self.guiPlaces = common.GuiPlaces(self,self.menuBar, self.tb, self.sb, self.sbtext, { "File": self.menu, "Edit": self.menuEdit,
             "Project": self.menuProject, "Modelling":self.menuModelling, "Instantiation":self.menuInstantiation, "Windows": self.menuWindows, 
             "Tools": self.menuTools, "Help": self.menuHelp, "Go" : self.menuGo }, None)
 
@@ -586,7 +588,6 @@ class SAFplusFrame(wx.Frame):
                 return result
 
     def onFileMissing(self, evt):
-      print('onFileMissing event lanch')
       filePath = evt.getFilePath()
       fileName = os.path.basename(filePath)
 

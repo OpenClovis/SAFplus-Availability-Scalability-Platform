@@ -51,13 +51,23 @@ class FilesystemOutput(Output):
     with open(filename,"w") as f:
       f.write(string)
 
+class statusBarText(wx.StaticText):
+  def SetLabel(self, label):
+    self.SetForegroundColour('black')
+    return super().SetLabel(label)
+
+  def SetWarning(self, label):
+    self.SetForegroundColour('red')
+    return super().SetLabel(label)
+
 class GuiPlaces:
   """This class identifies all the important services/locations in the GUI so that entities can use these services"""
-  def __init__(self,frame, menubar, toolbar, statusbar, menu, projectTree):
+  def __init__(self,frame, menubar, toolbar, statusbar, statusBarText, menu, projectTree):
     self.frame = frame
     self.menubar = menubar
     self.toolbar = toolbar
     self.statusbar = statusbar
+    self.statusBarText = statusBarText
     self.menu = menu
     self.prjTree = projectTree
 

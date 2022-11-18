@@ -939,7 +939,7 @@ class ProjectTreePanel(wx.Panel):
       saved = []
       self.currentActiveProject.save() 
       saved.append(self.currentActiveProject.name)
-      self.guiPlaces.statusbar.SetStatusText("Projects %s saved." % ", ".join(saved),0);
+      self.guiPlaces.statusBarText.SetLabel("Projects %s saved." % ", ".join(saved));
       if self.guiPlaces.frame.model.uml:
         self.guiPlaces.frame.model.uml.recordEndChange(None, True)
       self.resetLabel(t.uml, t.modelDetails, t.instance, t.instanceDetails)
@@ -964,14 +964,14 @@ class ProjectTreePanel(wx.Panel):
       project.projectFilename = dlg.path
       currentActivePrj = self.latest()
       project.saveAs(currentActivePrj)
-      self.guiPlaces.statusbar.SetStatusText("Saving as completed",0);
+      self.guiPlaces.statusBarText.SetLabel("Saving as completed");
   
   def OnSaveAll(self, event):
     if self.currentActiveProject:
       saved = []
       self.currentActiveProject.save() 
       saved.append(self.currentActiveProject.name)
-      self.guiPlaces.statusbar.SetStatusText("Projects %s saved." % ", ".join(saved),0)
+      self.guiPlaces.statusBarText.SetLabel("Projects %s saved." % ", ".join(saved))
       self.guiPlaces.frame.model.uml.recordEndChange(None, True)
       t = self.guiPlaces.frame.model
       self.resetLabel(t.uml, t.modelDetails, t.instance, t.instanceDetails)

@@ -107,7 +107,7 @@ class EntityTool(Tool):
     self.box = BoxGesture()
 
   def OnSelect(self, panel,event):
-    panel.statusBar.SetStatusText("Click to create a new %s" % self.entity.data["name"],0);
+    panel.statusBarText.SetLabel("Click to create a new %s" % self.entity.data["name"]);
     return True
 
   def OnUnselect(self,panel,event):
@@ -244,7 +244,7 @@ class LinkTool(Tool):
     self.err = None
 
   def OnSelect(self, panel,event):
-    panel.statusBar.SetStatusText("Click on an entity and drag to another entity to create a relationship.",0);
+    panel.statusBarText.SetLabel("Click on an entity and drag to another entity to create a relationship.");
     return True
 
   def OnUnselect(self,panel,event):
@@ -258,7 +258,7 @@ class LinkTool(Tool):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
         entities = panel.findEntitiesAt(pos)
         if len(entities) != 1:
-          panel.statusBar.SetStatusText("You must choose a single starting entity!",0);
+          panel.statusBarText.SetLabel("You must choose a single starting entity!");
           # TODO show a red X under the cursor
           self.err = FadingX(panel,pos,2)
         else:
@@ -275,15 +275,15 @@ class LinkTool(Tool):
           line = convertToRealPos(self.line.finish(panel,pos), panel.scale)
           entities = panel.findEntitiesAt(pos)
           if len(entities) != 1:
-            panel.statusBar.SetStatusText("You must choose a single ending entity!",0);
+            panel.statusBarText.SetLabel("You must choose a single ending entity!");
             self.err = FadingX(panel,pos,1)
           else:
             self.endEntity = entities.pop()
             if not self.startEntity.canContain(self.endEntity):
-              panel.statusBar.SetStatusText("Relationship is not allowed.  Most likely %s entities cannot contain %s entities.  Or maybe you've exceeded the number of containments allowed" % (self.startEntity.et.name, self.endEntity.et.name),0);
+              panel.statusBarText.SetLabel("Relationship is not allowed.  Most likely %s entities cannot contain %s entities.  Or maybe you've exceeded the number of containments allowed" % (self.startEntity.et.name, self.endEntity.et.name));
               self.err = FadingX(panel,pos,1)
             elif not self.endEntity.canBeContained(self.startEntity):
-              panel.statusBar.SetStatusText("Relationship is not allowed.  Most likely %s entities can only be contained by one %s entity."  % (self.endEntity.et.name, self.startEntity.et.name),0);
+              panel.statusBarText.SetLabel("Relationship is not allowed.  Most likely %s entities can only be contained by one %s entity."  % (self.endEntity.et.name, self.startEntity.et.name));
               self.err = FadingX(panel,pos,1)
             else:
               # Add the arrow into the model.  the arrow's location is relative to the objects it connects
@@ -294,7 +294,7 @@ class LinkTool(Tool):
     
   def CreateNewInstance(self,panel,position,size=None):
     """Create a new instance of this entity type at this position"""
-    panel.statusBar.SetStatusText("Created %s" % self.entityType.name,0);
+    panel.statusBarText.SetLabel("Created %s" % self.entityType.name);
     panel.entities.append(self.entityType.createEntity(position, size,children=True))
     panel.Refresh()
     return True
@@ -316,7 +316,7 @@ class SelectTool(Tool):
     self.mouseDownPos = None # to determine the left mouse being clicked
 
   def OnSelect(self, panel,event):
-    panel.statusBar.SetStatusText(self.defaultStatusText,0);
+    panel.statusBarText.SetLabel(self.defaultStatusText);
     self.touching.clear()
     self.selected.clear()
     return True
@@ -350,7 +350,7 @@ class SelectTool(Tool):
         self.entities = panel.findEntitiesAt(pos)
         self.dragPos = pos
         if not self.entities:
-          panel.statusBar.SetStatusText(self.defaultStatusText,0);
+          panel.statusBarText.SetLabel(self.defaultStatusText);
           self.touching = set()
           self.boxSel.start(panel,pos)
           panel.selectedEntities = None
@@ -376,7 +376,7 @@ class SelectTool(Tool):
         else:
           panel.selectedEntities = None
 
-        panel.statusBar.SetStatusText("Touching %s" % ", ".join([ e.data["name"] for e in self.entities]),0);
+        panel.statusBarText.SetLabel("Touching %s" % ", ".join([ e.data["name"] for e in self.entities]));
 
         # If you touch something else, your touching set changes.  But if you touch something in your current touch group then nothing changes
         # This enables behavior like selecting a group of entities and then dragging them (without using the ctrl key)
@@ -576,7 +576,7 @@ class CopyTool(Tool):
     self.defaultStatusText = "Click anywhere in the editor to copy the selected instance"
 
   def OnSelect(self, panel,event):
-    panel.statusBar.SetStatusText(self.defaultStatusText,0);
+    panel.statusBarText.SetLabel(self.defaultStatusText);
     return True
 
   def OnUnselect(self,panel,event):
@@ -598,7 +598,7 @@ class CopyTool(Tool):
           panel.Refresh()
           #panel.selectedEntities = None         
         else:
-          panel.statusBar.SetStatusText("Please select an instance to copy first",0);
+          panel.statusBarText.SetLabel("Please select an instance to copy first");
 
 class ZoomTool(Tool):
   def __init__(self, panel):
@@ -613,7 +613,7 @@ class ZoomTool(Tool):
     self.maxScale = 10
 
   def OnSelect(self, panel,event):
-    panel.statusBar.SetStatusText(self.defaultStatusText,0);
+    panel.statusBarText.SetLabel(self.defaultStatusText);
     return True
 
   def OnUnselect(self,panel,event):
@@ -726,7 +726,7 @@ class GenerateTool(Tool):
       # Copy setup to model
       #os.system('cp resources/setup %s' %self.panel.model.directory())
       print('files gen: files %s\nproxies %s\n' %(str(files),str(proxyFiles)))
-      self.panel.statusBar.SetStatusText("Code generation complete")
+      self.panel.statusBarText.SetLabel("Code generation complete")
       # add these files to the "source" part of the project tab and update the project xml file
       #print files
       # parentFrame = self.panel.guiPlaces.frame
@@ -1165,6 +1165,7 @@ class Panel(scrolled.ScrolledPanel):
       self.menuBar = self.guiPlaces.menubar
       self.toolBar = self.guiPlaces.toolbar
       self.statusBar = self.guiPlaces.statusbar
+      self.statusBarText = self.guiPlaces.statusBarText
       self.model=model
       self.tool = None  # The current tool
       self.drawers = set()
@@ -1498,12 +1499,12 @@ class Panel(scrolled.ScrolledPanel):
     def modifyEntityTool(self, ent, newValue):      
       if ent.data['entityType'] == 'ComponentServiceInstance':
         for name, e in list(share.umlEditorPanel.entities.items()):
-          if (e.data['entityType'] == 'Component' or e.data['entityType'] == 'NonSafComponent') and e.data['csiTypes'] == ent.data['type']:
+          if (e.data['entityType'] == 'Component' or e.data['entityType'] == 'NonSafComponent'):
             e.data['csiTypes'] = newValue
           if e.data['entityType'] == 'NonSafComponent' and e.data['proxyCSI'] == ent.data['type']:
             e.data['proxyCSI'] = newValue       
         for name, e in list(self.model.instances.items()):  
-          if (e.data['entityType'] == 'Component' or e.data['entityType'] == 'NonSafComponent' )and e.data['csiTypes'] == ent.data['type']:
+          if (e.data['entityType'] == 'Component' or e.data['entityType'] == 'NonSafComponent'):
             e.data['csiTypes'] = newValue
           if e.data['entityType'] == 'NonSafComponent' and e.data['proxyCSI'] == ent.data['type']:
             e.data['proxyCSI'] = newValue
@@ -1897,7 +1898,7 @@ class Panel(scrolled.ScrolledPanel):
         placement = "row"
  
       if placement:
-        self.statusBar.SetStatusText("Created instance of %s" % entity.data["name"],0);
+        self.statusBarText.SetLabel("Created instance of %s" % entity.data["name"]);
         # TODO ent = self.entityType.createEntity(position, size)
         if size is None: size = (COL_WIDTH, ROW_WIDTH)  # The layout will automatically update the long size to be the width of the screen        
         # Add index for entities when creating them, index will be the current maximum index plus 1
@@ -2234,11 +2235,24 @@ class Panel(scrolled.ScrolledPanel):
       return None
 
     def notifyValueChange(self, ent, key, query, newValue):
-      names = self.model.instances.keys()
+      names = list()
+      for name, value in self.model.instances.items():
+        if value != ent:
+          names.append(name)
       validator = query.GetValidator()
       if (key.split("_")[-1] == "name") and (newValue in names):
-        self.statusBar.SetStatusText("Instance name [%s] existed. Name [%s] is being used" % (newValue, validator.currentValue))
-        return
+        self.statusBarText.SetWarning("Instance name [%s] existed. Name [%s] is being used" % (newValue, validator.currentValue))
+        query.ChangeValue(validator.currentValue)
+        return False
+      elif (key.split("_")[-1] == "name") and (newValue == ""):
+        self.statusBarText.SetWarning("Instance name must not be empty.")
+        query.ChangeValue(validator.currentValue)
+        return False
+      elif (key.split("_")[-1] != "name") and (newValue.isdigit() != True):
+        self.statusBarText.SetWarning("Invalid input, must contains numbers only")
+        query.ChangeValue(validator.currentValue)
+        return False
+      self.statusBarText.SetLabel(" ")
       for (name, e) in list(self.model.instances.items()):
         if e == ent:
           iterKeys = iter(key.split("_"))
@@ -2258,7 +2272,7 @@ class Panel(scrolled.ScrolledPanel):
           d[token] = newValue          
           # set the name (as a key) of self.model.instances dict
           if token == "name":
-            self.statusBar.SetStatusText("Instance name changed from [%s] to [%s]." % (validator.currentValue, newValue))
+            self.statusBarText.SetLabel("Instance name changed from [%s] to [%s]." % (validator.currentValue, newValue))
             if validator:
               self.model.deleteInstanceFromMicrodom(validator.currentValue)
             self.model.instances[newValue] = self.model.instances.pop(name)
@@ -2273,6 +2287,7 @@ class Panel(scrolled.ScrolledPanel):
           break
 
       self.Refresh()
+      return True
 
     def SetSashPosition(self, position):
       if isinstance(self.GetParent(), wx.SplitterWindow):
