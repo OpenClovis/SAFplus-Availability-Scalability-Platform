@@ -498,7 +498,7 @@ verify_active_alive:
                 {
                   // Deregister my node handle from the name service before I restart
                   logInfo("HB","NAM", "Deregistering this node [%s], handle [%" PRIx64 ":%" PRIx64 "] from the name service", SAFplus::ASP_NODENAME, nodeHandle.id[0],nodeHandle.id[1]);
-                  name.set(SAFplus::ASP_NODENAME,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE,true);
+                  name.remove(SAFplus::ASP_NODENAME);
                   char *runDir = getenv("ASP_RUNDIR");
                   char fileName[512];
                   strncpy(fileName, runDir, 511);
@@ -530,7 +530,7 @@ active_exists:
                 if (activeHdl != INVALID_HDL && nodeHandle != INVALID_HDL && myHandle != INVALID_HDL)
                 {
                     logInfo("HB","NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, nodeHandle.id[0],nodeHandle.id[1]);
-                    name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE,true);
+                    name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE);
                     do
                     {  // Loop because active fault manager may not be chosen yet
                       logInfo("HB","CLM","Registering handle [%" PRIx64 ":%" PRIx64 "] as fault state UP",nodeHandle.id[0],nodeHandle.id[1]);

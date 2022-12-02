@@ -218,14 +218,14 @@ SaAisErrorT saAmfComponentRegister(SaAmfHandleT amfHandle,const SaNameT *compNam
     if (compHdl == INVALID_HDL)
     {
       logInfo("AMF","INI","Registering component name [%s] as handle [%" PRIx64 ":%" PRIx64 "]",      SAFplus::ASP_COMPNAME, myHandle.id[0],myHandle.id[1]);
-      name.set(SAFplus::ASP_COMPNAME,myHandle,NameRegistrar::MODE_NO_CHANGE, true);
+      name.set(SAFplus::ASP_COMPNAME,myHandle,NameRegistrar::MODE_NO_CHANGE);
       name.setLocalObject(myHandle,(void*) amfHandle);
       name.setLocalObject(SAFplus::ASP_COMPNAME,(void*) amfHandle);
     }
     else
     {
       logInfo("AMF","INI","Registering component name [%s] as handle [%" PRIx64 ":%" PRIx64 "]", compName->value, compHdl.id[0],compHdl.id[1]);
-      name.set((const char*)compName->value,compHdl,NameRegistrar::MODE_NO_CHANGE, true);
+      name.set((const char*)compName->value,compHdl,NameRegistrar::MODE_NO_CHANGE);
       name.setLocalObject(compHdl,(void*) amfHandle);
     }    
   }

@@ -1033,7 +1033,7 @@ int main(int argc, char* argv[])
   if (SAFplus::SYSTEM_CONTROLLER) // payload nodes should register to the name service later after the active SC comming up
   {
     logInfo(LogArea,"NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, nodeHandle.id[0],nodeHandle.id[1]);
-    name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE,true);
+    name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE);
   }
 
   compStatsRefresh = boost::thread(CompStatsRefresh());
@@ -1166,7 +1166,7 @@ int main(int argc, char* argv[])
              amfMgmtRpcInitialize(&mgmtRpc, &mgmtRpcChannel, &amfMgmtRpc);
              myRole = Group::IS_ACTIVE;
              becomeActive();
-             name.set(AMF_MASTER_HANDLE,myHandle,NameRegistrar::MODE_NO_CHANGE,true);
+             name.set(AMF_MASTER_HANDLE,myHandle,NameRegistrar::MODE_NO_CHANGE);
              registerInstallInfo(true);
           }          
           lastBeat = beat;  // Don't rewrite the changes that loading makes          
@@ -1203,13 +1203,13 @@ int main(int argc, char* argv[])
   {
     amfMgmtRpcFinalize(mgmtRpc,mgmtRpcChannel,amfMgmtRpc);
   }
-  safplusFinalize();
-  name.set(SAFplus::ASP_NODENAME,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE,true);
+  name.remove(SAFplus::ASP_NODENAME);
   gfault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
   nodeMonitor.finalize();
   compStatsRefresh.join();
   amfDb.finalize();
   postProcessing();
+  safplusFinalize();
   return EXIT_SUCCESS;
   }
 
