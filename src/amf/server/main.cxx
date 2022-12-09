@@ -1376,9 +1376,7 @@ void setNodeOperState(const SAFplus::Handle& nodeHdl, bool state)
          SAFplusAmf::Node* node = dynamic_cast<SAFplusAmf::Node*>(cfg.safplusAmf.nodeList[strNode]);
          if (node && node->operState.value != state)
          {
-	    bool oldState = node->operState.value;
-	    node->operState = state;
-	    logInfo("MAIN","OPS","operState of Node [%s] changed from [%s] to [%s]", node->name.value.c_str(),oldState?"Enabled":"Disabled", node->operState.value?"Enabled":"Disabled");
+	    CL_AMF_SET_O_STATE(node, state);
          }
          else if (!node)
          {

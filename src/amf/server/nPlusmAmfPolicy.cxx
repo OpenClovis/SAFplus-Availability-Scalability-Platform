@@ -22,7 +22,6 @@ namespace SAFplus
   {
 
   SAFplusAmf::Recovery recommendedRecovery = SAFplusAmf::Recovery::None;
-  const char* oper_str(bool val) { if (val) return "enabled"; else return "disabled"; }
   bool compareEntityRecoveryScope(Recovery a, Recovery b);
   void updateStateDueToProcessDeath(SAFplusAmf::Component* comp);
   //ClRcT sgAdjust(const SAFplusAmf::ServiceGroup* sg);
@@ -156,9 +155,9 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
       if (comp->numInstantiationAttempts.value >= comp->maxInstantInstantiations + comp->maxDelayedInstantiations)
         {
           logInfo("N+M","STRT","Faulting [%s]. Number of instantiation Attempts [%d] has exceeded its configured maximum [%d].",comp->name.value.c_str(),comp->numInstantiationAttempts.value, comp->maxInstantInstantiations + comp->maxDelayedInstantiations);
-        comp->operState = false;
-        comp->numInstantiationAttempts = 0;
-        continue;
+          CL_AMF_SET_O_STATE(comp, false);
+          comp->numInstantiationAttempts = 0;
+          continue;
         }
       uint64_t curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 // (uint64_t) std::chrono::steady_clock::now().time_since_epoch().count()/std::chrono::milliseconds(1);
@@ -222,6 +221,12 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
             break;  // we have started enough
             }
           ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+          const std::string& suName = su->name;
+          if (!su->operState.value)
+            {
+              logInfo("N+M","STRT","Not starting service unit [%s], its operState is [%s]", suName.c_str(),oper_str(su->operState.value));
+              continue;
+            }
           // If we moved up to a new rank, we must first wait for the old rank to come up.  This is part of the definition of SU ranks
           if (su->rank.value != curRank)  
             {
@@ -229,7 +234,6 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
             waits = 0;
             curRank = su->rank.value;
             }
-          const std::string& suName = su->name;
           if (!su->node.value) continue;
           if (su->node.value->presenceState == SAFplusAmf::PresenceState::instantiated)
             {
@@ -1129,7 +1133,6 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                               compFaultReport(comp, Recovery::CompRestart);
                               break;
                           case PendingOperation::workRemoval:
-                              comp->operState = false;
                               compFaultReport(comp, Recovery::CompFailover);
                               break;
                           default:
@@ -1161,7 +1164,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                           }
 
                           // In the instantiating case, the process may not have even been started yet.  So to detect failure, we must check both that it has reported a PID and that it is currently uninstantiated
-                          if ((effectiveAdminState(comp) == AdministrativeState::on) && ((status == CompStatus::Uninstantiated) && ((comp->processId.value > 0) || (comp->presenceState != PresenceState::instantiating))))  // database shows should be running but actually no process is there.  I should update DB.
+                          if ((effectiveAdminState(comp) != AdministrativeState::off) && ((status == CompStatus::Uninstantiated) && ((comp->processId.value > 0) || (comp->presenceState != PresenceState::instantiating))))  // database shows should be running but actually no process is there.  I should update DB.
                           {
                               try
                               {
@@ -1479,6 +1482,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
   {
       logDebug("POL","N+M","Component failure reported for component [%s], recommended recovery [%s], current recovery [%s]", comp->name.value.c_str(),c_str(recommRecovery),c_str(recommendedRecovery));
       bool escalation = false;
+      CL_AMF_SET_O_STATE(comp, false);
       processedComp = comp;
       if (0) //(amfOps->nodeGracefulSwitchover)
       {          
@@ -1523,18 +1527,23 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
               amfOps->cleanup(iterComp);
               updateStateDueToProcessDeath(iterComp);
 
-              if(recommendedRecovery == SAFplusAmf::Recovery::CompFailover && comp->operState == false)
+              if(recommendedRecovery == SAFplusAmf::Recovery::CompFailover /*&& comp->operState == false*/ && comp->serviceUnit.value->operState.value)
               {   
                   //csi remove timeout case
-                  logNotice("POL","N+M","Operstate of service Unit [%s] change from [%d] to [0] because csi remove operation of component [%s] timed out", comp->serviceUnit.value->name.value.c_str(), comp->serviceUnit.value->operState.value, comp->name.value.c_str());
-                  comp->serviceUnit.value->operState = false;
+                  CL_AMF_SET_O_STATE(comp->serviceUnit.value, false);                  
               }
+          }
+          if (recommendedRecovery == SAFplusAmf::Recovery::SuRestart)
+          {
+              CL_AMF_SET_O_STATE(comp, true);
+              CL_AMF_SET_O_STATE(comp->serviceUnit.value, true);
           }
       }
       else
       {
           amfOps->cleanup(comp);
           if(recommendedRecovery != SAFplusAmf::Recovery::NodeFailfast)updateStateDueToProcessDeath(comp);
+          CL_AMF_SET_O_STATE(comp, true);
       }
       logDebug("POL","N+M","processing faulty component [%s], recommended recovery [%s], escalation [%s]", comp->name.value.c_str(),c_str(recommendedRecovery), escalation?"Yes":"No");
   }
@@ -1693,6 +1702,13 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
               *escalation = true;
           }
       }
+
+      // check recovery and change OS of the su if any
+      if (*recovery != Recovery::SuRestart && su->operState.value)
+      {
+         CL_AMF_SET_O_STATE(su, false);
+      }
+
       //End pre compute SU recovery action
 
       if ( (*recovery == Recovery::NoRecommendation) ||

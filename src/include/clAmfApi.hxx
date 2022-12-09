@@ -8,6 +8,8 @@
 </desc>
 */
 
+#include <clLogIpi.hxx>
+
 namespace SAFplus
   {
   enum class AmfRedundancyPolicy
@@ -15,7 +17,19 @@ namespace SAFplus
     Undefined = 0,
     Custom = 1,
     NplusM = 2,
-    }; 
+    };
+
+#ifndef oper_str
+#define oper_str(val) (val)?"enabled":"disabled"
+#endif
+
+#define CL_AMF_SET_O_STATE(entity, state)     do                \
+{                                                               \
+  logNotice("POL","N+M","operState of entity [%s] change from [%s] to [%s]", (entity)->name.value.c_str(), oper_str((entity)->operState.value), oper_str(state));     \
+  (entity)->operState = state;                                  \
+}                                                               \
+while(0)
+
   };
 
 //? </section>
