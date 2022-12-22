@@ -200,11 +200,11 @@ namespace SAFplus
      const SAFplus::Buffer& getData(const std::string& name) throw(NameException&);
 
      //? Failure handling. This function tells this object that a particular process has failed.  Typically, it is used only internally by SAFplus.
-     //void processFailed(const uint32_t pid, const uint32_t amfId);
+     void processFailed(const uint32_t pid, const uint32_t amfId);
      //? Failure handling. This function tells this object that a particular process has failed.  Typically, it is used only internally by SAFplus.
-     //void nodeFailed(const uint16_t slotNum, const uint32_t amfId);
+     void nodeFailed(const uint16_t slotNum, const uint32_t amfId);
      //? Failure handling. This function tells this object that a particular process has failed.  Typically, it is used only internally by SAFplus.
-     void handleFailure(const FailureType failureType, const Handle& failedHandle);
+     void handleFailure(const FailureType failureType, const uint32_t id, const uint32_t amfId);
 
      //**** This is the dummy function for testing to get iocNodeAddr ********
      //ClIocNodeAddressT clIocLocalAddressGet() { return 2; }

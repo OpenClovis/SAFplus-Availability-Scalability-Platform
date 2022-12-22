@@ -25,11 +25,8 @@ namespace SAFplus
 
 #define CL_AMF_SET_O_STATE(entity, state)     do                \
 {                                                               \
-  if ((entity)->operState.value != state)                            \
-  {                                                            \
-    logNotice("POL","N+M","operState of entity [%s] change from [%s] to [%s]", (entity)->name.value.c_str(), oper_str((entity)->operState.value), oper_str(state));     \
-    (entity)->operState = state;                                \
-  }                                                            \
+  logNotice("POL","N+M","operState of entity [%s] change from [%s] to [%s]", (entity)->name.value.c_str(), oper_str((entity)->operState.value), oper_str(state));     \
+  (entity)->operState = state;                                  \
 }                                                               \
 while(0)
 

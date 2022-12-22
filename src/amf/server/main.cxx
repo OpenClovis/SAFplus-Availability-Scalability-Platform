@@ -71,7 +71,7 @@ void preprocessDb(SAFplusAmf::SAFplusAmfModule& cfg);
 void loadAmfPluginsAt(const char* soPath, AmfOperations& amfOps,Fault& fault);
 void postProcessing();
 //void updateNodesFaultState(SAFplusAmf::SAFplusAmfModule& cfg);
-//void setNodeOperState(const SAFplus::Handle& nodeHdl, bool state);
+void setNodeOperState(const SAFplus::Handle& nodeHdl, bool state);
 
 RedPolicyMap redPolicies;
 
@@ -366,14 +366,7 @@ bool activeAudit()  // Check to make sure DB and the system state are in sync.  
            gfault.notify(nodeHdl,AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS,AlarmSeverity::ALARM_SEVERITY_MAJOR,AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE);
            }
 #endif
-         if ((fs == FaultState::STATE_UP) && (node->adminState.value != AdministrativeState::off))
-           {
-              CL_AMF_SET_O_STATE(node, true);
-           }
-         else if (fs == FaultState::STATE_DOWN || nodeHdl == INVALID_HDL)
-           {
-              CL_AMF_SET_O_STATE(node, false);
-           }
+
          if ((fs == FaultState::STATE_UP) && node->operState.value && (node->adminState.value != AdministrativeState::off) &&(node->presenceState != PresenceState::instantiated))
            {
              PresenceState ps = PresenceState::instantiated;
@@ -399,7 +392,6 @@ bool activeAudit()  // Check to make sure DB and the system state are in sync.  
             node->presenceState = PresenceState::uninstantiated;
             logInfo("AUD","ACT","Presence state of Node [%s] changed from [%s] to [%s]", node->name.value.c_str(),c_str(ps), c_str(node->presenceState.value));
           }
-          CL_AMF_SET_O_STATE(node, false);
         }
       if (nodeHdl != INVALID_HDL)
         {
@@ -1037,13 +1029,12 @@ int main(int argc, char* argv[])
   //static ClTimerTimeOutT statsTimeout = { .tsSec = 10, .tsMilliSec = 0 };
   //Timer readStats(statsTimeout, CL_TIMER_REPETITIVE,CL_TIMER_SEPARATE_CONTEXT,refreshComponentStats,NULL);
   //readStats.timerStart();
-#if 0
+
   if (SAFplus::SYSTEM_CONTROLLER) // payload nodes should register to the name service later after the active SC comming up
   {
     logInfo(LogArea,"NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, nodeHandle.id[0],nodeHandle.id[1]);
     name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE);
   }
-#endif
 
   compStatsRefresh = boost::thread(CompStatsRefresh());
 
@@ -1169,11 +1160,6 @@ int main(int argc, char* argv[])
             initOperValues = true;
             }
           logInfo("---","---","This node just became the active system controller. Previous role [%d]", myRole);
-          if (myRole==0)
-          {
-            logInfo(LogArea,"NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, nodeHandle.id[0],nodeHandle.id[1]);
-            name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE);
-          }
           nodeMonitor.currentActive = myHandle;
           if (myRole != Group::IS_ACTIVE) //if my previous HA state is ACTIVE, do not anything
           {
@@ -1197,11 +1183,6 @@ int main(int argc, char* argv[])
                  logNotice("---","---","Active became standby, this node will restart now");
                  quitting = true;
                  break;
-              }
-              if (myRole==0)
-              {
-                logInfo(LogArea,"NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, nodeHandle.id[0],nodeHandle.id[1]);
-                name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE);
               }
               initOperValues = false;
               if (myRole != Group::IS_STANDBY) //if my previous HA state is STANDBY, do not anything
@@ -1382,10 +1363,9 @@ void preprocessDb(SAFplusAmf::SAFplusAmfModule& cfg)
    }
 }
 
-#if 0
 void setNodeOperState(const SAFplus::Handle& nodeHdl, bool state)
 {
-   int maxTry = 30; // try in 3s
+   int maxTry = 15; // try in 1.5s
    int tries = 0;
    do
    {
@@ -1406,14 +1386,13 @@ void setNodeOperState(const SAFplus::Handle& nodeHdl, bool state)
       }
       catch (NameException& ne)
       {
-         logWarning("MAIN","OPS", "get name by handle [%" PRIx64 ":%" PRIx64 "] fail. Error message: %s", nodeHdl.id[0], nodeHdl.id[1], ne.what());
+         logError("MAIN","OPS", "get name by handle [%" PRIx64 ":%" PRIx64 "] fail. Error message: %s", nodeHdl.id[0], nodeHdl.id[1], ne.what());
          boost::this_thread::sleep(boost::posix_time::milliseconds(100));
          tries++;
       }
    }
    while(tries<maxTry);
 }
-#endif
 
 void amfMgmtRpcInitialize(SAFplus::Rpc::amfMgmtRpc::amfMgmtRpcImpl** mgmtRpc, SAFplus::Rpc::RpcChannel** mgmtRpcChannel, SAFplus::Rpc::amfMgmtRpc::amfMgmtRpc_Stub** amfMgmtRpc)
 {

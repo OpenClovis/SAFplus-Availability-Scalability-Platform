@@ -1491,7 +1491,6 @@ def zap_asp(lock_remove = True):
       log.critical('traceback: %s',traceback.format_exc())
 
     kill_asp(lock_remove)
-    os.system("rm -f /dev/shm/SAFplus*")
     # if not is_simulation():
     #     time.sleep(2) ## delay to give time for the zapped processes to exit
     #     unload_tipc_module()

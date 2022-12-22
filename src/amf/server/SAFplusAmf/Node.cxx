@@ -29,7 +29,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Node, /SAFplusAmf/safplusAmf/Node)
 
-    Node::Node(): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), adminState("adminState",::SAFplusAmf::AdministrativeState::on), operState("operState",false), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), disableAssignmentOn("disableAssignmentOn"), userDefinedType("userDefinedType"), canBeInherited("canBeInherited"), serviceUnits("serviceUnits"), capacityList("capacity"), currentRecovery("currentRecovery", SAFplusAmf::Recovery::None), restartable("restartable",true), lastSUFailure("lastSUFailure")
+    Node::Node(): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), adminState("adminState",::SAFplusAmf::AdministrativeState::on), operState("operState",true), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), disableAssignmentOn("disableAssignmentOn"), userDefinedType("userDefinedType"), canBeInherited("canBeInherited"), serviceUnits("serviceUnits"), capacityList("capacity"), currentRecovery("currentRecovery", SAFplusAmf::Recovery::None), restartable("restartable",true), lastSUFailure("lastSUFailure")
     {
         this->addChildObject(&presenceState, "presenceState");
         presenceState.config = false;
@@ -61,7 +61,7 @@ namespace SAFplusAmf
         this->tag.assign("Node");
         presenceState = ::SAFplusAmf::PresenceState::uninstantiated;
         adminState = ::SAFplusAmf::AdministrativeState::on;
-        operState = false;
+        operState = true;
         this->addChildObject(&currentRecovery, "currentRecovery");
         currentRecovery.config = false;
         currentRecovery.settable = false;
@@ -75,7 +75,7 @@ namespace SAFplusAmf
         this->addChildObject(&restartable, "restartable");
     };
 
-    Node::Node(const std::string& nameValue): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), adminState("adminState",::SAFplusAmf::AdministrativeState::on), operState("operState",false), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), disableAssignmentOn("disableAssignmentOn"), userDefinedType("userDefinedType"), canBeInherited("canBeInherited"), serviceUnits("serviceUnits"), capacityList("capacity"), currentRecovery("currentRecovery", SAFplusAmf::Recovery::None), restartable("restartable",true), lastSUFailure("lastSUFailure")
+    Node::Node(const std::string& nameValue): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), adminState("adminState",::SAFplusAmf::AdministrativeState::on), operState("operState",true), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), disableAssignmentOn("disableAssignmentOn"), userDefinedType("userDefinedType"), canBeInherited("canBeInherited"), serviceUnits("serviceUnits"), capacityList("capacity"), currentRecovery("currentRecovery", SAFplusAmf::Recovery::None), restartable("restartable",true), lastSUFailure("lastSUFailure")
     {
         this->name.value =  nameValue;
         this->addChildObject(&presenceState, "presenceState");

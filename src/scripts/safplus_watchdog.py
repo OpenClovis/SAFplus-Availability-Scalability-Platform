@@ -117,7 +117,7 @@ def amf_watchdog_loop():
                                   'was called on it and ASP_NODE_REBOOT_DISABLE '
                                   'environment variable is set for it.'
                                   % node_name)
-                    #os.system("rm -f /dev/shm/SAFplus*")
+                    os.system("rm -f /dev/shm/SAFplus*")
                     asp.zap_asp()
                     sys.exit(1)
                 else:

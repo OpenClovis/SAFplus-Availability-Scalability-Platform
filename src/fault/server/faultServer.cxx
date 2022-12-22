@@ -241,7 +241,6 @@ namespace SAFplus
                     {
                       logDebug(FAULT,"MSG","Repeated entity JOIN message for entity [%d.%d.%" PRIx64 "], entity handle [%" PRIx64 ":%" PRIx64 "] state %d",faultEntity.getNode(),faultEntity.getProcess(),faultEntity.getIndex(),faultEntity.id[0], faultEntity.id[1], (int)faultState);
                       setFaultState(faultEntity,faultState);
-#if 0
                       if (faultEntity.getProcess() == 0 && faultEntity.getNode() != SAFplus::ASP_NODEADDR && faultState == FaultState::STATE_UP) // other node is up
                       {
                         try
@@ -257,7 +256,6 @@ namespace SAFplus
                             logError(FAULT,"MSG","getHandle got exception [%s]", ex.what());
                         }
                       }
-#endif
                     }
                 }
                 break;
