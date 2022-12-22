@@ -5,6 +5,7 @@
 #include <amfRpc.hxx>
 #include "nodeMonitor.hxx"
 #include <SAFplusAmfModule.hxx>
+#include <clNameApi.hxx>
 #include <signal.h>
 
 //#ifdef SAFPLUS_AMF_LOG_NODE_REPRESENTATIVE
@@ -208,6 +209,8 @@ void NodeMonitor::monitorThread(void)
                       if ((cfg.safplusAmf.healthCheckMaxSilence!=0) && (now - lastHeard[i] > cfg.safplusAmf.healthCheckMaxSilence))
                         {
                           logInfo("HB","CLM","active: not heard from node %d",i);
+                          Handle faultHdl = getNodeHandle(i);
+                          name.handleFailure(NameRegistrar::FailureType::FAILURE_NODE,faultHdl);
                           Handle amfHdl = getProcessHandle(SAFplusI::AMF_IOC_PORT,i);
                           bool skip = false;
                           for (auto it = members.cbegin(); it != members.cend(); it++)
@@ -236,7 +239,7 @@ void NodeMonitor::monitorThread(void)
                               logWarning("HB","CLM","active: there is no member with id [%" PRIx64 ":%" PRIx64 "]",amfHdl.id[0], amfHdl.id[1]);
                             }
                             //syslog(LOG_INFO,"active: node %d not heard",i);
-                            Handle faultHdl = getNodeHandle(i);
+                            //Handle faultHdl = getNodeHandle(i);                           
                             logInfo("HB","CLM","active: notifying fault entity [%" PRIx64 ":%" PRIx64 "]", faultHdl.id[0],faultHdl.id[1]);
                             gfault.notify(faultHdl,AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS,AlarmSeverity::ALARM_SEVERITY_MAJOR,AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE, gfault.getFaultPolicy());
                             //lastHeard[i] = 0;  // after fault mgr notification, reset node as if its new.  If the fault mgr does not choose to kill the node, this will cause us to give the node another maxSilentInterval.
@@ -396,7 +399,8 @@ void NodeMonitor::monitorThread(void)
               }
               Handle& amfHdl = lastHbHandle;              
               logInfo("HB","CLM","standby: not heard from active [%" PRIx64 ":%" PRIx64 "]",amfHdl.id[0], amfHdl.id[1]);
-              
+              Handle hdl = getNodeHandle(amfHdl.getNode());
+              name.handleFailure(NameRegistrar::FailureType::FAILURE_NODE,hdl);
               bool skip = false;
               for (auto it = members.cbegin(); it != members.cend(); it++)
               {
@@ -423,12 +427,12 @@ void NodeMonitor::monitorThread(void)
                  {
                      logWarning("HB","CLM","standby: there is no member with id [%" PRIx64 ":%" PRIx64 "]",amfHdl.id[0], amfHdl.id[1]);
                  }
-                 Handle hdl;
+                 //Handle hdl;
                  /*if (lastHbHandle == INVALID_HDL)  // We never received a HB from the active so fail whatever the cluster manager thinks is active
                  {
                     lastHbHandle = clusterGroup.getActive(ABORT);
                  }*/
-                 hdl = getNodeHandle(lastHbHandle);
+                 //hdl = getNodeHandle(lastHbHandle);
                  // I need to special case the fault reporting of the ACTIVE, since that fault server is probably dead.
                  // TODO: It is more semantically correct to send this notification to the standby fault server by looking at the fault group.  However, it will end up pointing to this node...
                  gfault.notifyLocal(hdl,AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS,AlarmSeverity::ALARM_SEVERITY_MAJOR,AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE, gfault.getFaultPolicy());

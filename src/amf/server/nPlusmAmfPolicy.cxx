@@ -1177,7 +1177,10 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                               {
                                   logWarning("N+M","AUDIT","Component [%s] is marked as running with uninstantiated state and no name registration (no handle).  It may have died at startup.", comp->name.value.c_str());
                               }
-                              compFaultReport(comp);//we must have more steps to handle for other comps in the same su in node switchover case
+                              if (rs != ReadinessState::outOfService)
+                              {
+                                compFaultReport(comp);//we must have more steps to handle for other comps in the same su in node switchover case
+                              }
                           }
                           else if (comp->presenceState == PresenceState::instantiating)  // If the component is in the instantiating state, look for it to register with the AMF
                           {
