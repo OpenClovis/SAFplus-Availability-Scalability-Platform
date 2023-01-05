@@ -471,8 +471,12 @@ namespace SAFplus
         int retval = ::send(sd, buffer, size - sent,flags | MSG_NOSIGNAL);  
         if (retval == -1)
         {        
-          if (errno != EAGAIN)
-            throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+          if (errno != EAGAIN) {
+            //throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+            int err = errno;
+            logError("TCP","SND","system error number [%d], error message [%s]", err, strerror(err));
+            break;
+          }
 	  usleep(10000);
         }
         else 

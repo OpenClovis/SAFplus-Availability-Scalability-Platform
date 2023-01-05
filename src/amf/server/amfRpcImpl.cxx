@@ -44,7 +44,8 @@ namespace amfRpc {
   env.push_back(strNodeName);
 
   ssNodeAddr<<SAFplus::ASP_NODEADDR;
-  env.push_back(strNodeAddr.append(ssNodeAddr.str()));
+  strNodeAddr.append(ssNodeAddr.str());
+  env.push_back(strNodeAddr);
 
   int port = SAFplusI::portAllocator.allocPort();
   ssPort<<port;

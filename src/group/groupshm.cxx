@@ -195,7 +195,7 @@ GroupSharedMem::~GroupSharedMem()
 void GroupSharedMem::finalize()
   {
     quit = true;
-    grpDispatchThread.join();
+    grpDispatchThread.try_join_for(boost::chrono::milliseconds(3000));
   }
 
 void GroupSharedMem::init()

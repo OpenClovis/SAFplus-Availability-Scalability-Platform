@@ -1,4 +1,5 @@
 #include <clCommon.hxx>
+#include <clThreadApi.hxx>
 
 namespace SAFplusI
 {
@@ -19,6 +20,7 @@ class PortAllocator
     void releasePort(int port);
 
     void releasePortByPid(pid_t pid);
+    SAFplus::ProcSem mutex;
   };
 
 extern PortAllocator portAllocator;  // Its a singleton class

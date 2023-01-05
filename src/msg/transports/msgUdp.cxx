@@ -338,7 +338,9 @@ namespace SAFplus
           if (retval == -1)
             {
               int err = errno;
-              throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+              //throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+              logError("UDP","SND","system error number [%d], error message [%s]", err, strerror(err));
+              goto free_and_return;
             }
           else
             {
@@ -346,7 +348,7 @@ namespace SAFplus
               //printf("%d messages sent\n", retval);
             }
         }
-
+free_and_return:
       // Your send routine releases the message whenever you are ready to do so
       MsgPool* temp = origMsg->msgPool;
       temp->free(origMsg);

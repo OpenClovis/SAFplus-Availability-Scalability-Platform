@@ -319,7 +319,7 @@ void MsgServer::MakeMePrimary()
   {
     receiving=false;
     jq.stop();
-    receiverThread.join();
+    receiverThread.try_join_for(boost::chrono::milliseconds(3000));
   }
 
   void MsgServer::Quiesce(void)

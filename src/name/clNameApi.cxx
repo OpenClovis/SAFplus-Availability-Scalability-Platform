@@ -500,7 +500,7 @@ const Buffer& NameRegistrar::getData(const std::string& name) throw(NameExceptio
    }
 }
 
-void NameRegistrar::handleFailure(const FailureType failureType, const uint32_t id, const uint32_t amfId)
+void NameRegistrar::handleFailure(const FailureType failureType, const Handle& failedHandle)
 {
    Checkpoint::Iterator ibegin = m_checkpoint.begin();
    Checkpoint::Iterator iend = m_checkpoint.end();
@@ -513,8 +513,8 @@ void NameRegistrar::handleFailure(const FailureType failureType, const uint32_t 
       if (curval)
       {
          HandleData* data = (HandleData*) curval->data;
-         if ((data->structIdAndEndian != STRID && data->structIdAndEndian != STRIDEN) || // Arbitrary data in this case
-             (data->mappingMode != NameRegistrar::MODE_PREFER_LOCAL))
+         if (data->structIdAndEndian != STRID && data->structIdAndEndian != STRIDEN) // Arbitrary data in this case            
+             //||(data->mappingMode != NameRegistrar::MODE_PREFER_LOCAL))
          {
             continue;
          }
@@ -524,8 +524,8 @@ void NameRegistrar::handleFailure(const FailureType failureType, const uint32_t 
          memset(markedRemoval, 0, sz);
          for(int i=0;i<sz;i++)
          {
-            if ((failureType == NameRegistrar::FAILURE_PROCESS && data->handles[i].getProcess() == id) ||
-                (failureType == NameRegistrar::FAILURE_NODE && data->handles[i].getNode() == (uint16_t)id))
+            //if ((failureType == NameRegistrar::FAILURE_PROCESS && data->handles[i].getProcess() == id) || (failureType == NameRegistrar::FAILURE_NODE && data->handles[i].getNode() == (uint16_t)id))
+            if (failureType == NameRegistrar::FAILURE_NODE && data->handles[i] == failedHandle)
             {
                if (sz == 1) // There is only one handle registered, then remove the name and its value
                {
@@ -535,6 +535,7 @@ void NameRegistrar::handleFailure(const FailureType failureType, const uint32_t 
                   m_checkpoint.remove(curkey, true);
 #endif
                   m_checkpoint.remove(*curkey);
+                  return;
                }
                else  //Remove this element and push remaining handles back to checkpoint
                {
@@ -564,6 +565,7 @@ void NameRegistrar::handleFailure(const FailureType failureType, const uint32_t 
             }
          }
          set(curkey.get()->data, newData, hLen);
+         return;
       }
       else
       {
@@ -571,7 +573,7 @@ void NameRegistrar::handleFailure(const FailureType failureType, const uint32_t 
       }
    }
 }
-
+#if 0
 void NameRegistrar::processFailed(const uint32_t pid, const uint32_t amfId)
 {
    handleFailure(NameRegistrar::FAILURE_PROCESS, pid, amfId);
@@ -581,7 +583,7 @@ void NameRegistrar::nodeFailed(const uint16_t slotNum, const uint32_t amfId)
 {
    handleFailure(NameRegistrar::FAILURE_NODE, (uint32_t)slotNum, amfId);
 }
-
+#endif
 void NameRegistrar::dump()
 {
    logInfo("NAME","DUMP","---------------------------------");

@@ -84,7 +84,7 @@ public:
     //? Set status of one fault Entity: for use by Fault plugins
     void setFaultState(SAFplus::Handle handle,SAFplus::FaultState state);\
     void RemoveAllEntity();
-
+    void registerRelatedEntities(Fault& fault, const Handle& nodeHdl, FaultState state);
 
 }; //? </class>
 

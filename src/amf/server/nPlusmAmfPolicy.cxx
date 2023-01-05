@@ -433,7 +433,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                   bool nodeExists  = false;
                   if (node)
                   {
-                      nodeExists = (node->presenceState == PresenceState::instantiated);  //(node->stats.upTime > 0); // TODO: use the presence state
+                      nodeExists = (node->presenceState == PresenceState::instantiated && node->operState.value);  //(node->stats.upTime > 0); // TODO: use the presence state
                   }
 
                   uint64_t curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -511,7 +511,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                           }
                           else
                           {
-                              if (nodeExists)  // Make sure that components are running if they can be.
+                              if (nodeExists && !amfOps->splitbrainInProgress)  // Make sure that components are running if they can be. AND there is no splitbrain happening
                               {
                                   if (comp->presenceState == PresenceState::instantiating)
                                   {
@@ -1151,9 +1151,11 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
 
                           // Node died
                           //if ((su->readinessState.value == ReadinessState::outOfService)&&(comp->presenceState !=  PresenceState::uninstantiated))
+                          bool faultReport = true;
                           if (su->node.value && (su->node.value->presenceState.value == PresenceState::uninstantiated)&&(comp->presenceState !=  PresenceState::uninstantiated))
                           {
                               logInfo("N+M","DSC","SU went out of service during Component [%s] instantiation.", comp->name.value.c_str());
+                              faultReport = false;
                               updateStateDueToProcessDeath(comp);
                           }
 
@@ -1169,15 +1171,19 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                               try
                               {
                                   Handle compHdl = ::name.getHandle(comp->name);
-                                  // Actually it throws NameException: assert(compHdl != INVALID_HDL);  // AMF MUST register this component before it does anything else with it so the name must exist.
+                                  // Actually it throws NameException: assert(compHdl != INVALID_HDL);  // AMF MUST register this component before it does anything else with it so the name must exist.                       
+                                  if (compHdl == INVALID_HDL) faultReport = false;
                                   fault->notify(compHdl,FaultEventData(AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_PROCESSING_ERROR,AlarmSeverity::ALARM_SEVERITY_MAJOR, AlarmProbableCause::ALARM_PROB_CAUSE_SOFTWARE_ERROR));
                                   // TODO: it may be better to have the AMF react to fault manager's notification instead of doing it preemptively here
                               }
                               catch(NameException& ne)
                               {
                                   logWarning("N+M","AUDIT","Component [%s] is marked as running with uninstantiated state and no name registration (no handle).  It may have died at startup.", comp->name.value.c_str());
+                                  // no name in nameservice because the comp has been stop gracefully --> no fault report
+                                  faultReport = false;
                               }
-                              compFaultReport(comp);//we must have more steps to handle for other comps in the same su in node switchover case
+                                if (faultReport)
+                                  compFaultReport(comp);//we must have more steps to handle for other comps in the same su in node switchover case
                           }
                           else if (comp->presenceState == PresenceState::instantiating)  // If the component is in the instantiating state, look for it to register with the AMF
                           {

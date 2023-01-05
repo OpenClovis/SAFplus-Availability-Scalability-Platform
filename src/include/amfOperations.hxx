@@ -89,6 +89,7 @@ namespace SAFplus
       Fault fault;
       //bool nodeGracefulSwitchover;
       SAFplus::ProcSem mutex;
+      bool splitbrainInProgress;
 
       AmfOperations()
       {
@@ -101,6 +102,7 @@ namespace SAFplus
         //fault.init();
         //nodeGracefulSwitchover = false;
         mutex.init("MgtObject",1);
+        splitbrainInProgress = false;
       }
 
   public:  // Public API

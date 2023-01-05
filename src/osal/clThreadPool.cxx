@@ -213,7 +213,12 @@ void ThreadPool::runTask(void* arg)
   pthread_t thid = pthread_self();
   tp->mutex.lock();
   ThreadHashMap::iterator contents = tp->threadMap.find(thid);
-  assert(contents != tp->threadMap.end());
+  //assert(contents != tp->threadMap.end());
+  if (contents == tp->threadMap.end())
+  {
+     logWarning("THRPOOL","RUNTSK", "thread [%lu] has no map's contents", thid);
+     return;     
+  }
   tp->mutex.unlock();
   ThreadState& ts = contents->second;
 

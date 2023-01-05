@@ -321,7 +321,9 @@ namespace SAFplus
               if (retval == -1)
                 {
                   int err = errno;
-                  throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+                  //throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+                  logError("SCTP","SND","system error number [%d], error message [%s]", err, strerror(err));
+                  break;
                 }
               else
                 {
@@ -338,8 +340,9 @@ namespace SAFplus
       if (retval == -1)
       {
         int err = errno;
-        char* errstr = strerror(errno);
-        throw Error(Error::SYSTEM_ERROR,errno,errstr,__FILE__,__LINE__);
+        //char* errstr = strerror(errno);
+        //throw Error(Error::SYSTEM_ERROR,errno,errstr,__FILE__,__LINE__);
+        logError("SCTP","SND","system error number [%d], error message [%s]", err, strerror(err));
       }
       else
       {

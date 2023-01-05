@@ -366,7 +366,10 @@ bool activeAudit()  // Check to make sure DB and the system state are in sync.  
            gfault.notify(nodeHdl,AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_COMMUNICATIONS,AlarmSeverity::ALARM_SEVERITY_MAJOR,AlarmProbableCause::ALARM_PROB_CAUSE_RECEIVER_FAILURE);
            }
 #endif
-
+         if (fs == FaultState::STATE_DOWN || nodeHdl == INVALID_HDL)
+           {
+              CL_AMF_SET_O_STATE(node, false);
+           }
          if ((fs == FaultState::STATE_UP) && node->operState.value && (node->adminState.value != AdministrativeState::off) &&(node->presenceState != PresenceState::instantiated))
            {
              PresenceState ps = PresenceState::instantiated;
@@ -392,6 +395,7 @@ bool activeAudit()  // Check to make sure DB and the system state are in sync.  
             node->presenceState = PresenceState::uninstantiated;
             logInfo("AUD","ACT","Presence state of Node [%s] changed from [%s] to [%s]", node->name.value.c_str(),c_str(ps), c_str(node->presenceState.value));
           }
+          CL_AMF_SET_O_STATE(node, false);
         }
       if (nodeHdl != INVALID_HDL)
         {
@@ -1066,7 +1070,7 @@ int main(int argc, char* argv[])
     nowBeat = beat;
     if (lastBeat != nowBeat)
       {
-      ScopedLock<ProcSem> lock(amfOpsMgmt->mutex);
+      ScopedLock<ProcSem> lock2(amfOpsMgmt->mutex);
       logInfo("PRC","MON","Beat advanced, writing changes");
       cfg.writeChanged(lastBeat,nowBeat,&amfDb);
       }
@@ -1133,6 +1137,11 @@ int main(int argc, char* argv[])
       // now election occurs automatically, so just need to wait for it.
       // if ((activeStandbyPairs.first == INVALID_HDL)||(activeStandbyPairs.second == INVALID_HDL)) clusterGroup.elect();
 #endif
+      if (amfOpsMgmt->splitbrainInProgress && activeStandbyPairs.first != INVALID_HDL && activeStandbyPairs.second != INVALID_HDL)
+      {
+         logInfo("---","---","Finish role election, so splitbrain, if any, no longer exist");
+         amfOpsMgmt->splitbrainInProgress = false;
+      }
       if (myRole == Group::IS_ACTIVE) 
         {
         //CL_ASSERT(activeStandbyPairs.first == myHandle);  // Once I become ACTIVE I can never lose it.
@@ -1160,6 +1169,11 @@ int main(int argc, char* argv[])
             initOperValues = true;
             }
           logInfo("---","---","This node just became the active system controller. Previous role [%d]", myRole);
+          if (myRole==0)
+          {
+            logInfo(LogArea,"NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, nodeHandle.id[0],nodeHandle.id[1]);
+            name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE);
+          }
           nodeMonitor.currentActive = myHandle;
           if (myRole != Group::IS_ACTIVE) //if my previous HA state is ACTIVE, do not anything
           {
@@ -1184,6 +1198,11 @@ int main(int argc, char* argv[])
                  quitting = true;
                  break;
               }
+              if (myRole==0)
+              {
+                logInfo(LogArea,"NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, nodeHandle.id[0],nodeHandle.id[1]);
+                name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE);
+              }
               initOperValues = false;
               if (myRole != Group::IS_STANDBY) //if my previous HA state is STANDBY, do not anything
               {
@@ -1206,7 +1225,7 @@ int main(int argc, char* argv[])
   name.remove(SAFplus::ASP_NODENAME);
   gfault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
   nodeMonitor.finalize();
-  compStatsRefresh.join();
+  compStatsRefresh.try_join_for(boost::chrono::milliseconds(3000));
   amfDb.finalize();
   postProcessing();
   safplusFinalize();
@@ -1365,7 +1384,7 @@ void preprocessDb(SAFplusAmf::SAFplusAmfModule& cfg)
 
 void setNodeOperState(const SAFplus::Handle& nodeHdl, bool state)
 {
-   int maxTry = 15; // try in 1.5s
+   int maxTry = 30; // try in 3s
    int tries = 0;
    do
    {
@@ -1374,11 +1393,11 @@ void setNodeOperState(const SAFplus::Handle& nodeHdl, bool state)
          char* nodeName = name.getName(nodeHdl);
          std::string strNode(nodeName);
          SAFplusAmf::Node* node = dynamic_cast<SAFplusAmf::Node*>(cfg.safplusAmf.nodeList[strNode]);
-         if (node && node->operState.value != state)
+         if (node)
          {
 	    CL_AMF_SET_O_STATE(node, state);
          }
-         else if (!node)
+         else
          {
 	    logError("MAIN","OPS", "object for node [%s] doesn't exist", nodeName);
          }
@@ -1386,7 +1405,7 @@ void setNodeOperState(const SAFplus::Handle& nodeHdl, bool state)
       }
       catch (NameException& ne)
       {
-         logError("MAIN","OPS", "get name by handle [%" PRIx64 ":%" PRIx64 "] fail. Error message: %s", nodeHdl.id[0], nodeHdl.id[1], ne.what());
+         logWarning("MAIN","OPS", "get name by handle [%" PRIx64 ":%" PRIx64 "] fail. Error message: %s", nodeHdl.id[0], nodeHdl.id[1], ne.what());
          boost::this_thread::sleep(boost::posix_time::milliseconds(100));
          tries++;
       }

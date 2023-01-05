@@ -1,15 +1,17 @@
 #include "clPortAllocator.hxx"
-
+using namespace SAFplus;
 namespace SAFplusI 
 {
   PortAllocator::PortAllocator()
   {
+    mutex.init("portAllocator",1);
     for (int i=0; i < PortArrayLen; i++) pid[i] = 0; // Set to available: TODO, actually check to see if the port is used or unused.    
   }
 
   int PortAllocator::allocPort()
   {
     // These linear searches are not expected to matter performance-wise because processes are started rarely
+    ScopedLock<ProcSem> lock(mutex);
     for (int i=0; i < PortArrayLen; i++)
       {
         if (pid[i] == 0)
@@ -24,6 +26,7 @@ namespace SAFplusI
 
   void PortAllocator::assignPort(int port, pid_t thepid)
   {
+    ScopedLock<ProcSem> lock(mutex);
     assert(port >= SAFplus::MsgDynamicPortStart);
     assert(port < SAFplus::MsgDynamicPortEnd);
     port -= SAFplus::MsgDynamicPortStart;
@@ -33,6 +36,7 @@ namespace SAFplusI
 
   void PortAllocator::releasePort(int port)
   {
+    ScopedLock<ProcSem> lock(mutex);
     assert(port >= SAFplus::MsgDynamicPortStart);
     assert(port < SAFplus::MsgDynamicPortEnd);
     port -= SAFplus::MsgDynamicPortStart;
@@ -42,6 +46,7 @@ namespace SAFplusI
   void PortAllocator::releasePortByPid(pid_t thepid)
   {
     // These linear searches are not expected to matter performance-wise because processes fail rarely
+    ScopedLock<ProcSem> lock(mutex);
     for (int i=0; i < PortArrayLen; i++)
       {
         if (pid[i] == thepid)

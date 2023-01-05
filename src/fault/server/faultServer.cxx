@@ -241,7 +241,9 @@ namespace SAFplus
                     {
                       logDebug(FAULT,"MSG","Repeated entity JOIN message for entity [%d.%d.%" PRIx64 "], entity handle [%" PRIx64 ":%" PRIx64 "] state %d",faultEntity.getNode(),faultEntity.getProcess(),faultEntity.getIndex(),faultEntity.id[0], faultEntity.id[1], (int)faultState);
                       setFaultState(faultEntity,faultState);
-                      if (faultEntity.getProcess() == 0 && faultEntity.getNode() != SAFplus::ASP_NODEADDR && faultState == FaultState::STATE_UP) // other node is up
+                    }
+
+                    if (faultEntity.getProcess() == 0 && faultEntity.getNode() != SAFplus::ASP_NODEADDR && faultState == FaultState::STATE_UP) // other node is up
                       {
                         try
                         {
@@ -255,8 +257,8 @@ namespace SAFplus
                         {
                             logError(FAULT,"MSG","getHandle got exception [%s]", ex.what());
                         }
-                      }
-                    }
+                     }
+
                 }
                 break;
             case SAFplus::FaultMessageType::MSG_ENTITY_LEAVE:
@@ -702,5 +704,22 @@ namespace SAFplus
         fsmServer.removeAll();
     }
 
+    void FaultServer::registerRelatedEntities(Fault& fault, const Handle& nodeHdl, FaultState state)
+    {
+        FaultShmHashMap::iterator i;
+        for (i=fsmServer.faultMap->begin(); i!=fsmServer.faultMap->end();i++)
+        {
+           FaultShmEntry& ge = i->second;
+           const Handle& handle = i->first;
+           //logDebug("FAULT","REG","entity [%" PRIx64 ":%" PRIx64 "] of node [%d]", handle.id[0],handle.id[1], handle.getNode());
+           if (handle!=INVALID_HDL && handle.getNode() == nodeHdl.getNode() && ge.state!=state)
+           {
+              logDebug("FAULT","REG","register entity [%" PRIx64 ":%" PRIx64 "] as [%s]", handle.id[0],handle.id[1], state==FaultState::STATE_UP?"STATE_UP":"STATE_DOWN");
+               //deregister Fault entry in shared memory.
+              //fault.registerEntity(handle, state);
+              ge.state=state;
+           }
+        }
+    }
 
 };

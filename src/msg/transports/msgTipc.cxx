@@ -311,7 +311,8 @@ namespace SAFplus
         if (retval == -1)
           {
             int err = errno;
-            throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+            //throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+            logError("TIPC","SND","system error number [%d], error message [%s]", err, strerror(err));
           }
         else
           {

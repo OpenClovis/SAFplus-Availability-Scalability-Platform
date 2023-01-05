@@ -1810,7 +1810,7 @@ namespace SAFplus
         {
             return CL_ERR_NO_OP;
         }
-        node->operState.value = false;
+        CL_AMF_SET_O_STATE(node,false);
         //comp->haReadinessState == HighAvailabilityReadinessState::readyForAssignment
         //Terminate all components running in this node        
         boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
@@ -1990,7 +1990,7 @@ namespace SAFplus
         {
             return CL_ERR_NO_OP;
         }
-        node->operState.value = true;
+        CL_AMF_SET_O_STATE(node,true);
         return CL_OK;
     }
 
