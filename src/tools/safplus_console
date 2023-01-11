@@ -2452,12 +2452,13 @@ def dict2list(dataDict):
 
 def extractData(cfg):
   data = None
-  cfg = cfg.replace("'", "")
-  cfg = ast.literal_eval(cfg)
   if cfg is not None:
-    if isinstance(cfg, dict):
-      cfg = Dot(cfg)
-      data = cfg.get("data",None)
+    cfg = cfg.replace("'", "")
+    cfg = ast.literal_eval(cfg)
+    if cfg is not None:
+      if isinstance(cfg, dict):
+        cfg = Dot(cfg)
+        data = cfg.get("data",None)
 
   return data
 

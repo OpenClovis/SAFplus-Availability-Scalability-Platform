@@ -433,7 +433,7 @@ ClRcT addNewNode(const SAFplus::Handle& mgmtHandle, const std::string & nodeName
 {
   SAFplus::Rpc::amfMgmtRpc::NodeConfig* node = new SAFplus::Rpc::amfMgmtRpc::NodeConfig();
   node->set_name(nodeName.c_str());
-  node->set_adminstate(SAFplus::Rpc::amfMgmtRpc::AdministrativeState::AdministrativeState_on);
+  node->set_adminstate(SAFplus::Rpc::amfMgmtRpc::AdministrativeState::AdministrativeState_off);
   //node->add_serviceunits(suName.c_str(), strlen(suName.c_str()));
   ClRcT rc = SAFplus::amfMgmtNodeCreate(mgmtHandle,node);
   return rc;
