@@ -17,7 +17,7 @@ bool grpRpcInitialized = false;
 void grpRpcInit()
 {
   SafplusInitializationConfiguration sic;
-  sic.iocPort     = 35;  // TODO: auto assign port
+  sic.iocPort     = 36;  // TODO: auto assign port
   sic.msgQueueLen = 10;
   sic.msgThreads  = 1;
   safplusInitialize( SAFplus::LibDep::NAME | SAFplus::LibDep::LOCAL,sic);
