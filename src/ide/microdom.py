@@ -374,7 +374,6 @@ def LoadString(s):
 def LoadFile(fil):
   if type(fil) is list:
     return [LoadFile(f) for f in fil]
-
   dom = xml.dom.minidom.parse(fil)
   return LoadMiniDom(dom.childNodes[0])
 

@@ -1399,7 +1399,6 @@ class Panel(scrolled.ScrolledPanel):
     def sgInstantiator(self,ent,pos,size,children,name):
       """Custom instantiator for service groups"""
       # TODO: there is one unexpected "app" component being created
-      self.model.csi2comp = {}
       (top, all_created) = self.model.recursiveInstantiation(ent)
       return top
 #      newdata = copy.deepcopy(ent.data)
@@ -1499,15 +1498,27 @@ class Panel(scrolled.ScrolledPanel):
     def modifyEntityTool(self, ent, newValue):      
       if ent.data['entityType'] == 'ComponentServiceInstance':
         for name, e in list(share.umlEditorPanel.entities.items()):
-          if (e.data['entityType'] == 'Component' or e.data['entityType'] == 'NonSafComponent'):
-            e.data['csiTypes'] = newValue
-          if e.data['entityType'] == 'NonSafComponent' and e.data['proxyCSI'] == ent.data['type']:
-            e.data['proxyCSI'] = newValue       
+          if (e.data['entityType'] == 'Component' or e.data['entityType'] == 'NonSafComponent') and ent.data['type'] in e.data['csiTypes']:
+            for csiType in e.data['csiTypes']:
+              if csiType == ent.data['type']:
+                csiType = newValue
+
+          if e.data['entityType'] == 'NonSafComponent' and ent.data['type'] in e.data['proxyCSI']:
+            for csiType in e.data['proxyCSI']:
+              if csiType == ent.data['type']:
+                csiType = newValue
+
         for name, e in list(self.model.instances.items()):  
-          if (e.data['entityType'] == 'Component' or e.data['entityType'] == 'NonSafComponent'):
-            e.data['csiTypes'] = newValue
-          if e.data['entityType'] == 'NonSafComponent' and e.data['proxyCSI'] == ent.data['type']:
-            e.data['proxyCSI'] = newValue
+          if (e.data['entityType'] == 'Component' or e.data['entityType'] == 'NonSafComponent') and ent.data['type'] in e.data['csiTypes']:
+            for csiType in e.data['csiTypes']:
+              if csiType == ent.data['type']:
+                csiType = newValue
+
+          if e.data['entityType'] == 'NonSafComponent' and ent.data['type'] in e.data['proxyCSI']:
+            for csiType in e.data['proxyCSI']:
+              if csiType == ent.data['type']:
+                csiType = newValue
+
           if e.data['entityType'] == 'ComponentServiceInstance' and e.data['type'] == ent.data['type']:
             e.data['type'] = newValue
         ent.data['type'] = newValue 

@@ -53,7 +53,6 @@ instantiated  <instances>     instances                         instances     (e
     self.entityTypes = {}
     self.entities = {}
     self.instances = {}
-    self.csi2comp = {}
   def directory(self):
     """Returns the location of this model on disk """
     return os.path.dirname(self.filename)
@@ -230,6 +229,13 @@ instantiated  <instances>     instances                         instances     (e
               else:  # target of the link is missing, so drop the link as well.  This could happen if the user manually edits the XML
                 # TODO: create some kind of warning/audit log in share.py that we can post messages to.
                 pass
+
+      for (ed,eo) in fileEntLst:
+        if eo.et.name == "ComponentServiceInstance":
+          for ca in eo.containmentArrows:
+            if ca.contained.et.name == "Component":
+              ca.contained.data['csiTypes'].add(eo.data['name'])
+
       # Recreate all the images in case loading data would have changed them.
       for (ed,eo) in fileEntLst: 
         eo.recreateBitmap()       
@@ -578,6 +584,11 @@ instantiated  <instances>     instances                         instances     (e
         k = key + "s"
         if k in entity.child_: entity.delChild(k)
         entity.addChild(microdom.MicroDom({"tag_":k},[",".join(val)],""))  # TODO: do we really need to pluralize?  Also validate comma separation is ok
+        
+      if "csiTypes" in entity.child_: entity.delChild("csiTypes")
+      if e.et.name == "Component":
+        for csiType in e.data['csiTypes']:
+          entity.addChild(microdom.MicroDom({"tag_":"csiTypes"}, [csiType],""))
 
       # Building instance lock fields
       etType = ide.getElementsByTagName(e.et.name)
@@ -667,9 +678,8 @@ instantiated  <instances>     instances                         instances     (e
 
       if "csiTypes" in instance.child_: instance.delChild("csiTypes")
       if e.entity.et.name == "Component":
-        csiTypes = self.csi2comp.get(e.entity.data["name"],[])
-        for csiType in csiTypes:
-          instance.addChild(microdom.MicroDom({"tag_":"csiTypes"},[csiType],""))
+        for csiType in e.entity.data['csiTypes']:
+          instance.addChild(microdom.MicroDom({"tag_":"csiTypes"}, [csiType],""))
 
       # Extra parent entity name
       entityParentVal = e.entity.data["name"]
@@ -815,11 +825,11 @@ instantiated  <instances>     instances                         instances     (e
       else:
         print('model::recursiveInstantiation: do not create recursive instance for [%s], type [%s]' % (name, ent.et.name))
 
-        for ca in ent.containmentArrows:
-          if ca.contained.et.name == "Component":
-            tmp = self.csi2comp.get(ca.contained.data["name"],[])
-            tmp.append(ent.data["type"])
-            self.csi2comp[ca.contained.data["name"]] = tmp
+        # for ca in ent.containmentArrows:
+        #   if ca.contained.et.name == "Component":
+        #     tmp = self.csi2comp.get(ca.contained.data["name"],[])
+        #     tmp.append(ent.data["type"])
+        #     self.csi2comp[ca.contained.data["name"]] = tmp
 
       return (ei, instances)
 

@@ -44,6 +44,8 @@ class Module:
     self.entityTypes = {}
     for i in list(self.yobjects.items()): # Load the top level defined entities (like node, sg)
       if i[1].get("ui-entity",False):
+        if i[0] == "Component":
+          i[1]['csiTypes'] = set()
         self.entityTypes[i[0]] = entity.EntityType(i[0],i[1])  # create a new entity type, with the member fields (located in i[1])
 
   def delete(self):

@@ -358,7 +358,8 @@ class Extensions:
           SI.containmentArrows.append(ca)
           ca = ContainmentArrow(CSI, (50,50), comp, (100,50), None)
           CSI.data["type"] = CSI.data["name"]
-          comp.data['csiTypes'] = CSI.data['type']
+          comp.data['csiTypes'] = set()
+          comp.data['csiTypes'].add(str(CSI.data['type']))
           CSI.containmentArrows.append(ca)
           newEntities.append(CSI)
 
@@ -440,7 +441,8 @@ class Extensions:
           SI.containmentArrows.append(ca)
           ca = ContainmentArrow(CSI, (50,50), comp, (100,50), None)
           CSI.data["type"] = CSI.data["name"]
-          comp.data['csiTypes'] = CSI.data['type']
+          comp.data['csiTypes'] = set()
+          comp.data['csiTypes'].add(str(CSI.data['type']))
           CSI.containmentArrows.append(ca)
           newEntities.append(CSI)
 

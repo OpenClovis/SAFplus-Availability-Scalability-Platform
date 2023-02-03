@@ -522,7 +522,7 @@ class Panel(scrolled.ScrolledPanel):
       """Create the best GUI control for this type of data"""
       # pdb.set_trace()
       #print '\nbegin item\n%s\nend item\n'%str(item)
-      if item[0]=='proxyCSI'or item[0]=='csiType':
+      if item[0]=='proxyCSI'or item[0]=='csiTypes':
         return None
       typeData = item[1]
       if type(typeData) is dict and "type" in typeData:

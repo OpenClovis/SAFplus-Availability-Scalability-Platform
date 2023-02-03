@@ -368,6 +368,8 @@ class Entity:
               data[name]=[]
         else:
           data[name]=[]
+      elif type(metadata) == set:
+        data[name] = set()
   
   def createInstance(self,pos, size=None,children=False, name=None, parent=None, id = 0):
     """Create an entity of this type"""

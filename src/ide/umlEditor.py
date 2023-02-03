@@ -207,10 +207,10 @@ class LinkTool(Tool):
                 [line[2]] if len(line)>1 else None)
                 self.startEntity.containmentArrows.append(ca)
                 if (self.endEntity.data['entityType'] == 'Component' or self.endEntity.data['entityType'] == 'NonSafComponent') and self.startEntity.data['entityType']=='ComponentServiceInstance':
-                   self.endEntity.data['csiTypes'] = self.startEntity.data['name']
+                   self.endEntity.data['csiTypes'].add(self.startEntity.data['name'])
                    self.updateProxyCSI(self.endEntity)
                 if self.startEntity.data['entityType'] == 'Component' and self.endEntity.data['entityType']=='NonSafComponent':
-                   self.endEntity.data['proxyCSI'] = self.startEntity.data['csiTypes']
+                   self.endEntity.data['proxyCSI'].add(self.startEntity.data['csiTypes'])
                 #print str(self.startEntity.data)
                 #print '\n\n'
                 #print str(self.endEntity.data)
@@ -506,10 +506,12 @@ class DeleteTool(Tool):
         l2 = self.getDistance(pos_2, pos)
         if math.fabs(l1+l2-l) < 0.08:          
           if (arrow.contained.data['entityType'] == 'Component' or arrow.contained.data['entityType'] == 'NonSafComponent') and arrow.container.data['entityType']=='ComponentServiceInstance':
-             arrow.contained.data['csiTypes'] = ''
-             self.removeProxyCSI(arrow.contained)
+              if arrow.container.data['type'] in arrow.contained.data['csiTypes']:
+                arrow.contained.data['csiTypes'].remove(arrow.container.data['type'])
+              self.removeProxyCSI(arrow.contained)
           if arrow.container.data['entityType'] == 'Component' and arrow.contained.data['entityType']=='NonSafComponent':
-             arrow.contained.data['proxyCSI'] = ''
+              if arrow.container.data['type'] in arrow.contained.data['proxyCSI']:
+                arrow.contained.data['proxyCSI'].remove(arrow.container.data['type'])
           e.containmentArrows.remove(arrow)
           model.deleteWireFromMicrodom(name, arrow.contained.data['name'])
 
