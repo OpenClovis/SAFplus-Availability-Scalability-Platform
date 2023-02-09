@@ -1,0 +1,58 @@
+/* 
+ * Copyright (C) 2002-2014 OpenClovis Solutions Inc.  All Rights Reserved.
+ */
+ 
+
+syntax = "proto2";
+package SAFplus.Rpc.rpcEvent;
+
+
+option cc_generic_services = false;
+option py_generic_services = true;
+option java_generic_services = false;
+
+message Handle
+{
+  required fixed64 id0 = 1;
+  required fixed64 id1 = 2;
+}
+
+message eventChannelRequest {
+  required Handle clientHandle =1 ;
+  required string channelName = 3;
+  required int32 scope = 4;
+  required int32 type = 5;
+  extensions 1000 to max;
+}
+
+message eventPublishRequest {
+  required Handle clientHandle =1 ;
+  required string channelName = 3;
+  required int32 scope = 4;
+  required int32 type = 5;
+  required string data = 6;
+  extensions 1000 to max;
+}
+
+message eventRequestResponse 
+{
+  optional int32 saError = 1;
+  optional string errStr=2;
+  extensions 1000 to max;
+}
+
+message eventGetActiveServerResponse 
+{
+  required Handle activeServer =1 ;
+  extensions 1000 to max;
+}
+
+message NO_REQUEST 
+{
+}
+
+service rpcEvent {
+  rpc eventChannelRpcMethod(eventChannelRequest) returns(eventRequestResponse);
+  rpc eventPublishRpcMethod(eventPublishRequest) returns(eventRequestResponse);
+  rpc eventGetActiveServer(NO_REQUEST) returns(eventGetActiveServerResponse);
+}

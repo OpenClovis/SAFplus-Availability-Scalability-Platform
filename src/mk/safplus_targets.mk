@@ -129,6 +129,15 @@ $(LIB_DIR)/libclFaultServer.so $(PLUGIN_DIR)/AmfFaultPolicy.so $(PLUGIN_DIR)/Cus
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/fault/server
 endif
 
+ifndef SAFPLUS_EVENT_LIB
+$(LIB_DIR)/libclEvent.so: $(wildcard $(SAFPLUS_SRC_DIR)/event/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx) 
+	$(MAKE) -C $(SAFPLUS_SRC_DIR)/event
+endif
+
+ifndef SAFPLUS_EVENT_SERVER
+$(LIB_DIR)/libclEventServer.so: $(wildcard $(SAFPLUS_SRC_DIR)/event/server/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx) 
+	$(MAKE) -C $(SAFPLUS_SRC_DIR)/event/server
+endif
 
 ifndef SAFPLUS_AMF_LIB
 $(LIB_DIR)/libclAmf.so: $(wildcard $(SAFPLUS_SRC_DIR)/amf/*.cxx)
@@ -194,6 +203,11 @@ endif
 ifndef SAFPLUS_AMF_TEST
 $(TEST_DIR)/exampleSafApp:
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/amf/test
+endif
+
+ifndef SAFPLUS_EVENT_TEST
+$(TEST_DIR)/event_client $(TEST_DIR)/event_client_2:
+	$(MAKE) -C $(SAFPLUS_SRC_DIR)/event/test
 endif
 
 

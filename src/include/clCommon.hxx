@@ -209,6 +209,7 @@ void heapFree(void* buffer, const char* file, uint_t line);
     Checkpoint = 0x20,
   };
 
+
   class Error: public std::exception
   {
   public:
@@ -236,6 +237,7 @@ void heapFree(void* buffer, const char* file, uint_t line);
     CONTAINER_DOES_NOT_EXIST=4,
     MISCONFIGURATION=5,
     SERVICE_STOPPED=6,
+
     // For simplicity put derived class error categories here
     PROCESS_ERRORS = 1000
     };

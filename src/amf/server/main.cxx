@@ -24,6 +24,8 @@
 #include <clNameApi.hxx>
 #include <clFaultApi.hxx>
 #include <clFaultServerIpi.hxx>
+#include <EventServer.hxx>
+#include <EventClient.hxx>
 #include <clMsgPortsAndTypes.hxx>
 #include <clProcessStats.hxx>
 #include <clNodeStats.hxx>
@@ -1023,7 +1025,6 @@ int main(int argc, char* argv[])
     }
 
 
-
     //boost::asio::io_service ioSvc;
   // Construct a signal set registered for process termination.
   //boost::asio::signal_set signals(ioSvc, SIGCHLD);
@@ -1059,6 +1060,10 @@ int main(int argc, char* argv[])
       boost::this_thread::sleep(boost::posix_time::milliseconds(250));
     } while(gfault.getFaultState(myHandle) != FaultState::STATE_UP);
   }
+
+  logInfo("AMF","EVT", "Initialize event server");
+  EventServer evtSever;
+  evtSever.initialize();
 
   uint64_t lastBeat = beat; 
   uint64_t nowBeat;
