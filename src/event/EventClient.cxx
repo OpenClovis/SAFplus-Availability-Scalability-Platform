@@ -162,7 +162,7 @@ ClRcT EventClient::eventChannelRpc(std::string evtChannelName, EventChannelScope
 //			serverAddress.id[1] = response.activeserver().id1();
 			SAFplus::Handle serverAddress;
 			serverAddress=esm.getActive();
-			logDebug("EVT", "EVENT_ENTITY", "Active Sever Address : [%d,%d]", serverAddress.getNode(), serverAddress.getPort());
+			logDebug("EVT", "EVENT_ENTITY", "Active Server Address : [%d,%d]", serverAddress.getNode(), serverAddress.getPort());
 			service->eventChannelRpcMethod(serverAddress, &openRequest, &openRequestRes, SAFplus::BLOCK);
 			logDebug("EVT", "EVENT_ENTITY", "Return code [%d] ... ", openRequestRes.saerror());
 			if (openRequestRes.saerror() != 0)
@@ -208,17 +208,17 @@ ClRcT EventClient::eventPublish(std::string pEventData, int eventDataSize, std::
 	eventPublishRpc(evtChannelName, scope, EventMessageType::EVENT_PUBLISH, pEventData);
 	return CL_OK;
 }
-//Subscriber an event channel
-ClRcT EventClient::eventChannelSubscriber(std::string evtChannelName, EventChannelScope scope)
+//Subscribe an event channel
+ClRcT EventClient::eventChannelSubscribe(std::string evtChannelName, EventChannelScope scope)
 {
-	logDebug("EVT", "EVENT_ENTITY", "Subscriber to  event channel [%s]", evtChannelName.c_str());
+	logDebug("EVT", "EVENT_ENTITY", "Subscribe to  event channel [%s]", evtChannelName.c_str());
 	eventChannelRpc(evtChannelName, scope, EventMessageType::EVENT_CHANNEL_SUBSCRIBER);
 	return CL_OK;
 }
-//Subscriber an event channel
-ClRcT EventClient::eventChannelUnSubscriber(std::string evtChannelName, EventChannelScope scope)
+//Subscribe an event channel
+ClRcT EventClient::eventChannelUnsubscribe(std::string evtChannelName, EventChannelScope scope)
 {
-	logDebug("EVT", "EVENT_ENTITY", "Unsubscriber to  event channel [%s]", evtChannelName.c_str());
+	logDebug("EVT", "EVENT_ENTITY", "Unsubscribe to  event channel [%s]", evtChannelName.c_str());
 	eventChannelRpc(evtChannelName, scope, EventMessageType::EVENT_CHANNEL_UNSUBSCRIBER);
 	return CL_OK;
 }

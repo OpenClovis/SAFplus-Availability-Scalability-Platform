@@ -41,7 +41,6 @@ void EventServerRpc::wake(int amt,void* cookie)
 
 bool EventServerRpc::eventloadchannelFromCheckpoint()
 {
-	logInfo("EVT","DUMP","---------------------------------");
 	SAFplus::Checkpoint::Iterator ibegin = evtCkpt.m_checkpoint.begin();
 	SAFplus::Checkpoint::Iterator iend = evtCkpt.m_checkpoint.end();
 	for(SAFplus::Checkpoint::Iterator iter = ibegin; iter != iend; iter++)
@@ -49,7 +48,7 @@ bool EventServerRpc::eventloadchannelFromCheckpoint()
 		BufferPtr curkey = iter->first;
 		if (curkey)
 		{
-			logInfo("EVT","DUMP","channel id [%ld]", curkey->data);
+			logInfo("EVT","SERVER","channel id [%ld]", curkey->data);
 		}
 		BufferPtr& curval = iter->second;
 		if (curval)
@@ -87,7 +86,6 @@ bool EventServerRpc::eventloadchannelFromCheckpoint()
 				break;
 			}		}
 	}
-	logInfo("EVT","DUMP","---------------------------------");
 	return true ;
 }
 

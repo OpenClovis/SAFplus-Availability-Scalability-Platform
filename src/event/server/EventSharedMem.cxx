@@ -8,9 +8,7 @@ namespace SAFplus
 {
 void EventSharedMem::init()
 {
-	logDebug("AAA","AAA", "db1");
 	std::string eventSharedMemoryObjectName="SAFplusEvent";
-	logDebug("AAA","AAA", "db2");
 	eventMsm = boost::interprocess::managed_shared_memory(boost::interprocess::open_or_create, eventSharedMemoryObjectName.c_str(), SAFplusI::EventSharedMemSize);
 	try
 	{

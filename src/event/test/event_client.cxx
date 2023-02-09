@@ -67,11 +67,11 @@ void testAllFeature()
 //	sleep(1);
 //
 //	logInfo("FLT","CLT","********************Test subscriber local channel *********************");
-//	fc.eventChannelSubscriber(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+//	fc.eventChannelSubscribe(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
 //	sleep(1);
 //
 //	logInfo("FLT","CLT","********************Test subscriber local channel (Duplicate) *********************");
-//	fc.eventChannelSubscriber(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+//	fc.eventChannelSubscribe(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
 //	sleep(1);
 //
 //	logInfo("FLT","CLT","********************Test publish local channel without publisher *********************");
@@ -92,11 +92,11 @@ void testAllFeature()
 //	sleep(1);
 //
 //	logInfo("FLT","CLT","********************Test unSubscriber local channel *********************");
-//	fc.eventChannelUnSubscriber(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+//	fc.eventChannelUnsubscribe(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
 //	sleep(1);
 //
 //	logInfo("FLT","CLT","********************Test unSubscriber local channel (Duplicate) *********************");
-//	fc.eventChannelUnSubscriber(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+//	fc.eventChannelUnsubscribe(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
 //	sleep(1);
 
 	logInfo("FLT", "CLT", "********************Test Open global channel (duplicate) *********************");
@@ -104,15 +104,15 @@ void testAllFeature()
 	sleep(1);
 
 	logInfo("FLT", "CLT", "********************Test subscriber global channel *********************");
-	fc.eventChannelSubscriber(globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+	fc.eventChannelSubscribe(globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
 	sleep(1);
 
 //	logInfo("FLT","CLT","********************Test subscriber global channel duplicate*********************");
-//	fc.eventChannelSubscriber(globalChannel,EventChannelScope::EVENT_GLOBAL_CHANNEL);
+//	fc.eventChannelSubscribe(globalChannel,EventChannelScope::EVENT_GLOBAL_CHANNEL);
 //	sleep(1);
 //
 //	logInfo("FLT","CLT","********************Test publisher global channel duplicate*********************");
-//	fc.eventChannelSubscriber(globalChannel,EventChannelScope::EVENT_GLOBAL_CHANNEL);
+//	fc.eventChannelSubscribe(globalChannel,EventChannelScope::EVENT_GLOBAL_CHANNEL);
 //	sleep(1);
 
 	logInfo("FLT", "CLT", "********************Test public event global channel *********************");
@@ -124,11 +124,11 @@ void testAllFeature()
 	sleep(1);
 
 	logInfo("FLT", "CLT", "********************Test unSubscriber global channel  *********************");
-	fc.eventChannelUnSubscriber(globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+	fc.eventChannelUnsubscribe(globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
 	sleep(1);
 
 	logInfo("FLT", "CLT", "********************Test unSubscriber global channel DUPLICATE  *********************");
-	fc.eventChannelUnSubscriber(globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+	fc.eventChannelUnsubscribe(globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
 	sleep(1);
 
 	logInfo("FLT", "CLT", "********************Test close local channel *********************");
@@ -138,7 +138,7 @@ void testAllFeature()
 	fc.eventChannelOpen(localChannel, EventChannelScope::EVENT_LOCAL_CHANNEL);
 	sleep(1);
 	logInfo("FLT", "CLT", "********************Subscriber local channel *********************");
-	fc.eventChannelSubscriber(localChannel, EventChannelScope::EVENT_LOCAL_CHANNEL);
+	fc.eventChannelSubscribe(localChannel, EventChannelScope::EVENT_LOCAL_CHANNEL);
 	sleep(1);
 
 	while (1)

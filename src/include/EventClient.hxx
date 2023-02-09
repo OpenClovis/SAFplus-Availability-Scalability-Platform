@@ -90,9 +90,9 @@ public:
 //	//Publish an event to event channel
 //	ClRcT eventPublish(const void *pEventData, int eventDataSize, std::string evtChannelName,EventChannelScope scope);
 //	//Subscriber an event channel
-//	ClRcT eventChannelSubscriber(std::string evtChannelName, EventChannelScope scope);
+//	ClRcT eventChannelSubscribe(std::string evtChannelName, EventChannelScope scope);
 //	//Subscriber an event channel
-//	ClRcT eventChannelUnSubscriber(std::string evtChannelName, EventChannelScope scope);
+//	ClRcT eventChannelUnsubscribe(std::string evtChannelName, EventChannelScope scope);
 //	//Publish an event channel
 //	ClRcT eventChannelPublish(std::string evtChannelName, EventChannelScope scope);
 //
@@ -105,9 +105,9 @@ public:
 //	//Publish an event to event channel
 //	ClRcT eventPublish(const void *pEventData, int eventDataSize, uintcw_t evtChannelId,EventChannelScope scope);
 //	//Subscriber an event channel
-//	ClRcT eventChannelSubscriber(uintcw_t evtChannelId, EventChannelScope scope);
+//	ClRcT eventChannelSubscribe(uintcw_t evtChannelId, EventChannelScope scope);
 //	//Subscriber an event channel
-//	ClRcT eventChannelUnSubscriber(uintcw_t evtChannelId, EventChannelScope scope);
+//	ClRcT eventChannelUnsubscribe(uintcw_t evtChannelId, EventChannelScope scope);
 //	//Publish an event channel
 //	ClRcT eventChannelPublish(uintcw_t evtChannelId, EventChannelScope scope);
 
@@ -134,9 +134,9 @@ public:
 	//Publish an event to event channel
 	ClRcT eventPublish(std::string pEventData, int eventDataSize, std::string evtChannelName,EventChannelScope scope);
 	//Subscriber an event channel
-	ClRcT eventChannelSubscriber(std::string evtChannelName, EventChannelScope scope);
+	ClRcT eventChannelSubscribe(std::string evtChannelName, EventChannelScope scope);
 	//Subscriber an event channel
-	ClRcT eventChannelUnSubscriber(std::string evtChannelName, EventChannelScope scope);
+	ClRcT eventChannelUnsubscribe(std::string evtChannelName, EventChannelScope scope);
 	//Publish an event channel
 	ClRcT eventChannelPublish(std::string evtChannelName, EventChannelScope scope);
 	ClRcT eventChannelRpc(std::string evtChannelName, EventChannelScope scope,EventMessageType type);

@@ -42,14 +42,14 @@ void EventServer::wake(int amt, void* cookie)
 		if (severHandle == g->getActive())
 		{
 			//TODO Load global channel from checkpoint
-			logInfo("EVT", "DUMP", "Set Active server and load data ");
+			logInfo("EVT", "SERVER", "Set Active server and load data ");
 			activeServer = g->getActive();
 			esmServer.setActive(activeServer);
 			eventloadchannelFromCheckpoint();
 		}
 		else
 		{
-			logInfo("EVT", "DUMP", "Set Active server");
+			logInfo("EVT", "SERVER", "Set Active server");
 			activeServer = g->getActive();
 			esmServer.setActive(activeServer);
 		}
@@ -59,7 +59,6 @@ void EventServer::wake(int amt, void* cookie)
 
 bool EventServer::eventloadchannelFromCheckpoint()
 {
-	logInfo("EVT", "DUMP", "---------------------------------");
 	Checkpoint::Iterator ibegin = evtCkpt.m_checkpoint.begin();
 	Checkpoint::Iterator iend = evtCkpt.m_checkpoint.end();
 	for (Checkpoint::Iterator iter = ibegin; iter != iend; iter++)
@@ -73,11 +72,11 @@ bool EventServer::eventloadchannelFromCheckpoint()
 			int key = ((eventKey*) (*item.first).data)->id;
 			int length = ((eventKey*) (*item.first).data)->length;
 			request.ParseFromArray(curval->data, length);
-			logDebug("NAME", "GET", "Get object for key [%d]", key);
-			logDebug("NAME", "GET", "Data length [%d]", length);
-			logDebug("NAME", "GET", "Get object: Name [%s]", request.channelname().c_str());
-			logDebug("NAME", "GET", "Get object: Scope [%d]", request.scope());
-			logDebug("NAME", "GET", "Get object: Type [%d]", request.type());
+			logDebug("EVT", "GET", "Get object for key [%d]", key);
+			logDebug("EVT", "GET", "Data length [%d]", length);
+			logDebug("EVT", "GET", "Get object: Name [%s]", request.channelname().c_str());
+			logDebug("EVT", "GET", "Get object: Scope [%d]", request.scope());
+			logDebug("EVT", "GET", "Get object: Type [%d]", request.type());
 			EventMessageType msgType = EventMessageType(request.type());
 
 			try
@@ -115,7 +114,7 @@ bool EventServer::eventloadchannelFromCheckpoint()
 					}
 					break;
 				default:
-					logDebug("EVENT", "MSG", "Unknown message type [%d] ", (int)request.type());
+					logDebug("EVT", "MSG", "Unknown message type [%d] ", (int)request.type());
 					break;
 				}
 			} catch (SAFplus::Error& e)

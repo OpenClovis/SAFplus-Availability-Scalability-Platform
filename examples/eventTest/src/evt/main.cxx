@@ -100,11 +100,11 @@ void eventTest(bool publish)
 //	sleep(1);
 //
 //	logInfo("FLT","CLT","********************Test subscriber local channel *********************");
-//	evtClient.eventChannelSubscriber(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+//	evtClient.eventChannelSubscribe(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
 //	sleep(1);
 //
 //	logInfo("FLT","CLT","********************Test subscriber local channel (Duplicate) *********************");
-//	evtClient.eventChannelSubscriber(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+//	evtClient.eventChannelSubscribe(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
 //	sleep(1);
 //
 //	logInfo("FLT","CLT","********************Test publish local channel without publisher *********************");
@@ -125,11 +125,11 @@ void eventTest(bool publish)
 //	sleep(1);
 //
 //	logInfo("FLT","CLT","********************Test unSubscriber local channel *********************");
-//	evtClient.eventChannelUnSubscriber(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+//	evtClient.eventChannelUnsubscribe(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
 //	sleep(1);
 //
 //	logInfo("FLT","CLT","********************Test unSubscriber local channel (Duplicate) *********************");
-//	evtClient.eventChannelUnSubscriber(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
+//	evtClient.eventChannelUnsubscribe(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
 //	sleep(1);
 
 	logInfo("FLT", "CLT", "********************Test Open global channel (duplicate) *********************");
@@ -137,15 +137,15 @@ void eventTest(bool publish)
 	sleep(1);
 
 	logInfo("FLT", "CLT", "********************Test subscriber global channel *********************");
-	evtClient.eventChannelSubscriber(globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+	evtClient.eventChannelSubscribe(globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
 	sleep(1);
 
 //	logInfo("FLT","CLT","********************Test subscriber global channel duplicate*********************");
-//	evtClient.eventChannelSubscriber(globalChannel,EventChannelScope::EVENT_GLOBAL_CHANNEL);
+//	evtClient.eventChannelSubscribe(globalChannel,EventChannelScope::EVENT_GLOBAL_CHANNEL);
 //	sleep(1);
 //
 //	logInfo("FLT","CLT","********************Test publisher global channel duplicate*********************");
-//	evtClient.eventChannelSubscriber(globalChannel,EventChannelScope::EVENT_GLOBAL_CHANNEL);
+//	evtClient.eventChannelSubscribe(globalChannel,EventChannelScope::EVENT_GLOBAL_CHANNEL);
 //	sleep(1);
         if (publish) {
 	logInfo("FLT", "CLT", "********************Test public event global channel *********************");        
@@ -159,11 +159,11 @@ void eventTest(bool publish)
 	sleep(1);
 
 	logInfo("FLT", "CLT", "********************Test unSubscriber global channel  *********************");
-	evtClient.eventChannelUnSubscriber(globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+	evtClient.eventChannelUnsubscribe(globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
 	sleep(1);
 
 	logInfo("FLT", "CLT", "********************Test unSubscriber global channel DUPLICATE  *********************");
-	evtClient.eventChannelUnSubscriber(globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+	evtClient.eventChannelUnsubscribe(globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
 	sleep(1);
 
 	logInfo("FLT", "CLT", "********************Test close local channel *********************");
@@ -173,7 +173,7 @@ void eventTest(bool publish)
 	evtClient.eventChannelOpen(localChannel, EventChannelScope::EVENT_LOCAL_CHANNEL);
 	sleep(1);
 	logInfo("FLT", "CLT", "********************Subscriber local channel *********************");
-	evtClient.eventChannelSubscriber(localChannel, EventChannelScope::EVENT_LOCAL_CHANNEL);
+	evtClient.eventChannelSubscribe(localChannel, EventChannelScope::EVENT_LOCAL_CHANNEL);
 	sleep(1);
 //#endif	
 #endif
@@ -231,7 +231,7 @@ void safTerminate(SaInvocationT invocation, const SaNameT *compName)
   SaAisErrorT rc = SA_AIS_OK;
 
   clprintf (SAFplus::LOG_SEV_INFO, "Component [%.*s] : PID [%d]. Terminating\n", compName->length, compName->value, SAFplus::pid);
-  evtClient.eventChannelUnSubscriber(globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+  evtClient.eventChannelUnsubscribe(globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
   /*
    * Unregister with AMF and respond to AMF saying whether the
    * termination was successful or not.
