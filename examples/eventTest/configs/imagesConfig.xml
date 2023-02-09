@@ -1,0 +1,12 @@
+<Nodes>
+  <Node12>
+    <name>Node12</name>
+    <slot>SC</slot>
+    <netInterface>enp0s8</netInterface>
+  </Node12>
+  <Node11>
+    <name>Node11</name>
+    <slot>SC</slot>
+    <netInterface>enp0s8</netInterface>
+  </Node11>
+</Nodes>

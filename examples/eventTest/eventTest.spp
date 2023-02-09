@@ -1,0 +1,5 @@
+<SAFplusProject version='7.0'>
+  <datamodel>SAFplusAmf.yang</datamodel>
+  <model>eventTestModel.xml</model>
+  <src></src>
+</SAFplusProject>
