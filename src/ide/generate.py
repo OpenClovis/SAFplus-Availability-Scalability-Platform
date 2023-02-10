@@ -38,7 +38,7 @@ templateMgr = TemplateMgr()
 TemplatePath = ""
 
 makeBinApp = """
-$(BIN_DIR)/%s:
+$(BASE_DIR)/target/bin/%s:
 	$(MAKE) SAFPLUS_SRC_DIR=$(SAFPLUS_SRC_DIR) -C %s
 """
 imageTarget = """%s.tar.gz: $(SAFPLUS_SRC_DIR)/mk/safplus_packager.py ${subdirs} $(wildcard $(PLUGIN_DIR)/*.so) $(wildcard $(BIN_DIR)/*) Makefile 
@@ -57,9 +57,11 @@ def topMakefile(output, srcDir,dirNames):
     TemplatePath = thisDir+'/codegen/templates/'
     safplusDir=thisDir+'/../..'
     mkSubdirTmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.subdir.ts")
+    baseDir=os.path.abspath(srcDir + "/..")
     makeSubsDict = {}
     makeSubsDict['safplusDir'] = "SAFPLUS_DIR=%s" % safplusDir
-    makeSubsDict['subdirs'] = " ".join(["$(BIN_DIR)/%s" % c for c in dirNames])
+    makeSubsDict['baseDir'] = "BASE_DIR=%s" % baseDir
+    makeSubsDict['subdirs'] = " ".join(["$(BASE_DIR)/target/bin/%s" % c for c in dirNames])
     makeSubsDict['labelApps'] = "\n".join([makeBinApp % (c,c) for c in dirNames])
     makeSubsDict['cleanupApps'] = "\n".join([cleanApp % c for c in dirNames])
 
@@ -91,7 +93,8 @@ def topMakefile(output, srcDir,dirNames):
 def cpp(output, srcDir, comp,ts_comp, proxy=False):
     # Create source main
     compName = str(comp.data["name"])
-
+    baseDir = os.path.abspath(srcDir + "/..")
+    ts_comp['baseDir'] = "BASE_DIR=%s" % baseDir
     ts_comp['name'] = comp.data["name"]
     ts_comp['instantiate_command'] = comp.data["name"] # Default bin name
 

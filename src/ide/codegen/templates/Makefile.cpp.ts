@@ -1,6 +1,6 @@
 S7 := 1
 APP_COMPONENT_${name}:=1  # Identify what is being built, so safplus_targets does not override
-
+${baseDir}
 ifeq ($(SAFPLUS_SRC_DIR),)
 $(error You must run this as a submake or define the SAFPLUS_SRC_DIR environment variable)
 endif
@@ -21,9 +21,9 @@ SAFPLUS_LIBS := clAmf clMgt clRpc clName clCkpt clGroup clMsg clLog clUtils clOs
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-all: $(BIN_DIR)/${instantiate_command}
+all: $(BASE_DIR)/target/bin/${instantiate_command}
 
-$(BIN_DIR)/${instantiate_command}: $(CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)
+$(BASE_DIR)/target/bin/${instantiate_command}: $(CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $(CLIENT_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
 
 $(TARGET)/%.o: %.cxx Makefile $(SAFPLUS_MAKE_DIR)/preface.mk $(CLIENT_H)

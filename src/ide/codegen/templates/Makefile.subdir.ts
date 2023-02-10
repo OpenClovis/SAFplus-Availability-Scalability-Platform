@@ -1,5 +1,6 @@
 S7 := 1
 ${safplusDir}
+${baseDir}
 ifneq ($(wildcard $(SAFPLUS_DIR)/src/mk/preface.mk),) 
     SAFPLUS_MAKE_DIR ?= $(SAFPLUS_DIR)/src/mk/
 else
@@ -19,7 +20,10 @@ include $(SAFPLUS_MAKE_DIR)/preface.mk
 SUBDIRS = ${subdirs}
 
 .PHONY: all $(SUBDIRS)
-all: $(SUBDIRS)
+all: directories $(SUBDIRS)
+
+directories:
+	mkdir -p $(BASE_DIR)/target/bin
 
 ${labelApps}
 

@@ -288,6 +288,13 @@ def package(base_dir, tar_name, prefix_dir, machine=None, pre_build_dir=None,exe
             package_dirs(target_dir, image_stage_dir, yum_package, debain_package)
         else:
             fail_and_exit("Specified {} does not exists".format(target_dir))
+    
+    target_dir = "{0}/target/bin".format(image_dir_path + "/..")
+    if check_dir_exists(target_dir):
+        log.info("Components' binaries presented in {}".format(target_dir))
+        package_dirs(target_dir, image_stage_dir, yum_package, debain_package)
+    else:
+        fail_and_exit("Specified {} does not exists".format(target_dir))
 
     if base_dir:
         target_dir = "{0}/target/{1}".format(base_dir, machine)
