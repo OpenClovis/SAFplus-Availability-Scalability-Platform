@@ -722,7 +722,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                       }
                   }
 
-                  else if ((eas == AdministrativeState::off || eas == AdministrativeState::idle) && (si->assignmentState != AssignmentState::unassigned))
+                  else if ((eas == AdministrativeState::off || eas == AdministrativeState::idle || eas == AdministrativeState::shuttingDown) && (si->assignmentState != AssignmentState::unassigned))
                   {
                       logInfo("N+M","AUDIT","Service Instance [%s] should be unassigned but is [%s].", si->name.value.c_str(),c_str(si->assignmentState));
                       amfOps->removeWork(si);
@@ -1064,8 +1064,10 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                   // out of service if needs repair
                   if ((suNode == nullptr) || (su->operState.value == false)||(suNode->operState.value == false)
                           // or any related entity is adminstratively off
-                          || (su->adminState.value != AdministrativeState::on) || (suNode->adminState.value != AdministrativeState::on) || (sg->adminState.value != AdministrativeState::on)
-                          || ((nullptr!=sg->application.value) && (sg->application.value->adminState != AdministrativeState::on))
+                          || (su->adminState.value == AdministrativeState::idle) || (suNode->adminState.value == AdministrativeState::idle) || (sg->adminState.value == AdministrativeState::idle)
+                          || ((nullptr!=sg->application.value) && (sg->application.value->adminState == AdministrativeState::idle))
+                          || (su->adminState.value == AdministrativeState::off) || (suNode->adminState.value == AdministrativeState::off) || (sg->adminState.value == AdministrativeState::off)
+                          || ((nullptr!=sg->application.value) && (sg->application.value->adminState == AdministrativeState::off))
                           // or its presence state is neither instantiated nor restarting,
                           || ((su->presenceState.value != PresenceState::instantiated) && (su->presenceState.value != PresenceState::restarting))
                           // TODO: or the service unit contains contained components, and their configured container CSI is not assigned active or quiescing to any container component on the node that contains the service unit.
@@ -1084,9 +1086,14 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                   {
                       rs = ReadinessState::inService;
                   }
-                  else
+                  else if ((suNode)&&(su->operState == true)&&(suNode->operState == true)
+                           && (su->adminState != AdministrativeState::idle) && (suNode->adminState != AdministrativeState::idle) && (sg->adminState != AdministrativeState::idle)
+                           && (!sg->application.value || (sg->application.value->adminState != AdministrativeState::idle))
+                           && (su->adminState != AdministrativeState::off) && (suNode->adminState != AdministrativeState::off) && (sg->adminState != AdministrativeState::off)
+                           && (!sg->application.value || (sg->application.value->adminState != AdministrativeState::off))
+                           && ((su->adminState == AdministrativeState::shuttingDown) || (suNode->adminState == AdministrativeState::shuttingDown) || (sg->adminState != AdministrativeState::shuttingDown) || (nullptr!=sg->application.value && (sg->application.value->adminState == AdministrativeState::shuttingDown))))
                   {
-                      // TODO: stopping
+                      rs = ReadinessState::stopping;
                   }
 
                   if (rs != su->readinessState.value)
@@ -1236,7 +1243,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                                   amfOps->reportChange();
                               }
 
-                              if (su->adminState.value == AdministrativeState::on && comp->haReadinessState == HighAvailabilityReadinessState::readyForAssignment)
+                              if ((su->adminState.value == AdministrativeState::on || su->adminState.value == AdministrativeState::shuttingDown) && comp->haReadinessState == HighAvailabilityReadinessState::readyForAssignment)
                               {
                                   readyForAssignment++;
                                   logDebug("M+N","AUDIT","comp name [%s] haReadinessState [%s]", comp->name.value.c_str(),c_str(comp->haReadinessState.value));
@@ -1392,19 +1399,106 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                   else hrs = HighAvailabilityReadinessState::notReadyForAssignment;
                   if (hrs != su->haReadinessState)
                   {
-                      logInfo("N+M","AUDIT","High availability readiness state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.value.c_str(),c_str(su->haReadinessState.value),(int) su->haReadinessState.value, c_str(hrs), (int) hrs);
-                      su->haReadinessState.value = hrs;
-
-                      if (hrs == HighAvailabilityReadinessState::notReadyForAssignment)
+                      if(su->adminState == AdministrativeState::idle)
                       {
-                          if ((su->numActiveServiceInstances.current > 0) || (su->numStandbyServiceInstances.current > 0))
+                          if(su->haState == HighAvailabilityState::active || su->haState == HighAvailabilityState::idle)
                           {
-                              amfOps->removeWork(su);
+                              if (hrs == HighAvailabilityReadinessState::notReadyForAssignment)
+                              {
+                                  if (su->numActiveServiceInstances.current > 0)
+                                  {
+                                      amfOps->quiescedOperation(su);
+                                  }
+                                  else
+                                  {
+                                      logInfo("N+M","AUDIT","High availability readiness state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.value.c_str(),c_str(su->haReadinessState.value),(int) su->haReadinessState.value, c_str(hrs), (int) hrs);
+                                      su->haReadinessState.value = hrs;
+                                  }
+                              }
+                          }
+                          else if(su->haState == HighAvailabilityState::standby)
+                          {
+                              logInfo("N+M","AUDIT","High availability readiness state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.value.c_str(),c_str(su->haReadinessState.value),(int) su->haReadinessState.value, c_str(hrs), (int) hrs);
+                              su->haReadinessState.value = hrs;
+
+                              if (hrs == HighAvailabilityReadinessState::notReadyForAssignment)
+                              {
+                                  if (su->numStandbyServiceInstances.current > 0)
+                                  {
+                                      amfOps->removeWork(su);
+                                  }
+                              }
+                          }
+                      }
+                      else
+                      {
+                          logInfo("N+M","AUDIT","High availability readiness state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.value.c_str(),c_str(su->haReadinessState.value),(int) su->haReadinessState.value, c_str(hrs), (int) hrs);
+                          su->haReadinessState.value = hrs;
+
+                          if (hrs == HighAvailabilityReadinessState::notReadyForAssignment)
+                          {
+                              if ((su->numActiveServiceInstances.current > 0) || (su->numStandbyServiceInstances.current > 0))
+                              {
+                                  amfOps->removeWork(su);
+                              }
                           }
                       }
 
                   }
+                  else if(su->readinessState == SAFplusAmf::ReadinessState::stopping && su->haReadinessState == HighAvailabilityReadinessState::readyForAssignment)
+                  {
+                      if(su->haState == HighAvailabilityState::active || su->haState == HighAvailabilityState::quiescing)
+                      {
+                          amfOps->quiescingOperation(su);
+                      }
+                      else
+                      {
+                          su->adminState = AdministrativeState::idle;
+                      }
 
+                      if(sg->adminState == AdministrativeState::shuttingDown)
+                      {
+                          int numSus = 0;
+                          int numSusIdle = 0;
+                          SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator itsu;
+                          SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator endsu = sg->serviceUnits.listEnd();
+                          for (itsu = sg->serviceUnits.listBegin(); itsu != endsu; itsu++)
+                          {
+                              SAFplusAmf::ServiceUnit* su = dynamic_cast<SAFplusAmf::ServiceUnit*>(*itsu);
+                              if(su->adminState.value == SAFplusAmf::AdministrativeState::idle || su->adminState.value == SAFplusAmf::AdministrativeState::off)
+                              {
+                                  numSusIdle++;
+                              }
+                              numSus++;
+                          }
+                          if(numSus == numSusIdle)
+                          {
+                              logInfo("N+M","AUDIT","set sg [%s] to idle after quiescing", sg->name.value.c_str());
+                              sg->adminState = AdministrativeState::idle;
+                          }
+                      }
+                      else if(suNode->adminState == AdministrativeState::shuttingDown)
+                      {
+                          int numSus = 0;
+                          int numSusIdle = 0;
+                          SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator itsu;
+                          SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator endsu = suNode->serviceUnits.listEnd();
+                          for (itsu = suNode->serviceUnits.listBegin(); itsu != endsu; itsu++)
+                          {
+                              SAFplusAmf::ServiceUnit* su = dynamic_cast<SAFplusAmf::ServiceUnit*>(*itsu);
+                              if(su->adminState.value == SAFplusAmf::AdministrativeState::idle || su->adminState.value == SAFplusAmf::AdministrativeState::off)
+                              {
+                                  numSusIdle++;
+                              }
+                              numSus++;
+                          }
+                          if(numSus == numSusIdle)
+                          {
+                              logInfo("N+M","AUDIT","set node [%s] to idle after quiescing", suNode->name.value.c_str());
+                              suNode->adminState = AdministrativeState::idle;
+                          }
+                      }
+                  }
               }
           }
 

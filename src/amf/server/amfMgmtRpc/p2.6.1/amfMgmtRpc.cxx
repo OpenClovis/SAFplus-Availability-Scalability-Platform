@@ -434,6 +434,30 @@ void amfMgmtRpc::setSafplusInstallInfo(const ::SAFplus::Rpc::amfMgmtRpc::SetSafp
   logError("RPC","SVR","Method setSafplusInstallInfo() not implemented.");
 }
 
+void amfMgmtRpc::shutdownSU(const ::SAFplus::Rpc::amfMgmtRpc::ShutdownSURequest*,
+                         ::SAFplus::Rpc::amfMgmtRpc::ShutdownSUResponse*)
+{
+  logError("RPC","SVR","Method shutdownSU() not implemented.");
+}
+
+void amfMgmtRpc::shutdownNode(const ::SAFplus::Rpc::amfMgmtRpc::ShutdownNodeRequest*,
+                         ::SAFplus::Rpc::amfMgmtRpc::ShutdownNodeResponse*)
+{
+  logError("RPC","SVR","Method shutdownNode() not implemented.");
+}
+
+void amfMgmtRpc::shutdownSG(const ::SAFplus::Rpc::amfMgmtRpc::ShutdownSGRequest*,
+                         ::SAFplus::Rpc::amfMgmtRpc::ShutdownSGResponse*)
+{
+  logError("RPC","SVR","Method shutdownSG() not implemented.");
+}
+
+void amfMgmtRpc::shutdownSI(const ::SAFplus::Rpc::amfMgmtRpc::ShutdownSIRequest*,
+                         ::SAFplus::Rpc::amfMgmtRpc::ShutdownSIResponse*)
+{
+  logError("RPC","SVR","Method shutdownSI() not implemented.");
+}
+
 void amfMgmtRpc::initialize(SAFplus::Handle destination,
                      const ::SAFplus::Rpc::amfMgmtRpc::InitializeRequest* request,
                      ::SAFplus::Rpc::amfMgmtRpc::InitializeResponse* response,
@@ -954,6 +978,38 @@ void amfMgmtRpc::setSafplusInstallInfo(SAFplus::Handle destination,
   logError("RPC","SVR","Method setSafplusInstallInfo() not implemented.");
 }
 
+void amfMgmtRpc::shutdownSU(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::amfMgmtRpc::ShutdownSURequest* request,
+                     ::SAFplus::Rpc::amfMgmtRpc::ShutdownSUResponse* response,
+                     SAFplus::Wakeable& wakeable)
+{
+  logError("RPC","SVR","Method shutdownSU() not implemented.");
+}
+
+void amfMgmtRpc::shutdownNode(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::amfMgmtRpc::ShutdownNodeRequest* request,
+                     ::SAFplus::Rpc::amfMgmtRpc::ShutdownNodeResponse* response,
+                     SAFplus::Wakeable& wakeable)
+{
+  logError("RPC","SVR","Method shutdownNode() not implemented.");
+}
+
+void amfMgmtRpc::shutdownSG(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::amfMgmtRpc::ShutdownSGRequest* request,
+                     ::SAFplus::Rpc::amfMgmtRpc::ShutdownSGResponse* response,
+                     SAFplus::Wakeable& wakeable)
+{
+  logError("RPC","SVR","Method shutdownSG() not implemented.");
+}
+
+void amfMgmtRpc::shutdownSI(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::amfMgmtRpc::ShutdownSIRequest* request,
+                     ::SAFplus::Rpc::amfMgmtRpc::ShutdownSIResponse* response,
+                     SAFplus::Wakeable& wakeable)
+{
+  logError("RPC","SVR","Method shutdownSI() not implemented.");
+}
+
 void amfMgmtRpc::CallMethod(const ::google::protobuf::MethodDescriptor* method,
                              SAFplus::Handle destination,
                              const ::google::protobuf::Message* request,
@@ -1221,6 +1277,22 @@ void amfMgmtRpc::CallMethod(const ::google::protobuf::MethodDescriptor* method,
       setSafplusInstallInfo(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoRequest*>(request),
              ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoResponse*>(response));
       break;
+    case 65:
+      shutdownSU(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::ShutdownSURequest*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::ShutdownSUResponse*>(response));
+      break;
+    case 66:
+      shutdownNode(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::ShutdownNodeRequest*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::ShutdownNodeResponse*>(response));
+      break;
+    case 67:
+      shutdownSG(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::ShutdownSGRequest*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::ShutdownSGResponse*>(response));
+      break;
+    case 68:
+      shutdownSI(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfMgmtRpc::ShutdownSIRequest*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfMgmtRpc::ShutdownSIResponse*>(response));
+      break;
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       break;
@@ -1361,6 +1433,14 @@ const ::google::protobuf::Message& amfMgmtRpc::GetRequestPrototype(
       return ::SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoRequest::default_instance();
     case 64:
       return ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoRequest::default_instance();
+    case 65:
+      return ::SAFplus::Rpc::amfMgmtRpc::ShutdownSURequest::default_instance();
+    case 66:
+      return ::SAFplus::Rpc::amfMgmtRpc::ShutdownNodeRequest::default_instance();
+    case 67:
+      return ::SAFplus::Rpc::amfMgmtRpc::ShutdownSGRequest::default_instance();
+    case 68:
+      return ::SAFplus::Rpc::amfMgmtRpc::ShutdownSIRequest::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
@@ -1501,6 +1581,14 @@ const ::google::protobuf::Message& amfMgmtRpc::GetResponsePrototype(
       return ::SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoResponse::default_instance();
     case 64:
       return ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoResponse::default_instance();
+    case 65:
+      return ::SAFplus::Rpc::amfMgmtRpc::ShutdownSUResponse::default_instance();
+    case 66:
+      return ::SAFplus::Rpc::amfMgmtRpc::ShutdownNodeResponse::default_instance();
+    case 67:
+      return ::SAFplus::Rpc::amfMgmtRpc::ShutdownSGResponse::default_instance();
+    case 68:
+      return ::SAFplus::Rpc::amfMgmtRpc::ShutdownSIResponse::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
@@ -1907,6 +1995,30 @@ void amfMgmtRpc_Stub::setSafplusInstallInfo(SAFplus::Handle dest,
                               ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoResponse* response,
                               SAFplus::Wakeable& wakeable) {
   channel_->CallMethod(descriptor()->method(64), dest, request, response, wakeable);
+}
+void amfMgmtRpc_Stub::shutdownSU(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::amfMgmtRpc::ShutdownSURequest* request,
+                              ::SAFplus::Rpc::amfMgmtRpc::ShutdownSUResponse* response,
+                              SAFplus::Wakeable& wakeable) {
+  channel_->CallMethod(descriptor()->method(65), dest, request, response, wakeable);
+}
+void amfMgmtRpc_Stub::shutdownNode(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::amfMgmtRpc::ShutdownNodeRequest* request,
+                              ::SAFplus::Rpc::amfMgmtRpc::ShutdownNodeResponse* response,
+                              SAFplus::Wakeable& wakeable) {
+  channel_->CallMethod(descriptor()->method(66), dest, request, response, wakeable);
+}
+void amfMgmtRpc_Stub::shutdownSG(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::amfMgmtRpc::ShutdownSGRequest* request,
+                              ::SAFplus::Rpc::amfMgmtRpc::ShutdownSGResponse* response,
+                              SAFplus::Wakeable& wakeable) {
+  channel_->CallMethod(descriptor()->method(67), dest, request, response, wakeable);
+}
+void amfMgmtRpc_Stub::shutdownSI(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::amfMgmtRpc::ShutdownSIRequest* request,
+                              ::SAFplus::Rpc::amfMgmtRpc::ShutdownSIResponse* response,
+                              SAFplus::Wakeable& wakeable) {
+  channel_->CallMethod(descriptor()->method(68), dest, request, response, wakeable);
 }
 
 }  // namespace amfMgmtRpc

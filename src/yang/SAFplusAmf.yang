@@ -158,10 +158,16 @@ module SAFplusAmf
 	  value 1;
 	  description "SA-Forum 'locked': the administrator has prevented the service unit from taking service instance assignments.";
 	}
+        enum shuttingDown 
+	{ 
+	  SAFplusTypes:alias "shuttingDown";
+	  value 2;
+	  description "SA-Forum 'shuttingDown': the administrator has prevented the service unit from taking new service instance assignments and requested that existing service instance assignments be gracefully removed.";
+	}
         enum on
 	{ 
 	  SAFplusTypes:alias "unlocked";
-	  value 2;
+	  value 3;
 	  description "SA-Forum 'unlocked': the service unit has not been directly prohibited from taking service instance assignments by the administrator.";
 	}
       }
@@ -690,6 +696,21 @@ module SAFplusAmf
 	description "Current number of standby work assignments this component is handling.";
         config false;
       }
+
+      leaf quiescedAssignments
+      {
+	type uint32;       
+        default 0;
+	description "Current number of quiesced work assignments this component is handling.";
+      }
+
+      leaf quiescingAssignments
+      {
+	type uint32;       
+        default 0;
+	description "Current number of quiescing work assignments this component is handling.";
+      }
+      
       leaf-list assignedWork
       {
 	SAFplusTypes:alias saAmfCompAssignedCsi;
@@ -1140,6 +1161,21 @@ are switched over to other nodes (component service instances are not abruptly r
 	description "Current number of standby work assignments this component is handling.";
         config false;
       }
+
+      leaf quiescedAssignments
+      {
+	type uint32;       
+        default 0;
+	description "Current number of quiesced work assignments this component is handling.";
+      }
+
+      leaf quiescingAssignments
+      {
+	type uint32;       
+        default 0;
+	description "Current number of quiescing work assignments this component is handling.";
+      }
+      
       leaf-list assignedWork
       {
 	SAFplusTypes:alias saAmfCompAssignedCsi;
@@ -1646,6 +1682,20 @@ are switched over to other nodes (component service instances are not abruptly r
         SAFplusTypes:c-type "::SAFplusAmf::ServiceUnit*";
         type instance-identifier;
         config false;  // The component handling this work is assigned at run time by the AMF
+      }
+
+      leaf numQuiescedAssignments
+      {
+	type uint32;       
+        default 0;
+	description "Current number of quiesced work assignments this serviceInstance is handling.";
+      }
+
+      leaf numQuiescingAssignments
+      {
+	type uint32;       
+        default 0;
+	description "Current number of quiescing work assignments this serviceInstance is handling.";
       }
 
 

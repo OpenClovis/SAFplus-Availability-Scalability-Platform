@@ -18,7 +18,8 @@ from pySAFplus import SafplusInitializationConfiguration, Libraries, Initialize,
   updateComponentServiceInstance, addNewComponent, addNewServiceGroup, addNewNode, addNewServiceUnit, addNewServiceInstance,\
   addNewComponentServiceInstance, amfMgmtComponentDelete, amfMgmtServiceGroupDelete, amfMgmtNodeDelete, amfMgmtServiceUnitDelete,\
   amfMgmtServiceInstanceDelete, amfMgmtComponentServiceInstanceDelete, amfMgmtSafplusInstallInfoGet, amfMgmtSafplusInstallInfoSet,\
-  amfMgmtNodeGetStatus, amfMgmtNodeSUListDelete, amfMgmtSICSIListDelete, amfMgmtCSINVPDelete
+  amfMgmtNodeGetStatus, amfMgmtNodeSUListDelete, amfMgmtSICSIListDelete, amfMgmtCSINVPDelete, amfMgmtSUShutdown, amfMgmtEntityNodeShutdown\
+  , amfMgmtSGShutdown, amfMgmtSIShutdown
 
 class Error(Exception):
   pass

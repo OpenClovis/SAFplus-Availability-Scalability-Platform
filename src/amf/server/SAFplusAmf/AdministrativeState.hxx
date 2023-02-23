@@ -17,7 +17,7 @@ namespace SAFplusAmf
 
     enum class AdministrativeState
       {
-        off=0, idle=1, on=2
+        off=0, idle=1, shuttingDown=2, on=3
       };
     std::ostream& operator<<(std::ostream& os, const AdministrativeState& e);
     std::istream& operator>>(std::istream& is, AdministrativeState& e);

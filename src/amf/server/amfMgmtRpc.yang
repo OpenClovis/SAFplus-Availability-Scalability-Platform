@@ -104,9 +104,14 @@ module amfMgmtRpc
 	     value 1;
 	     description "SA-Forum 'locked': the administrator has prevented the service unit from taking service instance assignments.";
 	   }
+       enum shuttingDown 
+	   { 
+	     value 2;
+	     description "SA-Forum 'shuttingDown': the administrator has prevented the service unit from taking new service instance assignments and requested that existing service instance assignments be gracefully removed.";
+	   }
        enum on
 	   {  
-	     value 2;
+	     value 3;
 	     description "SA-Forum 'unlocked': the service unit has not been directly prohibited from taking service instance assignments by the administrator.";
 	   }
       }
@@ -2506,6 +2511,86 @@ are switched over to other nodes (component service instances are not abruptly r
          type string; // param in string: interface=if_name:ip_address,dir=full_path_of_safplus_sandbox_dir
        }    
 
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+
+   rpc shutdownSU {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          {
+	    length 16;  // 2 64-bit words
+	  }
+	}
+       leaf suName {
+         type string;
+       }
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+
+   rpc shutdownNode {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          {
+	    length 16;  // 2 64-bit words
+	  }
+	}
+       leaf nodeName {
+         type string;
+       }
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+
+   rpc shutdownSG {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          {
+	    length 16;  // 2 64-bit words
+	  }
+	}
+       leaf sgName {
+         type string;
+       }
+     }
+     output {
+       leaf err {
+         type int32;
+       }
+     }
+   }
+
+   rpc shutdownSI {
+     input {
+       leaf-list amfMgmtHandle
+	{
+	  type binary
+          {
+	    length 16;  // 2 64-bit words
+	  }
+	}
+       leaf siName {
+         type string;
+       }
      }
      output {
        leaf err {

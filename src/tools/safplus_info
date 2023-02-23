@@ -128,9 +128,10 @@ _member_map = {
     'Leaving':  'L'
 }
 _state_map = {
-    'idle':    'LA',
-    'on':      'UL',
-    'off':     'LI'
+    'idle':          'LA',
+    'on':            'UL',
+    'off':           'LI',
+    'shuttingDown':  'SD'
 }
 _classtype_map = {
     'Class A':          'A',

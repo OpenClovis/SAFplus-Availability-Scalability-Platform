@@ -93,4 +93,9 @@ Handle amfMgmtCompAddressGet(const std::string& entityName);
 ClRcT amfMgmtSafplusInstallInfoSet(const Handle& mgmtHandle, const std::string& nodeName, const std::string& safplusInstallInfo);
 std::string amfMgmtSafplusInstallInfoGet(const Handle& mgmtHandle, const std::string& nodeName);
 
+ClRcT amfMgmtSUShutdown(const Handle& mgmtHandle, const std::string& suName);
+ClRcT amfMgmtEntityNodeShutdown(const Handle& mgmtHandle, const std::string& suName);
+ClRcT amfMgmtSGShutdown(const Handle& mgmtHandle, const std::string& suName);
+ClRcT amfMgmtSIShutdown(const Handle& mgmtHandle, const std::string& suName);
+
 }

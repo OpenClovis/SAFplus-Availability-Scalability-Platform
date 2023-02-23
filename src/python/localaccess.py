@@ -106,6 +106,11 @@ amfMgmtSICSIListDelete = safplus.amfMgmtSICSIListDelete
 amfMgmtSafplusInstallInfoGet = safplus.amfMgmtSafplusInstallInfoGet
 amfMgmtSafplusInstallInfoSet = safplus.amfMgmtSafplusInstallInfoSet
 
+amfMgmtSUShutdown = safplus.amfMgmtSUShutdown
+amfMgmtEntityNodeShutdown = safplus.amfMgmtEntityNodeShutdown
+amfMgmtSGShutdown = safplus.amfMgmtSGShutdown
+amfMgmtSIShutdown = safplus.amfMgmtSIShutdown
+
 def isValidDirectory(path):
   try:
     data = mgtGet(str("{d=0}"+path))

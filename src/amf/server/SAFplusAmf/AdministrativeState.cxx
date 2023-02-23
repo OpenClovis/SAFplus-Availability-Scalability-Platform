@@ -19,7 +19,8 @@ namespace SAFplusAmf
     const AdministrativeStateManager::map_t AdministrativeStateManager::en2str_map = {
             pair_t(AdministrativeState::off, "off"),
             pair_t(AdministrativeState::idle, "idle"),
-            pair_t(AdministrativeState::on, "on")
+            pair_t(AdministrativeState::on, "on"),
+            pair_t(AdministrativeState::shuttingDown, "shuttingDown")
     }; // uses c++11 initializer lists 
 
     const char* c_str(const ::SAFplusAmf::AdministrativeState &administrativeState)

@@ -189,6 +189,8 @@ namespace SAFplusAmf
         SAFplusAmf::ProcStats procStats;
         SAFplus::MgtHistoryStat<int> activeAssignments;
         SAFplus::MgtHistoryStat<int> standbyAssignments;
+        ::uint32_t quiescedAssignments;
+        ::uint32_t quiescingAssignments;
         SAFplusAmf::Instantiate instantiate;
         SAFplusAmf::Terminate terminate;
         SAFplusAmf::Cleanup cleanup;

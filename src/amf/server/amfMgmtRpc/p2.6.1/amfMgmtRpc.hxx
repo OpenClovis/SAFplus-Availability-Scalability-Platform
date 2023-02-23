@@ -162,6 +162,14 @@ class amfMgmtRpc : public SAFplus::Rpc::RpcService {
                        ::SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoResponse* response);
   virtual void setSafplusInstallInfo(const ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoResponse* response);
+  virtual void shutdownSU(const ::SAFplus::Rpc::amfMgmtRpc::ShutdownSURequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::ShutdownSUResponse* response);
+  virtual void shutdownNode(const ::SAFplus::Rpc::amfMgmtRpc::ShutdownNodeRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::ShutdownNodeResponse* response);
+  virtual void shutdownSG(const ::SAFplus::Rpc::amfMgmtRpc::ShutdownSGRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::ShutdownSGResponse* response);
+  virtual void shutdownSI(const ::SAFplus::Rpc::amfMgmtRpc::ShutdownSIRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::ShutdownSIResponse* response);
 
   // implements amfMgmtRpc ------------------------------------------
   virtual void initialize(SAFplus::Handle destination,
@@ -423,6 +431,22 @@ class amfMgmtRpc : public SAFplus::Rpc::RpcService {
   virtual void setSafplusInstallInfo(SAFplus::Handle destination,
                        const ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  virtual void shutdownSU(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::ShutdownSURequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::ShutdownSUResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  virtual void shutdownNode(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::ShutdownNodeRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::ShutdownNodeResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  virtual void shutdownSG(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::ShutdownSGRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::ShutdownSGResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  virtual void shutdownSI(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::ShutdownSIRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::ShutdownSIResponse* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
 
 
@@ -712,6 +736,22 @@ class amfMgmtRpc_Stub : public amfMgmtRpc {
                        const ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoResponse* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  void shutdownSU(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::ShutdownSURequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::ShutdownSUResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  void shutdownNode(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::ShutdownNodeRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::ShutdownNodeResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  void shutdownSG(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::ShutdownSGRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::ShutdownSGResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  void shutdownSI(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfMgmtRpc::ShutdownSIRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::ShutdownSIResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
  private:
   SAFplus::Rpc::RpcChannel* channel_;
   bool owns_channel_;
@@ -855,6 +895,14 @@ class amfMgmtRpcImpl : public amfMgmtRpc {
                        ::SAFplus::Rpc::amfMgmtRpc::GetSafplusInstallInfoResponse* response);
   void setSafplusInstallInfo(const ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoRequest* request,
                        ::SAFplus::Rpc::amfMgmtRpc::SetSafplusInstallInfoResponse* response);
+  void shutdownSU(const ::SAFplus::Rpc::amfMgmtRpc::ShutdownSURequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::ShutdownSUResponse* response);
+  void shutdownNode(const ::SAFplus::Rpc::amfMgmtRpc::ShutdownNodeRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::ShutdownNodeResponse* response);
+  void shutdownSG(const ::SAFplus::Rpc::amfMgmtRpc::ShutdownSGRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::ShutdownSGResponse* response);
+  void shutdownSI(const ::SAFplus::Rpc::amfMgmtRpc::ShutdownSIRequest* request,
+                       ::SAFplus::Rpc::amfMgmtRpc::ShutdownSIResponse* response);
 };
 
 }  // namespace amfMgmtRpc

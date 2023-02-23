@@ -274,9 +274,10 @@ SaAisErrorT saAmfResponse(SaAmfHandleT amfHandle, SaInvocationT invocation, SaAi
   }
 
 SaAisErrorT saAmfCSIQuiescingComplete(SaAmfHandleT amfHandle, SaInvocationT invocation, SaAisErrorT error)
-  {
-  return SA_AIS_OK;
-  }
+{
+    saAmfResponse(amfHandle, invocation, error);
+    return SA_AIS_OK;
+}
 
 
 

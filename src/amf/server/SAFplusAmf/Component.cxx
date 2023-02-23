@@ -181,6 +181,8 @@ namespace SAFplusAmf
         processId = 0;
         pendingOperationExpiration = Date(0);
         launched = false;
+        quiescedAssignments = 0;
+        quiescingAssignments = 0;
     };
 
     Component::Component(const std::string& nameValue): presenceState("presenceState",::SAFplusAmf::PresenceState::uninstantiated), compProperty("compProperty",::SAFplusAmf::CompProperty::sa_aware), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments",1), instantiateLevel("instantiateLevel",1), maxStandbyAssignments("maxStandbyAssignments",1), assignedWork("assignedWork"), operState("operState",true), readinessState("readinessState",::SAFplusAmf::ReadinessState::outOfService), haReadinessState("haReadinessState",::SAFplusAmf::HighAvailabilityReadinessState::readyForAssignment), haState("haState",::SAFplusAmf::HighAvailabilityState::idle), safVersion("safVersion",std::string("B.04.01")), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations",1), maxDelayedInstantiations("maxDelayedInstantiations",1), numInstantiationAttempts("numInstantiationAttempts"), instantiationSuccessDuration("instantiationSuccessDuration",30000), lastInstantiation("lastInstantiation"), delayBetweenInstantiation("delayBetweenInstantiation",10000), serviceUnit("serviceUnit"), recovery("recovery",SAFplusAmf::Recovery::NoRecommendation), currentRecovery("currentRecovery", Recovery::None), restartable("restartable",true), proxy("proxy"), proxied("proxied"), processId("processId",0), lastError("lastError"), pendingOperation("pendingOperation"), pendingOperationExpiration("pendingOperationExpiration",Date(0)), csiTypes("csiTypes"), proxyCSI("proxyCSI")
@@ -307,6 +309,8 @@ namespace SAFplusAmf
         restartCount.replicated = false;
         this->tag.assign("Component");
         launched = false;
+        quiescedAssignments = 0;
+        quiescingAssignments = 0;
     };
 
     std::vector<std::string> Component::getKeys()

@@ -1626,13 +1626,13 @@ By default the specified location and children are shown.  Use -N to specify how
 
       if ret == 0x0:
         if entityType == "Node":
-          ret = access.amfMgmtNodeLockAssignment(handleTest, entityName)
+          ret = access.amfMgmtEntityNodeShutdown(handleTest, entityName)
         elif entityType == "ServiceGroup":
-          ret = access.amfMgmtSGLockAssignment(handleTest, entityName)
+          ret = access.amfMgmtSGShutdown(handleTest, entityName)
         elif entityType == "ServiceUnit":
-          ret = access.amfMgmtSULockAssignment(handleTest, entityName)
+          ret = access.amfMgmtSUShutdown(handleTest, entityName)
         elif entityType == "ServiceInstance":
-          ret = access.amfMgmtSILockAssignment(handleTest, entityName)
+          ret = access.amfMgmtSIShutdown(handleTest, entityName)
         else:
           print(self.do_entityShutdown.__doc__)
           ret = 0x02

@@ -85,6 +85,8 @@ namespace SAFplusAmf
         adminState = ::SAFplusAmf::AdministrativeState::on;
         preferredActiveAssignments = 1;
         preferredStandbyAssignments = 1;
+        numQuiescedAssignments = 0;
+        numQuiescingAssignments = 0;
     };
 
     ServiceInstance::ServiceInstance(const std::string& nameValue): adminState("adminState",::SAFplusAmf::AdministrativeState::on), assignmentState("assignmentState"), preferredActiveAssignments("preferredActiveAssignments",1), preferredStandbyAssignments("preferredStandbyAssignments",1), rank("rank"), activeAssignments("activeAssignments"), standbyAssignments("standbyAssignments"), componentServiceInstances("componentServiceInstances"), serviceGroup("serviceGroup"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight"), isFullActiveAssignment("isFullActiveAssignment",false), isFullStandbyAssignment("isFullStandbyAssignment",false)
@@ -138,6 +140,8 @@ namespace SAFplusAmf
         isFullStandbyAssignment.loadDb = false;
         isFullStandbyAssignment.replicated = false;
         this->tag.assign("ServiceInstance");
+        numQuiescedAssignments = 0;
+        numQuiescingAssignments = 0;
     };
 
     std::vector<std::string> ServiceInstance::getKeys()

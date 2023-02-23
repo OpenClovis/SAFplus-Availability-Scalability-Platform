@@ -69,22 +69,80 @@ namespace SAFplus
           Node* node = su->node.value;
           if (tgt <= node->adminState.value)
           {
-             logInfo("N+M","AUDIT","Setting service unit [%s] to admin state [%s]",suName.c_str(),c_str(tgt));
-             if (!writeChanges)
-               su->adminState.value = tgt; // do not change the beat, so, the AMF will not write changes again
-             else
-               su->adminState = tgt; // DO change the beat, so, the AMF will write changes next time
+              if(tgt == SAFplusAmf::AdministrativeState::shuttingDown)
+              {
+                  if(su->adminState.value == SAFplusAmf::AdministrativeState::on)
+                  {
+                      logInfo("N+M","AUDIT","Setting service unit [%s] to admin state [%s]",suName.c_str(),c_str(tgt));
+                      if(su->haReadinessState == SAFplusAmf::HighAvailabilityReadinessState::notReadyForAssignment || su->readinessState == SAFplusAmf::ReadinessState::outOfService || su->presenceState == SAFplusAmf::PresenceState::uninstantiated)
+                      {
+                          if (!writeChanges)
+                              su->adminState.value = SAFplusAmf::AdministrativeState::idle;
+                          else
+                              su->adminState = SAFplusAmf::AdministrativeState::idle;
+                      }
+                      else
+                      {
+                          if (!writeChanges)
+                              su->adminState.value = tgt;
+                          else
+                              su->adminState = tgt;
+                      }
+                  }
+              }
+              else
+              {
+                  logInfo("N+M","AUDIT","Setting service unit [%s] to admin state [%s]",suName.c_str(),c_str(tgt));
+                  if (!writeChanges)
+                      su->adminState.value = tgt; // do not change the beat, so, the AMF will not write changes again
+                  else
+                      su->adminState = tgt; // DO change the beat, so, the AMF will write changes next time
+              }
           }
         // TODO: transactional and event
         }       
       }
     if (sg->adminState.value != tgt)
      {
-       logInfo("N+M","AUDIT","Setting service group [%s] to admin state [%s]",sg->name.value.c_str(),c_str(tgt));
-       if (!writeChanges)
-         sg->adminState.value = tgt; // do not change the beat, so, the AMF will not write changes again
-       else
-         sg->adminState = tgt; // DO change the beat, so, the AMF will write changes next time
+        if(tgt == SAFplusAmf::AdministrativeState::shuttingDown)
+        {
+            int numSus = 0;
+            int numSusIdle = 0;
+            for (itsu = sg->serviceUnits.listBegin(); itsu != endsu; itsu++)
+            {
+                ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+                if(su->adminState.value == SAFplusAmf::AdministrativeState::idle || su->adminState.value == SAFplusAmf::AdministrativeState::off)
+                {
+                    numSusIdle++;
+                }
+                numSus++;
+            }
+            if(numSus == numSusIdle)
+            {
+                logInfo("N+M","AUDIT","Setting sg [%s] to admin state [idle]",sg->name.value.c_str());
+                if (!writeChanges)
+                    sg->adminState.value = SAFplusAmf::AdministrativeState::idle;
+                else
+                    sg->adminState = SAFplusAmf::AdministrativeState::idle;
+            }
+            else
+            {
+                logInfo("N+M","AUDIT","Setting service group [%s] to admin state [%s]",sg->name.value.c_str(),c_str(tgt));
+                if (!writeChanges)
+                    sg->adminState.value = tgt; // do not change the beat, so, the AMF will not write changes again
+                else
+                    sg->adminState = tgt; // DO change the beat, so, the AMF will write changes next time
+            }
+
+        }
+        else
+        {
+            logInfo("N+M","AUDIT","Setting service group [%s] to admin state [%s]",sg->name.value.c_str(),c_str(tgt));
+            if (!writeChanges)
+                sg->adminState.value = tgt; // do not change the beat, so, the AMF will not write changes again
+            else
+                sg->adminState = tgt; // DO change the beat, so, the AMF will write changes next time
+        }
      }
      else
        rc = CL_ERR_INVALID_STATE;
@@ -111,22 +169,79 @@ namespace SAFplus
         ServiceGroup* sg = su->serviceGroup.value;
         if (tgt <= sg->adminState.value)
           {
-            logInfo("N+M","AUDIT","Setting service unit [%s] to admin state [%s]",suName.c_str(),c_str(tgt));
-            if (!writeChanges)
-              su->adminState.value = tgt;
+            if(tgt == SAFplusAmf::AdministrativeState::shuttingDown)
+            {
+                if(su->adminState.value == SAFplusAmf::AdministrativeState::on)
+                {
+                    logInfo("N+M","AUDIT","Setting service unit [%s] to admin state [%s]",suName.c_str(),c_str(tgt));
+                    if(su->haReadinessState == SAFplusAmf::HighAvailabilityReadinessState::notReadyForAssignment || su->readinessState == SAFplusAmf::ReadinessState::outOfService || su->presenceState == SAFplusAmf::PresenceState::uninstantiated)
+                    {
+                        if (!writeChanges)
+                            su->adminState.value = SAFplusAmf::AdministrativeState::idle;
+                        else
+                            su->adminState = SAFplusAmf::AdministrativeState::idle;
+                    }
+                    else
+                    {
+                        if (!writeChanges)
+                            su->adminState.value = tgt;
+                        else
+                            su->adminState = tgt;
+                    }
+                }
+            }
             else
-              su->adminState = tgt;
+            {
+                logInfo("N+M","AUDIT","Setting service unit [%s] to admin state [%s]",suName.c_str(),c_str(tgt));
+                if (!writeChanges)
+                    su->adminState.value = tgt; // do not change the beat, so, the AMF will not write changes again
+                else
+                    su->adminState = tgt; // DO change the beat, so, the AMF will write changes next time
+            }
           }
         // TODO: transactional and event
         }
       }
     if (node->adminState.value != tgt)
     {
-      logInfo("N+M","AUDIT","Setting node [%s] to admin state [%s]",node->name.value.c_str(),c_str(tgt));
-      if (!writeChanges)
-        node->adminState.value = tgt;
-      else
-        node->adminState = tgt;
+        if(tgt == SAFplusAmf::AdministrativeState::shuttingDown)
+        {
+            int numSus = 0;
+            int numSusIdle = 0;
+            for (itsu = node->serviceUnits.listBegin(); itsu != endsu; itsu++)
+            {
+                ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+                if(su->adminState.value == SAFplusAmf::AdministrativeState::idle || su->adminState.value == SAFplusAmf::AdministrativeState::off)
+                {
+                    numSusIdle++;
+                }
+                numSus++;
+            }
+            if(numSus == numSusIdle)
+            {
+                logInfo("N+M","AUDIT","Setting node [%s] to admin state [idle]",node->name.value.c_str());
+                if (!writeChanges)
+                    node->adminState.value = SAFplusAmf::AdministrativeState::idle;
+                else
+                    node->adminState = SAFplusAmf::AdministrativeState::idle;
+            }
+            else
+            {
+                logInfo("N+M","AUDIT","Setting node [%s] to admin state [%s]",node->name.value.c_str(),c_str(tgt));
+                if (!writeChanges)
+                    node->adminState.value = tgt;
+                else
+                    node->adminState = tgt;
+            }
+        }
+        else
+        {
+            logInfo("N+M","AUDIT","Setting node [%s] to admin state [%s]",node->name.value.c_str(),c_str(tgt));
+            if (!writeChanges)
+                node->adminState.value = tgt;
+            else
+                node->adminState = tgt;
+        }
     }
     else
       rc = CL_ERR_INVALID_STATE;
@@ -245,6 +360,10 @@ namespace SAFplus
  
     // If either SG or SI is idle, admin state is idle
     if ((ret == SAFplusAmf::AdministrativeState::idle) || (si->adminState.value == SAFplusAmf::AdministrativeState::idle)) return SAFplusAmf::AdministrativeState::idle;
+
+    if(si->adminState.value == SAFplusAmf::AdministrativeState::shuttingDown) {
+        return SAFplusAmf::AdministrativeState::shuttingDown;
+    }
         
     // If its not off or idle, it must be on
     return SAFplusAmf::AdministrativeState::on;
@@ -395,6 +514,16 @@ namespace SAFplus
           // pending operation completed.  Clear it out
           wat.comp->pendingOperationExpiration.value.value = 0;
           wat.comp->pendingOperation = PendingOperation::none;
+
+          //
+          if(wat.state == (int) SAFplusAmf::HighAvailabilityState::idle)
+          {
+              if(wat.comp->quiescedAssignments > 0)--wat.comp->quiescedAssignments;
+          }
+          if(wat.state == (int) SAFplusAmf::HighAvailabilityState::quiescing)
+          {
+              if(wat.comp->quiescingAssignments > 0)--wat.comp->quiescingAssignments;
+          }
           }
         }
       else // work removal
@@ -602,8 +731,15 @@ namespace SAFplus
       for (SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::Container::iterator itsu = assignments.begin(); itsu != assignments.end(); itsu++)
       {
          SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::Elem elem = *itsu;
-         SAFplusAmf::ServiceUnit* su = elem.value;         
-         removeWork(su,w);         
+         SAFplusAmf::ServiceUnit* su = elem.value;
+         if(si->adminState == AdministrativeState::idle)
+         {
+             quiescedOperation(su,w);
+         }
+         else if(si->adminState == AdministrativeState::shuttingDown)
+         {
+             quiescingOperation(su, w);
+         }
       }
 
       assignments = si->standbyAssignments.value;     
@@ -612,6 +748,11 @@ namespace SAFplus
          SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::Elem elem = *itsu;
          SAFplusAmf::ServiceUnit* su = elem.value;
          removeWork(su,w);         
+      }
+
+      if(si->assignmentState == AssignmentState::unassigned && si->adminState == AdministrativeState::shuttingDown)
+      {
+          si->adminState = AdministrativeState::idle;
       }
     }
     
@@ -808,6 +949,133 @@ namespace SAFplus
       // Free map     
       csiRemovedComps.clear();
       reportChange();
+    }
+
+    void AmfOperations::quiescedOperation(ServiceUnit* su, Wakeable& w)
+    {
+        logDebug("OPS","RMV.WRK","Quiesced works for su [%s]", su->name.value.c_str());
+        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator iterComp;
+        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator startComp = su->components.listBegin();
+        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator endComp = su->components.listEnd();
+        for(iterComp = startComp; iterComp != endComp; ++iterComp)
+        {
+            Component* comp = dynamic_cast<Component*>(*iterComp);
+
+            if (!((comp->presenceState == PresenceState::uninstantiated) || (comp->presenceState == PresenceState::instantiationFailed)))
+            {
+                SAFplus::MgtIdentifierList<SAFplusAmf::ServiceInstance*>::iterator iterSI;
+                SAFplus::MgtIdentifierList<SAFplusAmf::ServiceInstance*>::iterator startSI = su->assignedServiceInstances.listBegin();;
+                SAFplus::MgtIdentifierList<SAFplusAmf::ServiceInstance*>::iterator endSI = su->assignedServiceInstances.listEnd();;
+                for(iterSI = startSI; iterSI != endSI; ++iterSI)
+                {
+                    ServiceInstance* si = dynamic_cast<ServiceInstance*>(*iterSI);
+
+                    if(comp->haState == HighAvailabilityState::active && comp->quiescedAssignments == 0) // assign quiesced only for active su and comp->quiescedAssignments = 0 to avoid call assign many times
+                    {
+                        SAFplus::Rpc::amfAppRpc::WorkOperationRequest request;
+                        Handle hdl;
+                        try
+                        {
+                            hdl = name.getHandle(comp->name);
+                        }
+                        catch (SAFplus::NameException& n)
+                        {
+                            logCritical("OPS","WRK","Component [%s] is not registered in the name service.  Cannot control it.", comp->name.value.c_str());
+                            comp->lastError.value = "Component's name is not registered in the name service so cannot remove work cleanly";
+                            abort(comp, true, w);
+                            continue;
+                        }
+                        ++comp->quiescedAssignments;
+                        si->numQuiescedAssignments += 1;
+                        comp->pendingOperationExpiration.value.value = nowMs() + comp->timeouts.workAssignment;
+                        comp->pendingOperation = PendingOperation::workAssignment;
+                        request.set_componentname(comp->name.value.c_str());
+                        request.add_componenthandle((const char*) &hdl, sizeof(Handle));
+                        request.set_operation((uint32_t)HighAvailabilityState::idle);
+                        request.set_target(SA_AMF_CSI_TARGET_ONE);
+                        if ((invocation & 0xFFFFFFFF) == 0xFFFFFFFF) invocation &= 0xFFFFFFFF00000000ULL;
+                        request.set_invocation(invocation++);
+                        request.set_csiname("");
+                        request.clear_keyvaluepairs();
+                        pendingWorkOperations[request.invocation()] = WorkOperationTracker(comp,nullptr,nullptr,(uint32_t)HighAvailabilityState::idle,SA_AMF_CSI_TARGET_ONE);
+                        amfAppRpc->workOperation(hdl, &request);
+                    }
+                    else if(comp->haState == HighAvailabilityState::idle && comp->quiescedAssignments == 0 && si->numQuiescedAssignments > 0) // update status of active SU
+                    {
+                        si->numQuiescedAssignments -= 1;
+                        removeWork(su, w);
+//                        if(si->numQuiescedAssignments == 0)
+//                        {
+//                            removeWork(su, w);
+//                        }
+                    }
+                }
+            }
+        }
+        reportChange();
+    }
+
+    void AmfOperations::quiescingOperation(ServiceUnit* su, Wakeable& w)
+    {
+        logDebug("OPS","RMV.WRK","Quiescing works for su [%s]", su->name.value.c_str());
+        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator iterComp;
+        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator startComp = su->components.listBegin();
+        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator endComp = su->components.listEnd();
+        for(iterComp = startComp; iterComp != endComp; ++iterComp)
+        {
+            Component* comp = dynamic_cast<Component*>(*iterComp);
+
+            if (!((comp->presenceState == PresenceState::uninstantiated) || (comp->presenceState == PresenceState::instantiationFailed)))
+            {
+                SAFplus::MgtIdentifierList<SAFplusAmf::ServiceInstance*>::iterator iterSI;
+                SAFplus::MgtIdentifierList<SAFplusAmf::ServiceInstance*>::iterator startSI = su->assignedServiceInstances.listBegin();;
+                SAFplus::MgtIdentifierList<SAFplusAmf::ServiceInstance*>::iterator endSI = su->assignedServiceInstances.listEnd();;
+                for(iterSI = startSI; iterSI != endSI; ++iterSI)
+                {
+                    ServiceInstance* si = dynamic_cast<ServiceInstance*>(*iterSI);
+                    if(comp->haState == HighAvailabilityState::active && comp->quiescingAssignments == 0) // assign quiescing
+                    {
+                        SAFplus::Rpc::amfAppRpc::WorkOperationRequest request;
+                        Handle hdl;
+                        try
+                        {
+                            hdl = name.getHandle(comp->name);
+                        }
+                        catch (SAFplus::NameException& n)
+                        {
+                            logCritical("OPS","WRK","Component [%s] is not registered in the name service.  Cannot control it.", comp->name.value.c_str());
+                            comp->lastError.value = "Component's name is not registered in the name service so cannot remove work cleanly";
+                            abort(comp, true, w);
+                            continue;
+                        }
+                        ++comp->quiescingAssignments;
+                        si->numQuiescingAssignments += 1;
+                        comp->pendingOperationExpiration.value.value = nowMs() + comp->timeouts.workAssignment;
+                        comp->pendingOperation = PendingOperation::workAssignment;
+                        request.set_componentname(comp->name.value.c_str());
+                        request.add_componenthandle((const char*) &hdl, sizeof(Handle));
+                        request.set_operation((uint32_t)HighAvailabilityState::quiescing);
+                        request.set_target(SA_AMF_CSI_TARGET_ONE);
+                        if ((invocation & 0xFFFFFFFF) == 0xFFFFFFFF) invocation &= 0xFFFFFFFF00000000ULL;
+                        request.set_invocation(invocation++);
+                        request.set_csiname("");
+                        request.clear_keyvaluepairs();
+                        pendingWorkOperations[request.invocation()] = WorkOperationTracker(comp,nullptr,nullptr,(uint32_t)HighAvailabilityState::quiescing,SA_AMF_CSI_TARGET_ONE);
+                        amfAppRpc->workOperation(hdl, &request);
+                    }
+                    else if(comp->haState == HighAvailabilityState::quiescing && comp->quiescingAssignments == 0 && si->numQuiescingAssignments > 0)
+                    {
+                        si->numQuiescingAssignments -= 1;
+                        removeWork(su, w);
+//                        if(si->numQuiescingAssignments == 0)
+//                        {
+//                            removeWork(su, w);
+//                        }
+                    }
+                }
+            }
+        }
+        reportChange();
     }
 
   bool AmfOperations::suContainsSaAwareComp(SAFplusAmf::ServiceUnit* su)
@@ -1821,6 +2089,41 @@ namespace SAFplus
             if(shutdownAmf) pendingWorkOperations.clear();
             //nodeGracefulSwitchover = gracefulSwitchover;
             SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator itsu;
+            logDebug("OPS","NODE.ERR","Quiesced works for all components running in node [%s]", node->name.value.c_str());
+            for (itsu = node->serviceUnits.listBegin(); itsu != node->serviceUnits.listEnd(); itsu++)
+            {
+                ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+                if (!su) continue;
+                if ((su->adminState.value != AdministrativeState::off) && (su->numActiveServiceInstances.current > 0 || su->numStandbyServiceInstances.current > 0))
+                {
+                    quiescedOperation(su);
+                }
+            }
+            for (itsu = node->serviceUnits.listBegin(); itsu != node->serviceUnits.listEnd(); itsu++)
+            {
+                ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+                //assert(su);
+                if (!su) continue;
+                SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp;
+                for (itcomp = su->components.listBegin(); itcomp != su->components.listEnd(); itcomp++)
+                {
+                    Component* comp = dynamic_cast<Component*>(*itcomp);
+                    if (!comp) continue;
+                    while ((comp->haState.value == SAFplusAmf::HighAvailabilityState::active || comp->pendingOperation != PendingOperation::none || comp->quiescedAssignments > 0) && loopCount < MAX_TRY)
+                    {
+                        boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+                        loopCount++;
+                    }
+
+                }
+
+            }
+            if (loopCount == MAX_TRY)
+            {
+                logWarning("OPS","NODE.ERR","one of components in node [%s] didn't completely quiesced", node->name.value.c_str());
+                //nodeGracefulSwitchover = false;
+                return CL_ERR_TRY_AGAIN;
+            }
             logDebug("OPS","NODE.ERR","Removing works for all components running in node [%s]", node->name.value.c_str());
             for (itsu = node->serviceUnits.listBegin(); itsu != node->serviceUnits.listEnd(); itsu++)
             {

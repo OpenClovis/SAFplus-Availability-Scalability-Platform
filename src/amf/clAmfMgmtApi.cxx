@@ -2145,4 +2145,112 @@ std::string amfMgmtSafplusInstallInfoGet(const Handle& mgmtHandle, const std::st
     return safplusInstallInfo;
 }
 
+ClRcT amfMgmtSUShutdown(const Handle& mgmtHandle, const std::string& suName)
+{
+#ifdef HANDLE_VALIDATE
+  if (!gAmfMgmtInitialized)
+   {
+     return CL_ERR_NOT_INITIALIZED;
+   }
+#endif
+   ClRcT rc;
+   SAFplus::Rpc::amfMgmtRpc::ShutdownSURequest request;
+   request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+   request.set_suname(suName);
+   try
+    {
+      Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+      SAFplus::Rpc::amfMgmtRpc::ShutdownSUResponse resp;
+      amfMgmtRpc->shutdownSU(remoteAmfHdl,&request,&resp);
+      rc = (ClRcT)resp.err();
+    }
+   catch(NameException& ex)
+    {
+      logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+      rc = CL_ERR_NOT_EXIST;
+    }
+   return rc;
+}
+
+ClRcT amfMgmtEntityNodeShutdown(const Handle& mgmtHandle, const std::string& nodeName)
+{
+#ifdef HANDLE_VALIDATE
+  if (!gAmfMgmtInitialized)
+   {
+     return CL_ERR_NOT_INITIALIZED;
+   }
+#endif
+   ClRcT rc;
+   SAFplus::Rpc::amfMgmtRpc::ShutdownNodeRequest request;
+   request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+   request.set_nodename(nodeName);
+   try
+    {
+      Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+      SAFplus::Rpc::amfMgmtRpc::ShutdownNodeResponse resp;
+      amfMgmtRpc->shutdownNode(remoteAmfHdl,&request,&resp);
+      rc = (ClRcT)resp.err();
+    }
+   catch(NameException& ex)
+    {
+      logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+      rc = CL_ERR_NOT_EXIST;
+    }
+   return rc;
+}
+
+ClRcT amfMgmtSGShutdown(const Handle& mgmtHandle, const std::string& sgName)
+{
+#ifdef HANDLE_VALIDATE
+  if (!gAmfMgmtInitialized)
+   {
+     return CL_ERR_NOT_INITIALIZED;
+   }
+#endif
+   ClRcT rc;
+   SAFplus::Rpc::amfMgmtRpc::ShutdownSGRequest request;
+   request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+   request.set_sgname(sgName);
+   try
+    {
+      Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+      SAFplus::Rpc::amfMgmtRpc::ShutdownSGResponse resp;
+      amfMgmtRpc->shutdownSG(remoteAmfHdl,&request,&resp);
+      rc = (ClRcT)resp.err();
+    }
+   catch(NameException& ex)
+    {
+      logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+      rc = CL_ERR_NOT_EXIST;
+    }
+   return rc;
+}
+
+ClRcT amfMgmtSIShutdown(const Handle& mgmtHandle, const std::string& siName)
+{
+#ifdef HANDLE_VALIDATE
+  if (!gAmfMgmtInitialized)
+   {
+     return CL_ERR_NOT_INITIALIZED;
+   }
+#endif
+   ClRcT rc;
+   SAFplus::Rpc::amfMgmtRpc::ShutdownSIRequest request;
+   request.add_amfmgmthandle((const char*) &mgmtHandle, sizeof(Handle));
+   request.set_siname(siName);
+   try
+    {
+      Handle& remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+      SAFplus::Rpc::amfMgmtRpc::ShutdownSIResponse resp;
+      amfMgmtRpc->shutdownSI(remoteAmfHdl,&request,&resp);
+      rc = (ClRcT)resp.err();
+    }
+   catch(NameException& ex)
+    {
+      logError("MGMT","INI","getHandle got exception [%s]", ex.what());
+      rc = CL_ERR_NOT_EXIST;
+    }
+   return rc;
+}
+
 }

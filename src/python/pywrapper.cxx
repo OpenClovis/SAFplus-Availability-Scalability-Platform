@@ -1207,4 +1207,9 @@ BOOST_PYTHON_MODULE(pySAFplus)
 
   def("amfMgmtSafplusInstallInfoGet",static_cast< std::string (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtSafplusInstallInfoGet));
   def("amfMgmtSafplusInstallInfoSet",static_cast< ClRcT (*)(const Handle &, const std::string &, const std::string &) > (&SAFplus::amfMgmtSafplusInstallInfoSet));
+
+  def("amfMgmtSUShutdown",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtSUShutdown));
+  def("amfMgmtEntityNodeShutdown",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtEntityNodeShutdown));
+  def("amfMgmtSGShutdown",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtSGShutdown));
+  def("amfMgmtSIShutdown",static_cast< ClRcT (*)(const Handle &, const std::string &) > (&SAFplus::amfMgmtSIShutdown));
 }

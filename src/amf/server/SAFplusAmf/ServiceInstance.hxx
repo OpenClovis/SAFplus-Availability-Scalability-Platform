@@ -78,6 +78,8 @@ namespace SAFplusAmf
         SAFplus::MgtIdentifier<SAFplusAmf::ServiceGroup*> serviceGroup;
         SAFplus::MgtHistoryStat<int> numActiveAssignments;
         SAFplus::MgtHistoryStat<int> numStandbyAssignments;
+        ::uint32_t numQuiescedAssignments;
+        ::uint32_t numQuiescingAssignments;
 
         SAFplus::MgtProv<bool> isFullActiveAssignment;//true when all component service instances of this service instance are assigned to all components of an active service unit completely
         SAFplus::MgtProv<bool> isFullStandbyAssignment;//true when all component service instances of this service instance are assigned to all components of a standby service unit completely
