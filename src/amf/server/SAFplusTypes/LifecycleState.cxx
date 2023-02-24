@@ -16,11 +16,13 @@ namespace SAFplusTypes
     /*
      * Provide an implementation of the en2str_map lookup table.
      */
-    const LifecycleStateManager::map_t LifecycleStateManager::en2str_map = {
+    const LifecycleStateManager::map_t LifecycleStateManager::en2str_map = {};
+    // workaround for fixing double free or corruption of event (nowhere uses this class, so why issue here???)
+    /*{
             pair_t(LifecycleState::start, "start"),
             pair_t(LifecycleState::idle, "idle"),
             pair_t(LifecycleState::stop, "stop")
-    }; // uses c++11 initializer lists 
+    };*/ // uses c++11 initializer lists 
 
     const char* c_str(const ::SAFplusTypes::LifecycleState &lifecycleState)
     {

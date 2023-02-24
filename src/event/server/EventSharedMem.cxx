@@ -14,7 +14,7 @@ void EventSharedMem::init()
 	{
 		eventHdr = (SAFplus::EventShmHeader*) eventMsm.construct < SAFplus::EventShmHeader > ("header")();                                 // Ok it created one so initialize
 		eventHdr->activeEventServer = INVALID_HDL;
-		eventHdr->structId = 65000; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)
+		eventHdr->structId = CL_EVENT_HEADER_STRUCT_ID; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)
 		eventHdr->lastChange = nowMs();
 	} catch (interprocess_exception &e)
 	{
@@ -22,17 +22,17 @@ void EventSharedMem::init()
 		{
 			eventHdr = eventMsm.find_or_construct < SAFplus::EventShmHeader > ("header")();                         //allocator instance
 			int retries = 0;
-			while ((eventHdr->structId != 650000) && (retries < 2))
+			while ((eventHdr->structId != CL_EVENT_HEADER_STRUCT_ID) && (retries < 2))
 			{
 				retries++;
 				boost::this_thread::sleep(boost::posix_time::milliseconds(250));
 			}  // If another process just barely beat me to the creation, I could find the memory but it would not be inited.  So I better wait.
 
-			while (eventHdr->structId != 650000)
+			while (eventHdr->structId != CL_EVENT_HEADER_STRUCT_ID)
 			{
 				// That other process should have inited it by now... so that other process must not exist.  Maybe it died, or maybe the shared memory is bad.  I will initialize.
 				eventHdr->activeEventServer = INVALID_HDL;
-				eventHdr->structId = 650000; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)
+				eventHdr->structId = CL_EVENT_HEADER_STRUCT_ID; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)
 				eventHdr->lastChange = nowMs();
 				boost::this_thread::sleep(boost::posix_time::milliseconds(100));
 			}
@@ -65,7 +65,7 @@ void EventSharedMem::changed(void)
 void EventSharedMem::setActive(SAFplus::Handle active)
 {
 	assert (eventHdr);
-	logInfo("EVT", "SHR", "Set Active server to shared mem");
+	logInfo("EVT", "SHR", "Set active server [%d,%d] to shared mem", active.getNode(), active.getPort());
 	eventHdr->activeEventServer = active;
 }
 }

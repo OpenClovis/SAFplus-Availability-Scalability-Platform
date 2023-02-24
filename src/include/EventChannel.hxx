@@ -78,14 +78,12 @@ public:
 	SAFplus::Mutex channelLevelMutex;   /* Mutex will protect channelId level */
 	EventSubscriberList eventSubs;  /* To hold the msg buffer for Check Pointing Subscriber Info */
 	EventPublisherList eventPubs;
-	int subscriberRefCount;   /* No of users opened this channel for subscription purpose */
-	int publisherRefCount;    /* No of users opened this channel for publishing purpose */
 
 	EventChannel();
 	virtual ~EventChannel();
 	void addChannelSub(EventSubscriber& sub);
 	void addChannelPub(EventPublisher& pub);
-	void deleteChannelSub(SAFplus::Handle subHandle);
+	void deleteChannelSub(SAFplus::Handle handle);
 	void deleteChannelPub(SAFplus::Handle pubHandle);
 
 };

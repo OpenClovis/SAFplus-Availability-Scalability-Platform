@@ -57,8 +57,10 @@ public:
 	ClRcT eventCkptSubsDSDelete(char*, EventChannelScope channelScope);
 	ClRcT eventCkptCheckPointChannelOpen(const SAFplus::Rpc::rpcEvent::eventChannelRequest* request);
 	ClRcT eventCkptCheckPointChannelClose(const SAFplus::Rpc::rpcEvent::eventChannelRequest* request);
-	ClRcT eventCkptCheckPointSubscribeOrPublish(const SAFplus::Rpc::rpcEvent::eventChannelRequest* request);
-	ClRcT eventCkptCheckPointUnsubscribeOrUnpublish(const SAFplus::Rpc::rpcEvent::eventChannelRequest* request);
+	ClRcT eventCkptCheckPointSubscribe(const SAFplus::Rpc::rpcEvent::eventChannelRequest* request);
+        ClRcT eventCkptCheckPointPublish(const SAFplus::Rpc::rpcEvent::eventChannelRequest* request);
+	ClRcT eventCkptCheckPointUnsubscribe(const SAFplus::Rpc::rpcEvent::eventChannelRequest* request);
+        ClRcT eventCkptCheckPointUnpublish(const SAFplus::Rpc::rpcEvent::eventChannelRequest* request);
 
 };
 

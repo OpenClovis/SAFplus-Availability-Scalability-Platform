@@ -23,7 +23,7 @@
 #include <clNameApi.hxx>
 #include <safplus.hxx>
 #include <boost/thread/thread.hpp>
-
+#define EVT_TEST
 using namespace SAFplus;
 
 //#define clprintf(sev,...) appLog(SAFplus::APP_LOG, sev, 0, "APP", "MAIN", __VA_ARGS__)
@@ -60,124 +60,66 @@ void dispatchLoop(void);
 void printCSI(SaAmfCSIDescriptorT csiDescriptor, SaAmfHAStateT haState);
 int  errorExit(SaAisErrorT rc);
 
-
 // What to do when this application becomes active
 void* activeLoop(void* thunk);
 
 
 /* This simple helper function just prints an error and quits */
 std::string globalChannel = "testGlobalchannel";
+//std::string localChannel = "testLocalchannel";
+#ifdef EVT_TEST
 EventClient evtClient;
+#endif
 int errorExit(SaAisErrorT rc)
 {
     logCritical("APP","INI", "Component [%.*s] : PID [%d]. Initialization error [0x%x]\n", appName.length, appName.value, SAFplus::pid, rc);
     exit(-1);
     return -1;
 }
-
+#ifdef EVT_TEST
 void eventCallback(std::string channelName, EventChannelScope scope, std::string data, int length)
 {
-	logDebug("EVT", "MSG", "Receive event from event channel with name [%s]", channelName.c_str());
-	logDebug("EVT", "MSG", "Event data [%s]", data.c_str());
+	logDebug("EVT", "TEST", "Receive event from event channel with name [%s]", channelName.c_str());
+	logDebug("EVT", "TEST", "Event data [%s]", data.c_str());
 
 }
 
-void eventTest(bool publish)
-{
-
-	//std::string localChannel = "testLocalchannel";
-	//std::string globalChannel = "testGlobalchannel";
-	//std::string localChannel1 = "testLocalchannel";
+void* eventTest(void* arg)
+{	
+        bool publish = *((bool*)arg);
 	std::string testEventData = "this is the test event";
-	std::string testEventDataGlobal = "this is the test event global";
+	std::string testEventDataGlobal = "this is the test event global";	
+        int maxTry = 10, tries = 0;
+        ClRcT rc = CL_OK;
+        do 
+        {
+          tries++;
+          logInfo("EVT", "TEST", "********************Test Open local channel *********************");
+	  rc = evtClient.eventChannelOpen(globalChannel,EventChannelScope::EVENT_GLOBAL_CHANNEL);
+          logInfo("EVT","TEST","channel open returns [0x%x]", rc);
+          if (rc == CL_ERR_TRY_AGAIN) goto delay;
+          //sleep(1);
+          logInfo("EVT", "TEST", "********************Test subscriber local channel *********************");
+	  rc = evtClient.eventChannelSubscribe(globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+          if (rc == CL_ERR_TRY_AGAIN) goto delay;
+          //sleep(1);
 
-//	logInfo("FLT","CLT","********************Test Open local channel *********************");
-//	evtClient.eventChannelOpen(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
-//	sleep(1);
-//
-//	logInfo("FLT","CLT","********************Test Open local channel (duplicate) *********************");
-//	evtClient.eventChannelOpen(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
-//	sleep(1);
-//
-//	logInfo("FLT","CLT","********************Test subscriber local channel *********************");
-//	evtClient.eventChannelSubscribe(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
-//	sleep(1);
-//
-//	logInfo("FLT","CLT","********************Test subscriber local channel (Duplicate) *********************");
-//	evtClient.eventChannelSubscribe(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
-//	sleep(1);
-//
-//	logInfo("FLT","CLT","********************Test publish local channel without publisher *********************");
-//	evtClient.eventPublish(testEventData,22,localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
-//	sleep(1);
-//
-//	logInfo("FLT","CLT","********************Test publisher local channel *********************");
-//	evtClient.eventChannelPublish(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
-//	sleep(1);
-//
-//	logInfo("FLT","CLT","********************Test publisher local channel (Duplicate) *********************");
-//	evtClient.eventChannelPublish(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
-//	sleep(1);
-//
-//
-//	logInfo("FLT","CLT","********************Test public event local channel *********************");
-//	evtClient.eventPublish(testEventData,22,localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
-//	sleep(1);
-//
-//	logInfo("FLT","CLT","********************Test unSubscriber local channel *********************");
-//	evtClient.eventChannelUnsubscribe(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
-//	sleep(1);
-//
-//	logInfo("FLT","CLT","********************Test unSubscriber local channel (Duplicate) *********************");
-//	evtClient.eventChannelUnsubscribe(localChannel,EventChannelScope::EVENT_LOCAL_CHANNEL);
-//	sleep(1);
-
-	logInfo("FLT", "CLT", "********************Test Open global channel (duplicate) *********************");
-	evtClient.eventChannelOpen(globalChannel,EventChannelScope::EVENT_GLOBAL_CHANNEL);
-	sleep(1);
-
-	logInfo("FLT", "CLT", "********************Test subscriber global channel *********************");
-	evtClient.eventChannelSubscribe(globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
-	sleep(1);
-
-//	logInfo("FLT","CLT","********************Test subscriber global channel duplicate*********************");
-//	evtClient.eventChannelSubscribe(globalChannel,EventChannelScope::EVENT_GLOBAL_CHANNEL);
-//	sleep(1);
-//
-//	logInfo("FLT","CLT","********************Test publisher global channel duplicate*********************");
-//	evtClient.eventChannelSubscribe(globalChannel,EventChannelScope::EVENT_GLOBAL_CHANNEL);
-//	sleep(1);
         if (publish) {
-	logInfo("FLT", "CLT", "********************Test public event global channel *********************");        
-	evtClient.eventChannelPublish(globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
-	sleep(1);
-
-	logInfo("FLT", "CLT", "********************Test public event to global channel ********************* data [%s]", testEventDataGlobal.c_str());
-	evtClient.eventPublish(testEventDataGlobal, 22, globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
-        }
-#if 0
-	sleep(1);
-
-	logInfo("FLT", "CLT", "********************Test unSubscriber global channel  *********************");
-	evtClient.eventChannelUnsubscribe(globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
-	sleep(1);
-
-	logInfo("FLT", "CLT", "********************Test unSubscriber global channel DUPLICATE  *********************");
-	evtClient.eventChannelUnsubscribe(globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
-	sleep(1);
-
-	logInfo("FLT", "CLT", "********************Test close local channel *********************");
-	evtClient.eventChannelClose(localChannel, EventChannelScope::EVENT_LOCAL_CHANNEL);
-	sleep(1);
-	logInfo("FLT", "CLT", "********************Test Reopen local channel *********************");
-	evtClient.eventChannelOpen(localChannel, EventChannelScope::EVENT_LOCAL_CHANNEL);
-	sleep(1);
-	logInfo("FLT", "CLT", "********************Subscriber local channel *********************");
-	evtClient.eventChannelSubscribe(localChannel, EventChannelScope::EVENT_LOCAL_CHANNEL);
-	sleep(1);
-//#endif	
-#endif
+	  logInfo("EVT", "TEST", "********************Test public event local channel *********************");        
+	  rc = evtClient.eventChannelPublish(globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+          if (rc == CL_ERR_TRY_AGAIN) goto delay;
+          //sleep(1);
+          logInfo("EVT", "TEST", "********************Test public event to local channel ********************* data [%s]", testEventData.c_str());
+	  rc = evtClient.eventPublish(testEventData, 22, globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+delay:
+          boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+         }
+        }while(tries<maxTry && rc == CL_ERR_TRY_AGAIN);
+       delete (bool*)arg;
+       return NULL;
 }
+
+#endif
 
 namespace SAFplus
   {
@@ -201,15 +143,21 @@ int main(int argc, char *argv[])
     initializeAmf();
 
     /* Do the application specific initialization here. */
+#ifdef EVT_TEST
     evtClient.eventInitialize(myHandle, eventCallback);
-    eventTest(false);
+    //eventTest(false);
+    
+#endif
     /* Block on AMF dispatch file descriptor for callbacks.
        When this function returns its time to quit. */
     dispatchLoop();
     
     /* Do the application specific finalization here. */
-    evtClient.eventChannelClose(globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
-
+#ifdef EVT_TEST
+    //logInfo("APP","FIN", "request to close channel [%s]", globalChannel.c_str());
+    //evtClient.eventChannelClose(globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+    
+#endif
     while (!quitting) boost::this_thread::sleep(boost::posix_time::milliseconds(250));
     /* Now finalize my connection with the SAF cluster */
     if((rc = saAmfFinalize(amfHandle)) != SA_AIS_OK)
@@ -231,11 +179,17 @@ void safTerminate(SaInvocationT invocation, const SaNameT *compName)
   SaAisErrorT rc = SA_AIS_OK;
 
   clprintf (SAFplus::LOG_SEV_INFO, "Component [%.*s] : PID [%d]. Terminating\n", compName->length, compName->value, SAFplus::pid);
+#ifdef EVT_TEST
   evtClient.eventChannelUnsubscribe(globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+#endif
   /*
    * Unregister with AMF and respond to AMF saying whether the
    * termination was successful or not.
    */
+#ifdef EVT_TEST
+  logInfo("APP","FIN", "request to close channel [%s]", globalChannel.c_str());
+  evtClient.eventChannelClose(globalChannel, EventChannelScope::EVENT_GLOBAL_CHANNEL);
+#endif
   if ( (rc = saAmfComponentUnregister(amfHandle, compName, NULL)) != SA_AIS_OK)
     {
     clprintf (SAFplus::LOG_SEV_ERROR, "Component [%.*s] : PID [%d]. Unregister failed with error [0x%x]\n", compName->length, compName->value, SAFplus::pid, rc);
@@ -295,6 +249,11 @@ void safAssignWork(SaInvocationT       invocation,
                of the work (the time interval is configurable).
                So it is important to call this saAmfResponse function ASAP.
              */
+#ifdef EVT_TEST
+            bool* publish = new bool;
+            *publish = false;
+            boost::thread(eventTest, publish);
+#endif
             saAmfResponse(amfHandle, invocation, SA_AIS_OK);
             break;
         }
@@ -313,7 +272,12 @@ void safAssignWork(SaInvocationT       invocation,
                of the work (the time interval is configurable).
                So it is important to call this saAmfResponse function ASAP.
              */
-            eventTest(true);
+#ifdef EVT_TEST
+            //eventTest(true);
+            bool* publish = new bool;
+            *publish = true;
+            boost::thread(eventTest, publish);
+#endif
             saAmfResponse(amfHandle, invocation, SA_AIS_OK);  
             break;
         }

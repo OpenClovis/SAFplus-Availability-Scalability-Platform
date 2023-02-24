@@ -35,24 +35,19 @@ EventServer::~EventServer()
 void EventServer::wake(int amt, void* cookie)
 {
 	Group* g = (Group*) cookie;
-	logDebug("EVT", "SERVER", "Group [%" PRIx64 ":%" PRIx64 "] changed", g->handle.id[0], g->handle.id[1]);
-	sleep(1);
-	if (activeServer != g->getActive())
+        Handle newActive = g->getActive();
+	logDebug("EVT", "SERVER", "Group [%" PRIx64 ":%" PRIx64 "] changed, new active [%d,%d]", g->handle.id[0], g->handle.id[1], newActive.getNode(), newActive.getPort());
+	//sleep(1);
+	if (activeServer != newActive)
 	{
-		if (severHandle == g->getActive())
+                logInfo("EVT", "SERVER", "Set active event server as [%d,%d]", newActive.getNode(), newActive.getPort());
+		activeServer = newActive;
+		esmServer.setActive(activeServer);
+		if (severHandle == activeServer)
 		{
-			//TODO Load global channel from checkpoint
-			logInfo("EVT", "SERVER", "Set Active server and load data ");
-			activeServer = g->getActive();
-			esmServer.setActive(activeServer);
+			logInfo("EVT", "SERVER", "loading data from event checkpoint");
 			eventloadchannelFromCheckpoint();
-		}
-		else
-		{
-			logInfo("EVT", "SERVER", "Set Active server");
-			activeServer = g->getActive();
-			esmServer.setActive(activeServer);
-		}
+		}		
 
 	}
 }
@@ -65,15 +60,18 @@ bool EventServer::eventloadchannelFromCheckpoint()
 	{
 		BufferPtr curkey = iter->first;
 		BufferPtr& curval = iter->second;
+                logDebug("EVT", "CKPT", "load event channel from checkpoint with key (len:%d) %x", curkey->len(), *((uint32_t*) curkey->data));
 		if (curval)
 		{
+                        logDebug("EVT", "CKPT", "load event channel from checkpoint with val (len:%d) %x", curval->len(), *((uint32_t*) curval->data));
 			SAFplus::Rpc::rpcEvent::eventChannelRequest request;
-			SAFplus::Checkpoint::KeyValuePair& item = *iter;
-			int key = ((eventKey*) (*item.first).data)->id;
-			int length = ((eventKey*) (*item.first).data)->length;
-			request.ParseFromArray(curval->data, length);
-			logDebug("EVT", "GET", "Get object for key [%d]", key);
-			logDebug("EVT", "GET", "Data length [%d]", length);
+			//SAFplus::Checkpoint::KeyValuePair& item = *iter;
+			//int key = ((eventKey*) (*item.first).data)->id;
+			//int length = ((eventKey*) (*item.first).data)->length;
+			//request.ParseFromArray(curval->data, length);
+			//logDebug("EVT", "GET", "Get object for key [%d]", key);
+			//logDebug("EVT", "GET", "Data length [%d]", length);
+                        request.ParseFromArray(curval->data, curval->len());
 			logDebug("EVT", "GET", "Get object: Name [%s]", request.channelname().c_str());
 			logDebug("EVT", "GET", "Get object: Scope [%d]", request.scope());
 			logDebug("EVT", "GET", "Get object: Type [%d]", request.type());
@@ -86,13 +84,13 @@ bool EventServer::eventloadchannelFromCheckpoint()
 				case EventMessageType::EVENT_CHANNEL_CREATE:
 					if (1)
 					{
-						eventChannelCreateHandleRpc(&request);
+						eventChannelCreateHandleRpc(&request, false);
 					}
 					break;
 				case EventMessageType::EVENT_CHANNEL_SUBSCRIBER:
 					if (1)
 					{
-						eventChannelSubsHandleRpc(&request);
+						eventChannelSubsHandleRpc(&request, false);
 					}
 					break;
 				case EventMessageType::EVENT_CHANNEL_UNSUBSCRIBER:
@@ -104,7 +102,7 @@ bool EventServer::eventloadchannelFromCheckpoint()
 				case EventMessageType::EVENT_CHANNEL_PUBLISHER:
 					if (1)
 					{
-						eventChannelPubHandleRpc(&request);
+						eventChannelPubHandleRpc(&request, false);
 					}
 					break;
 				case EventMessageType::EVENT_CHANNEL_CLOSE:
@@ -131,8 +129,6 @@ void EventServer::initialize()
 
 	logDebug("EVT", "SERVER", "Initialize Event Server");
 	severHandle = Handle::create(); // This is the handle for this specific fault server
-	numberOfGlobalChannel = 0;
-	numberOfLocalChannel = 0;
 	esmServer.init();
 	logDebug("EVT", "SERVER", "Initialize event checkpoint");
 	this->evtCkpt.eventCkptInit();
@@ -353,11 +349,10 @@ void EventServer::eventPublishRpcMethod(const ::SAFplus::Rpc::rpcEvent::eventPub
 
 }
 
-void EventServer::createChannelRpc(const eventChannelRequest *request, bool isSub, bool isPub)
+void EventServer::createChannelRpc(const eventChannelRequest *request, bool isSub, bool isPub, bool writeCkpt)
 {
 	EventChannel *channel = new EventChannel();
 	channel->scope = EventChannelScope(request->scope());
-	channel->subscriberRefCount = 0;
 	channel->channelName = request->channelname();
 	SAFplus::Handle evtClient;
 	evtClient.id[0] = request->clienthandle().id0();
@@ -370,7 +365,6 @@ void EventServer::createChannelRpc(const eventChannelRequest *request, bool isSu
 			logDebug("EVT", "MSG", "Add channel[%s] to local channel list", channel->channelName.c_str());
 			localChannelListLock.lock();
 			localChannelList.push_back(*channel);
-			numberOfLocalChannel += 1;
 			logDebug("EVT", "MSG", "Write request message to checkpoint");
 			localChannelListLock.unlock();
 		}
@@ -404,7 +398,6 @@ void EventServer::createChannelRpc(const eventChannelRequest *request, bool isSu
 						localChannelListLock.unlock();
 						throw(e);
 					}
-					s.subscriberRefCount += 1;
 				}
 				if (isPub)
 				{
@@ -418,7 +411,6 @@ void EventServer::createChannelRpc(const eventChannelRequest *request, bool isSu
 						localChannelListLock.unlock();
 						throw(e);
 					}
-					s.publisherRefCount += 1;
 				}
 				localChannelListLock.unlock();
 				return;
@@ -438,8 +430,9 @@ void EventServer::createChannelRpc(const eventChannelRequest *request, bool isSu
 				globalChannelListLock.lock();
 				globalChannelList.push_back(*channel);
 				logDebug("EVT", "MSG", "write request message to checkpoint with length %d", request->ByteSize());
-				evtCkpt.eventCkptCheckPointChannelOpen(request);
-				numberOfGlobalChannel += 1;
+                                if (writeCkpt) {
+				   evtCkpt.eventCkptCheckPointChannelOpen(request);
+                                }
 				globalChannelListLock.unlock();
 
 			}
@@ -472,9 +465,10 @@ void EventServer::createChannelRpc(const eventChannelRequest *request, bool isSu
 							globalChannelListLock.unlock();
 							throw(e);
 						}
-						logDebug("EVT", "MSG", "write request message to checkpoint with length %d", request->ByteSize());
-						evtCkpt.eventCkptCheckPointSubscribeOrPublish(request);
-						s.subscriberRefCount += 1;
+                                                if (writeCkpt) {
+						   logDebug("EVT", "MSG", "write request message to checkpoint with length %d", request->ByteSize());      
+						   evtCkpt.eventCkptCheckPointSubscribe(request);
+                                                }
 					}
 					if (isPub)
 					{
@@ -488,9 +482,10 @@ void EventServer::createChannelRpc(const eventChannelRequest *request, bool isSu
 							globalChannelListLock.unlock();
 							throw(e);
 						}
-						logDebug("EVT", "MSG", "write request message to checkpoint with length %d", request->ByteSize());
-						evtCkpt.eventCkptCheckPointSubscribeOrPublish(request);
-						s.publisherRefCount += 1;
+                                                if (writeCkpt) {
+						   logDebug("EVT", "MSG", "write request message to checkpoint with length %d", request->ByteSize());
+						   evtCkpt.eventCkptCheckPointPublish(request);
+                                                }
 					}
 					//evtCkpt.eventCkptCheckPointSubscribeOrPublish(request,0);
 					globalChannelListLock.unlock();
@@ -507,7 +502,7 @@ void EventServer::createChannelRpc(const eventChannelRequest *request, bool isSu
 	}
 }
 
-void EventServer::eventChannelCreateHandleRpc(const eventChannelRequest *request)
+void EventServer::eventChannelCreateHandleRpc(const eventChannelRequest *request, bool writeCkpt)
 {
 	SAFplus::Handle evtClient;
 	evtClient.id[0] = request->clienthandle().id0();
@@ -516,7 +511,7 @@ void EventServer::eventChannelCreateHandleRpc(const eventChannelRequest *request
 	logDebug("EVT", "MSG", "Channel[%s] -- Event handle [%d,%d]", request->channelname().c_str(), evtClient.getNode(), evtClient.getPort());
 	try
 	{
-		createChannelRpc(request, false, false);
+		createChannelRpc(request, false, false, writeCkpt);
 	} catch (SAFplus::Error& e)
 	{
 		throw(e);
@@ -524,7 +519,7 @@ void EventServer::eventChannelCreateHandleRpc(const eventChannelRequest *request
 	}
 }
 
-void EventServer::eventChannelSubsHandleRpc(const eventChannelRequest *request)
+void EventServer::eventChannelSubsHandleRpc(const eventChannelRequest *request, bool writeCkpt)
 {
 	SAFplus::Handle evtClient;
 	evtClient.id[0] = request->clienthandle().id0();
@@ -533,7 +528,7 @@ void EventServer::eventChannelSubsHandleRpc(const eventChannelRequest *request)
 	logDebug("EVT", "MSG", "Channel[%s] -- Event handle [%d,%d]", request->channelname().c_str(), evtClient.getNode(), evtClient.getPort());
 	try
 	{
-		createChannelRpc(request, true, false);
+		createChannelRpc(request, true, false,writeCkpt);
 	} catch (SAFplus::Error& e)
 	{
 		throw(e);
@@ -541,7 +536,7 @@ void EventServer::eventChannelSubsHandleRpc(const eventChannelRequest *request)
 	}
 }
 
-void EventServer::eventChannelPubHandleRpc(const eventChannelRequest *request)
+void EventServer::eventChannelPubHandleRpc(const eventChannelRequest *request, bool writeCkpt)
 {
 	//Find channel in local list
 	SAFplus::Handle evtClient;
@@ -551,7 +546,7 @@ void EventServer::eventChannelPubHandleRpc(const eventChannelRequest *request)
 	logDebug("EVT", "MSG", "Channel[%s] -- Event handle [%d,%d]", request->channelname().c_str(), evtClient.getNode(), evtClient.getPort());
 	try
 	{
-		createChannelRpc(request, false, true);
+		createChannelRpc(request, false, true,writeCkpt);
 	} catch (SAFplus::Error& e)
 	{
 		throw(e);
@@ -586,7 +581,6 @@ void EventServer::eventChannelUnSubsHandleRpc(const eventChannelRequest *request
 						localChannelListLock.unlock();
 						throw(e);
 					}
-					s.subscriberRefCount -= 1;
 					logDebug("EVT", "MSG", "Removed subscriber from local event channel[%s]", request->channelname().c_str());
 					localChannelListLock.unlock();
 					return;
@@ -619,8 +613,9 @@ void EventServer::eventChannelUnSubsHandleRpc(const eventChannelRequest *request
 							localChannelListLock.unlock();
 							throw(e);
 						}
-						s.subscriberRefCount -= 1;
-						evtCkpt.eventCkptCheckPointUnsubscribeOrUnpublish(request);
+                                                evtCkpt.eventCkptCheckPointUnsubscribe(request);
+                                                evtCkpt.eventCkptCheckPointUnpublish(request);
+                   
 						logDebug("EVT", "MSG", "Removed subs from global event channel[%s]", request->channelname().c_str());
 						globalChannelListLock.unlock();
 						return;
@@ -668,8 +663,7 @@ void EventServer::eventChannelCloseHandleRpc(const eventChannelRequest *request)
 				{
 					//TODO
 					logDebug("EVT", "MSG", "Remove all subscribers...");
-					localChannelList.erase_and_dispose(iter, eventChannel_delete_disposer());
-					evtCkpt.eventCkptCheckPointChannelClose(request);
+					localChannelList.erase_and_dispose(iter, eventChannel_delete_disposer());					
 					localChannelListLock.unlock();
 					return;
 				}
@@ -695,7 +689,8 @@ void EventServer::eventChannelCloseHandleRpc(const eventChannelRequest *request)
 					if (cmp == 0)
 					{
 						logDebug("EVT", "MSG", "Remove all subscribers... ");
-						localChannelList.erase_and_dispose(iter, eventChannel_delete_disposer());
+						globalChannelList.erase_and_dispose(iter, eventChannel_delete_disposer());
+                                                evtCkpt.eventCkptCheckPointChannelClose(request);
 						globalChannelListLock.unlock();
 						return;
 					}

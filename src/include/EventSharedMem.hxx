@@ -32,6 +32,9 @@ public:
 	uint64_t lastChange; //? monotonically increasing number indicating the last time a change was made to fault
 };
 
+enum {
+  CL_EVENT_HEADER_STRUCT_ID = 65000,
+};
 
 class EventSharedMem
 {

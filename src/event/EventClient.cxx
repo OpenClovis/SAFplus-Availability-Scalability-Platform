@@ -114,6 +114,11 @@ ClRcT EventClient::eventPublishRpc(std::string evtChannelName, EventChannelScope
 			SAFplus::Handle serverAddress;
 			serverAddress=esm.getActive();
 			logDebug("EVT", "EVENT_ENTITY", "Active Sever Address : [%d,%d]", serverAddress.getNode(), serverAddress.getPort());
+                        if (serverAddress == INVALID_HDL)
+                        {
+                           logWarning("EVT", "EVENT_ENTITY", "Active event server is not available. Try again later");
+                           return CL_ERR_TRY_AGAIN;
+                        }
 			service->eventPublishRpcMethod(serverAddress, &openRequest, &openRequestRes, SAFplus::BLOCK);
 			if (openRequestRes.saerror() != 0)
 			{
@@ -163,6 +168,11 @@ ClRcT EventClient::eventChannelRpc(std::string evtChannelName, EventChannelScope
 			SAFplus::Handle serverAddress;
 			serverAddress=esm.getActive();
 			logDebug("EVT", "EVENT_ENTITY", "Active Server Address : [%d,%d]", serverAddress.getNode(), serverAddress.getPort());
+                        if (serverAddress == INVALID_HDL)
+                        {
+                           logWarning("EVT", "EVENT_ENTITY", "Active event server is not available. Try again later");
+                           return CL_ERR_TRY_AGAIN;
+                        }
 			service->eventChannelRpcMethod(serverAddress, &openRequest, &openRequestRes, SAFplus::BLOCK);
 			logDebug("EVT", "EVENT_ENTITY", "Return code [%d] ... ", openRequestRes.saerror());
 			if (openRequestRes.saerror() != 0)
@@ -183,51 +193,50 @@ ClRcT EventClient::eventChannelRpc(std::string evtChannelName, EventChannelScope
 ClRcT EventClient::eventChannelOpen(std::string evtChannelName, EventChannelScope scope)
 {
 	logDebug("EVT", "EVENT_ENTITY", "Create event channel [%s] , init event message", evtChannelName.c_str());
-	this->eventChannelRpc(evtChannelName, scope, EventMessageType::EVENT_CHANNEL_CREATE);
-	return CL_OK;
+	return this->eventChannelRpc(evtChannelName, scope, EventMessageType::EVENT_CHANNEL_CREATE);	
 }
 
 //Close an event channel
 ClRcT EventClient::eventChannelClose(std::string evtChannelName, EventChannelScope scope)
 {
 	logDebug("EVT", "EVENT_ENTITY", "Close event channel[%s]", evtChannelName.c_str());
-	eventChannelRpc(evtChannelName, scope, EventMessageType::EVENT_CHANNEL_CLOSE);
-	return CL_OK;
+	return eventChannelRpc(evtChannelName, scope, EventMessageType::EVENT_CHANNEL_CLOSE);
+	
 }
 //unlink channel event
 ClRcT EventClient::eventChannelUnlink(std::string evtChannelName, EventChannelScope scope)
 {
 	logDebug("EVT", "EVENT_ENTITY", "Unlink event channel [%s]", evtChannelName.c_str());
-	eventChannelRpc(evtChannelName, scope, EventMessageType::EVENT_CHANNEL_UNLINK);
-	return CL_OK;
+	return eventChannelRpc(evtChannelName, scope, EventMessageType::EVENT_CHANNEL_UNLINK);
+	
 }
 //Publish an event to event channel
 ClRcT EventClient::eventPublish(std::string pEventData, int eventDataSize, std::string evtChannelName, EventChannelScope scope)
 {
 	logDebug("EVT", "EVENT_ENTITY", "Publish an event to channel [%s]", evtChannelName.c_str());
-	eventPublishRpc(evtChannelName, scope, EventMessageType::EVENT_PUBLISH, pEventData);
-	return CL_OK;
+	return eventPublishRpc(evtChannelName, scope, EventMessageType::EVENT_PUBLISH, pEventData);
+	
 }
 //Subscribe an event channel
 ClRcT EventClient::eventChannelSubscribe(std::string evtChannelName, EventChannelScope scope)
 {
 	logDebug("EVT", "EVENT_ENTITY", "Subscribe to  event channel [%s]", evtChannelName.c_str());
-	eventChannelRpc(evtChannelName, scope, EventMessageType::EVENT_CHANNEL_SUBSCRIBER);
-	return CL_OK;
+	return eventChannelRpc(evtChannelName, scope, EventMessageType::EVENT_CHANNEL_SUBSCRIBER);
+	
 }
 //Subscribe an event channel
 ClRcT EventClient::eventChannelUnsubscribe(std::string evtChannelName, EventChannelScope scope)
 {
 	logDebug("EVT", "EVENT_ENTITY", "Unsubscribe to  event channel [%s]", evtChannelName.c_str());
-	eventChannelRpc(evtChannelName, scope, EventMessageType::EVENT_CHANNEL_UNSUBSCRIBER);
-	return CL_OK;
+	return eventChannelRpc(evtChannelName, scope, EventMessageType::EVENT_CHANNEL_UNSUBSCRIBER);
+
 }
 //Publish an event channel
 ClRcT EventClient::eventChannelPublish(std::string evtChannelName, EventChannelScope scope)
 {
 	logDebug("EVT", "EVENT_ENTITY", "publisher to event channel [%s]", evtChannelName.c_str());
-	eventChannelRpc(evtChannelName, scope, EventMessageType::EVENT_CHANNEL_PUBLISHER);
-	return CL_OK;
+	return eventChannelRpc(evtChannelName, scope, EventMessageType::EVENT_CHANNEL_PUBLISHER);
+	
 }
 
 void EventClient::msgHandler(MsgServer* svr, Message* msgHead, ClPtrT cookie)

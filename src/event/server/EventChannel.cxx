@@ -86,26 +86,36 @@ struct eventPub_delete_disposer
   }
 };
 
-void EventChannel::deleteChannelSub(SAFplus::Handle subHandle)
+void EventChannel::deleteChannelSub(SAFplus::Handle handle)
 {
     //TODO delete all sub with sub handle
-    if(this->eventPubs.empty())
+    if(eventPubs.empty() && eventSubs.empty())
     {
-    	logDebug("EVT", "MSG", "Event subscriber list is empty");
-		throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST,"Subscriber doesn't exist", __FILE__, __LINE__);
+    	logDebug("EVT", "MSG", "Event subscriber and publisher list is empty");
+	//	throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST,"Subscriber doesn't exist", __FILE__, __LINE__);
         return;
+    }
+    for (EventPublisherList::iterator iter = eventPubs.begin(); iter != eventPubs.end(); iter++)
+    {
+        EventPublisher &evtPub = *iter;
+        if(evtPub.usr.evtHandle==handle)
+        {
+            logDebug("EVT", "MSG", "Remove publisher[%d:%d] ...",handle.getNode(),handle.getPort());
+            eventPubs.erase_and_dispose(iter, eventPub_delete_disposer());
+            break;
+        }
     }
     for (EventSubscriberList::iterator iter = eventSubs.begin(); iter != eventSubs.end(); iter++)
     {
         EventSubscriber &evtSub = *iter;
-        if(evtSub.usr.evtHandle==subHandle)
+        if(evtSub.usr.evtHandle==handle)
         {
-        	logDebug("EVT", "MSG", "Remove Subscriber[%d:%d] ...",subHandle.getNode(),subHandle.getPort());
+            logDebug("EVT", "MSG", "Remove Subscriber[%d:%d] ...",handle.getNode(),handle.getPort());
             eventSubs.erase_and_dispose(iter, eventSub_delete_disposer());
             return;
         }
     }
-	throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST,"Subscriber doesn't exist", __FILE__, __LINE__);
+//	throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST,"Subscriber doesn't exist", __FILE__, __LINE__);
 }
 
 void EventChannel::deleteChannelPub(SAFplus::Handle pubHandle)
@@ -113,7 +123,8 @@ void EventChannel::deleteChannelPub(SAFplus::Handle pubHandle)
     //TODO delete all sub with sub handle
     if(eventPubs.empty())
     {
-		throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST,"Publisher doesn't exist", __FILE__, __LINE__);
+        logDebug("EVT", "MSG", "Event publish list is empty");
+//		throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST,"Publisher doesn't exist", __FILE__, __LINE__);
         return;
     }
     for (EventPublisherList::iterator iter = eventPubs.begin(); iter != eventPubs.end(); iter++)
@@ -125,6 +136,6 @@ void EventChannel::deleteChannelPub(SAFplus::Handle pubHandle)
             return;
         }
     }
-    throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST,"Publisher doesn't exist", __FILE__, __LINE__);
+    //throw SAFplus::Error(Error::ErrorFamily::SAFPLUS_ERROR, Error::DOES_NOT_EXIST,"Publisher doesn't exist", __FILE__, __LINE__);
 
 }

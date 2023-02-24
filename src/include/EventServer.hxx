@@ -61,8 +61,6 @@ public:
 	EventChannelList globalChannelList; //? contain global channel
 	SAFplus::Mutex localChannelListLock;
 	SAFplus::Mutex globalChannelListLock;
-	int numberOfGlobalChannel;
-	int numberOfLocalChannel;
 	//? fault server group
 	SAFplus::Group group; //? event sever group
 	EventCkpt evtCkpt;
@@ -94,13 +92,13 @@ public:
 			::SAFplus::Rpc::rpcEvent::eventRequestResponse* response);
 	void eventGetActiveServer(const ::SAFplus::Rpc::rpcEvent::NO_REQUEST* request,
 	                              ::SAFplus::Rpc::rpcEvent::eventGetActiveServerResponse* response);
-	void eventChannelCreateHandleRpc(const SAFplus::Rpc::rpcEvent::eventChannelRequest *request);
+	void eventChannelCreateHandleRpc(const SAFplus::Rpc::rpcEvent::eventChannelRequest *request, bool writeCkpt = true);
 	void eventChannelCloseHandleRpc(const SAFplus::Rpc::rpcEvent::eventChannelRequest *request);
-	void eventChannelSubsHandleRpc(const SAFplus::Rpc::rpcEvent::eventChannelRequest *request);
-	void eventChannelPubHandleRpc(const SAFplus::Rpc::rpcEvent::eventChannelRequest *request);
+	void eventChannelSubsHandleRpc(const SAFplus::Rpc::rpcEvent::eventChannelRequest *request, bool writeCkpt = true);
+	void eventChannelPubHandleRpc(const SAFplus::Rpc::rpcEvent::eventChannelRequest *request, bool writeCkpt = true);
 	void eventChannelUnSubsHandleRpc(const SAFplus::Rpc::rpcEvent::eventChannelRequest *request);
 	void eventPublishHandleRpc(const SAFplus::Rpc::rpcEvent::eventPublishRequest *request);
-	void createChannelRpc(const SAFplus::Rpc::rpcEvent::eventChannelRequest *request,bool isSub,bool isPub);
+	void createChannelRpc(const SAFplus::Rpc::rpcEvent::eventChannelRequest *request,bool isSub,bool isPub, bool writeCkpt=true);
 
 
 };

@@ -101,7 +101,7 @@ SAFplusI::GroupServer gs;
 bool initOperValues = false;
 bool isNodeRegistered = false;
 //ClAmfPolicyPlugin_1* gAmfPolicy;
-
+EventServer evtServer;
 static void sigChildHandler(int signum)
 {
     int pid;
@@ -1062,8 +1062,8 @@ int main(int argc, char* argv[])
   }
 
   logInfo("AMF","EVT", "Initialize event server");
-  EventServer evtSever;
-  evtSever.initialize();
+  
+  evtServer.initialize();
 
   uint64_t lastBeat = beat; 
   uint64_t nowBeat;
