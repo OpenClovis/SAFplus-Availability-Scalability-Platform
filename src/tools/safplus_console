@@ -217,7 +217,10 @@ def nowinhelpCmdHandler(elem,resolver,context):
     if details == brief: details = ""
   else: 
     details = ""
-  w = ("  "*resolver.depth) + cmd + ": " + brief
+  if brief:
+    cmd+=': '
+    cmd+=brief
+  w = ("  "*resolver.depth) + cmd
   resolver.add(w)  
   w = ("  "*(resolver.depth+1)) + details
   resolver.add(w)  
@@ -548,17 +551,19 @@ class TermController(xmlterm.XmlResolver):
           if hasattr(cmdContext,fnname):
             ret += [ "<helpCmd><helpCmdName>" + fnname[3:] + "</helpCmdName>"] + getFunctionHelp(getattr(cmdContext,fnname)) + ["</helpCmd>"]        
     else: # Get all commands
-      if self.helpdoc:
-        ret.append(self.helpdoc)
+      #if self.helpdoc:
+      #  ret.append(self.helpdoc)
 
       for cmdContext in self.cmds:
-        if hasattr(cmdContext,"helpdoc") and cmdContext.helpdoc:   # Put the command category's help doc up
-          ret.append(cmdContext.helpdoc)
-        if hasattr(cmdContext,"commands"):  # If the object has a command lookup table, then print help on it
-          ret += getDictCommandHelp(cmdContext.commands)
+        #if hasattr(cmdContext,"helpdoc") and cmdContext.helpdoc:   # Put the command category's help doc up
+        #  ret.append(cmdContext.helpdoc)
+        #if hasattr(cmdContext,"commands"):  # If the object has a command lookup table, then print help on it
+          #ret += getDictCommandHelp(cmdContext.commands)
         for fnname in dir(cmdContext):    # IF the object has do_ functions print help on them.
           if fnname.startswith("do_"):
-            ret += [ "<helpCmd><helpCmdName>" + fnname[3:] + "</helpCmdName>"] + getFunctionHelp(getattr(cmdContext,fnname)) + ["</helpCmd>"]
+            #ret += [ "<helpCmd><helpCmdName>" + fnname[3:] + "</helpCmdName>"] + getFunctionHelp(getattr(cmdContext,fnname)) + ["</helpCmd>"]
+            ret += [ "<helpCmd><helpCmdName>" + fnname[3:] + "</helpCmdName>"] + ["</helpCmd>"]
+
     return "\n".join(ret)
 
   def bar(self,xml,xt):
@@ -651,31 +656,31 @@ By default the specified location and children are shown.  Use -N to specify how
     print (self.curdir)
     return ""
 
-  def do_raw(self,*sp):
-    """Equivalent to 'ls' but displays raw XML"""
-    depth=1
-    prefix = "{d=%s}"
-    rest = ""
-    flags = sp
-    for flag in flags:  
-      if flag[0] == "-":  # Its a flag
-        if flag[1] == 'b':
-          prefix = "{b,d=%s}"
-        elif flag[1] == 'p':
-          prefix = "{p,d=%s}"
-        else:
-          try:  
-            depth = int(flag[1:])  # depth modifier flag
-          except ValueError as e:
-            xt.doc.append("bad flag: " + flag)
-            pass
-      else:             
-        rest = flag
-    t = os.path.normpath(os.path.join(self.curdir,rest))
-    # print (prefix % depth) + str(t)
-    xml = access.mgtGet((prefix % depth) + str(t))
-    txt = "<text>" + xmlterm.escape(xmlterm.indent("<top>" + xml + "</top>")) + "</text>"
-    return txt # I have to wrap in an xml tag in case I get 2 top levels from mgtGet
+  #def do_raw(self,*sp):
+  #  """Equivalent to 'ls' but displays raw XML"""
+  #  depth=1
+  #  prefix = "{d=%s}"
+  #  rest = ""
+  #  flags = sp
+  #  for flag in flags:  
+  #    if flag[0] == "-":  # Its a flag
+  #      if flag[1] == 'b':
+  #        prefix = "{b,d=%s}"
+  #      elif flag[1] == 'p':
+  #        prefix = "{p,d=%s}"
+  #      else:
+  #        try:  
+  #          depth = int(flag[1:])  # depth modifier flag
+  #        except ValueError as e:
+  #          xt.doc.append("bad flag: " + flag)
+  #          pass
+  #    else:             
+  #      rest = flag
+  #  t = os.path.normpath(os.path.join(self.curdir,rest))
+  #  # print (prefix % depth) + str(t)
+  #  xml = access.mgtGet((prefix % depth) + str(t))
+  #  txt = "<text>" + xmlterm.escape(xmlterm.indent("<top>" + xml + "</top>")) + "</text>"
+  #  return txt # I have to wrap in an xml tag in case I get 2 top levels from mgtGet
 
   def do_time(self,*sp):
     """Show the time"""
@@ -686,14 +691,14 @@ By default the specified location and children are shown.  Use -N to specify how
     #return "<time/>"
     return ""
 
-  def do_echo(self,*sp):
-    """Print the args back at the user"""
-    return " ".join(sp[1:])
+  #def do_echo(self,*sp):
+  #  """Print the args back at the user"""
+  #  return " ".join(sp[1:])
 
-  def do_title(self,title):
-    """Change this window's title"""
-    self.xmlterm.frame.SetTitle(title)
-    return ""
+  #def do_title(self,title):
+  #  """Change this window's title"""
+  #  self.xmlterm.frame.SetTitle(title)
+  #  return ""
 
   def do_alias(self,alias,*val):
     """Make one command be replaced by another string"""
@@ -704,51 +709,54 @@ By default the specified location and children are shown.  Use -N to specify how
     """Exit this program"""
     self.xmlterm.frame.Close()    
 
-  def do_plot(self,*sp):
-          """? Draw a line graph
-    Arguments: locations that contain plottable data (comma separated list of numbers)
-    Example:  Plot memory utilization on all components in 10 second and 1 minute time frames. 
-       cd /*/safplusAmf/Component/*/procStats/memUtilization
-       plot history10sec history1min         
-"""
-          depth=1
-          rest = ""
-          if len(sp):  
-            if sp[0][0] == "-":  # Its a flag
-              depth = int(sp[0][1:])  # depth modifier flag
-              if len(sp)>1:
-                rest = sp[1:]
-            else:             
-              rest = sp
-          xml = []
-          for arg in rest:
-            t = os.path.normpath(os.path.join(self.curdir,arg))
-            xml.append(access.mgtGet("{d=%s}%s" % (depth,str(t))))
-          self.plot(xml,self.xmlterm)
-          return ""
+  def do_bye(self):
+    self.do_exit()
 
-  def do_bar(self,*sp):
-          """? Draw a bar graph.  A bar graph compares single values of multiple entities.  If locations do not resolve to single-number entities, the bar graph will not be shown.
-    Arguments: locations (must contain a number)
-    Example:  Compare number of threads in all components on all network elements
-       cd /*/safplusAmf/Component/*/procStats
-       bar numThreads/current
-          """
-          depth=1
-          rest = ""
-          if len(sp):  
-            if sp[0][0] == "-":  # Its a flag
-              depth = int(sp[0][1:])  # depth modifier flag
-              if len(sp)>1:
-                rest = sp[1:]
-            else:             
-              rest = sp
-          xml = []
-          for arg in rest:
-            t = os.path.normpath(os.path.join(self.curdir,arg))
-            xml.append(access.mgtGet("{d=%s}%s" % (depth,str(t))))
-          self.bar(xml,self.xmlterm)
-          return ""
+  #def do_plot(self,*sp):
+  #        """? Draw a line graph
+  #  Arguments: locations that contain plottable data (comma separated list of numbers)
+  #  Example:  Plot memory utilization on all components in 10 second and 1 minute time frames. 
+  #     cd /*/safplusAmf/Component/*/procStats/memUtilization
+  #     plot history10sec history1min         
+#"""
+ #         depth=1
+ #         rest = ""
+ #         if len(sp):  
+ #           if sp[0][0] == "-":  # Its a flag
+ #             depth = int(sp[0][1:])  # depth modifier flag
+ #             if len(sp)>1:
+ #               rest = sp[1:]
+ #           else:             
+ #             rest = sp
+ #         xml = []
+ #         for arg in rest:
+ #           t = os.path.normpath(os.path.join(self.curdir,arg))
+ #           xml.append(access.mgtGet("{d=%s}%s" % (depth,str(t))))
+ #         self.plot(xml,self.xmlterm)
+ #         return ""
+
+  #def do_bar(self,*sp):
+  #        """? Draw a bar graph.  A bar graph compares single values of multiple entities.  If locations do not resolve to single-number entities, the bar graph will not be shown.
+  #  Arguments: locations (must contain a number)
+  #  Example:  Compare number of threads in all components on all network elements
+  #     cd /*/safplusAmf/Component/*/procStats
+  #     bar numThreads/current
+  #        """
+  #        depth=1
+  #        rest = ""
+  #        if len(sp):  
+  #          if sp[0][0] == "-":  # Its a flag
+  #            depth = int(sp[0][1:])  # depth modifier flag
+  #            if len(sp)>1:
+  #              rest = sp[1:]
+  #          else:             
+  #            rest = sp
+  #        xml = []
+  #        for arg in rest:
+  #          t = os.path.normpath(os.path.join(self.curdir,arg))
+  #          xml.append(access.mgtGet("{d=%s}%s" % (depth,str(t))))
+  #        self.bar(xml,self.xmlterm)
+  #        return ""
 
   def xxexecute(self,textLine,xt):
     """Execute the passed string"""
@@ -1107,8 +1115,8 @@ By default the specified location and children are shown.  Use -N to specify how
       print ("error: ", e)
       return e
 
-  def do_entityRepaired(self, entityType, entityName):
-    """syntax: entityRepaired entityType entityName
+  def do_entityRepair(self, entityType, entityName):
+    """syntax: entityRepair entityType entityName
       Parameters:
         entityType: Node, Component or ServiceUnit
         entityName: the string name of the entity
@@ -1125,7 +1133,7 @@ By default the specified location and children are shown.  Use -N to specify how
         elif entityType == "ServiceUnit":
           ret = access.amfMgmtSURepair(handleTest, entityName)
         else:
-          print(self.do_entityRepaired.__doc__)
+          print(self.do_entityRepair.__doc__)
           ret = 0x02
       else:
         print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
@@ -1136,9 +1144,9 @@ By default the specified location and children are shown.  Use -N to specify how
         print('amfMgmtFinalize failed with error code [%s]: %s'% (hex(retF), errDesc[retF]))
         return retF
       if ret != 0x0:
-        print('entityRepaired failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
+        print('entityRepair failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       else:
-        print("entityRepaired completed successfully")
+        print("entityRepair completed successfully")
       return ret
     except RuntimeError as e:
       print ("error: ", e)
@@ -1187,7 +1195,7 @@ By default the specified location and children are shown.  Use -N to specify how
     entityTypes = "Node", "ServiceGroup", "ServiceUnit", "Component", "ServiceInstance"
     for entityType in entityTypes:
       try:
-        print("for entityType is ", entityType, " : ", self.do_entityRepaired(entityType, entityName))
+        print("for entityType is ", entityType, " : ", self.do_entityRepair(entityType, entityName))
       except RuntimeError as e:
         print ("error: ", e)
     return ""
@@ -1201,7 +1209,7 @@ By default the specified location and children are shown.  Use -N to specify how
       if len(listEntityName) != 0:
         for entityName in listEntityName:
           try:
-            self.do_entityRepaired(entityType, entityName)
+            self.do_entityRepair(entityType, entityName)
           except RuntimeError as e:
             print ("error: ", e)
 
@@ -2763,7 +2771,7 @@ class RunScript:
   def __init__(self,resolver):
     self.resolver = resolver
     self.context = None
-    self.commands = {"show" : (self.show, None),
+    self.commands = {#"show" : (self.show, None),
                     "createApp" : (self.createApp, None),
                     "deleteApp" : (self.deleteApp, None)
     }
@@ -2808,30 +2816,30 @@ class RunScript:
     #self.env["display"] = lambda s,context=self.context: context.xmlterm.doc.append(s)
     self.cli.display = lambda s,context=self.context: context.xmlterm.doc.append(s)
   
-  def do_run(self, filename, *args):
-    """Run a script.  This can be either a python script (.py extension) or a shell script"""
-    try:
-      f = open(filename,"r")
-    except IOError as e:
-      self.context.xmlterm.doc.append("<error>" + str(e) + "</error>")
-      return ""
+  #def do_run(self, filename, *args):
+  #  """Run a script.  This can be either a python script (.py extension) or a shell script"""
+  #  try:
+  #    f = open(filename,"r")
+  #  except IOError as e:
+  #    self.context.xmlterm.doc.append("<error>" + str(e) + "</error>")
+  #    return ""
 
-    ext = os.path.splitext(filename)
-    self.env["argv"] = args
-    if ext[1] == ".py":
-      try:
-        exec (f in self.env)
-      except Exception as e:
-        if DropToDebugger:
-          type, value, tb = sys.exc_info()
-          traceback.print_exc()
-          last_frame = lambda tb=tb: last_frame(tb.tb_next) if tb.tb_next else tb
-          frame = last_frame().tb_frame
-          pdb.post_mortem()
+  #  ext = os.path.splitext(filename)
+  #  self.env["argv"] = args
+  #  if ext[1] == ".py":
+  #    try:
+  #      exec (f in self.env)
+  #    except Exception as e:
+  #      if DropToDebugger:
+  #        type, value, tb = sys.exc_info()
+  #        traceback.print_exc()
+  #        last_frame = lambda tb=tb: last_frame(tb.tb_next) if tb.tb_next else tb
+  #        frame = last_frame().tb_frame
+  #        pdb.post_mortem()
               # TODO: print the command's help and try to hint at the problem
-        self.context.xmlterm.doc.append("<error>" + str(e) + "</error>")
-        return ""
-    return ""
+  #      self.context.xmlterm.doc.append("<error>" + str(e) + "</error>")
+  #      return ""
+  #  return ""
 
   def deleteApp(self, appName):
     """syntax: deleteApp appName

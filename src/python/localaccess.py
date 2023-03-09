@@ -138,44 +138,44 @@ class Commands:
       return self.context.curdir + "/" + location
     return location    
 
-  def do_set(self, location, value):
-    """syntax: set (location) (value)  
-        Sets the leaf at the specified locations to the specified value
-    """
-    loc = self.canonicalPath(location)
-    ret = safplus.mgtSet(str(loc),str(value))
-    if ret == 4:  # CL_ERROR_NOT_EXIST
-      return "<error>location [%s] does not exist</error>" % location
-    elif ret == 0:
-      return ""
-    return str(ret)
+  #def do_set(self, location, value):
+  #  """syntax: set (location) (value)  
+  #      Sets the leaf at the specified locations to the specified value
+  #  """
+  #  loc = self.canonicalPath(location)
+  #  ret = safplus.mgtSet(str(loc),str(value))
+  #  if ret == 4:  # CL_ERROR_NOT_EXIST
+  #    return "<error>location [%s] does not exist</error>" % location
+  #  elif ret == 0:
+  #    return ""
+  #  return str(ret)
 
-  def do_create(self,*locations):
-    """syntax: create (location)  
-         Creates a new object at the specified location.  The type of the object is implied by its location in the tree.
-    """
-    result = []
-    for location in locations:
-      loc = self.canonicalPath(location)
-      try:
-        safplus.mgtCreate(str(loc))
-      except RuntimeError as e:
-        result.append("<error>location [%s] error [%s]</error>" % (location, str(e)))
-    return "<top>" + "".join(result) + "</top>"
+  #def do_create(self,*locations):
+  #  """syntax: create (location)  
+  #       Creates a new object at the specified location.  The type of the object is implied by its location in the tree.
+  #  """
+  #  result = []
+  #  for location in locations:
+  #    loc = self.canonicalPath(location)
+  #    try:
+  #      safplus.mgtCreate(str(loc))
+  #    except RuntimeError as e:
+  #      result.append("<error>location [%s] error [%s]</error>" % (location, str(e)))
+  #  return "<top>" + "".join(result) + "</top>"
 
-  def do_delete(self,*locations):
-    """syntax: delete (location)  
-         deletes the object at (location) and all children
-    """
-    result = []
-    for l in locations:
-      loc = self.canonicalPath(l)
-      try:
-        safplus.mgtDelete(str(loc))
-      except RuntimeError as e:
-        result.append("<error>location [%s] error [%s]</error>" % (location, str(e)))
+  #def do_delete(self,*locations):
+  #  """syntax: delete (location)  
+  #       deletes the object at (location) and all children
+  #  """
+  #  result = []
+  #  for l in locations:
+  #    loc = self.canonicalPath(l)
+  #    try:
+  #      safplus.mgtDelete(str(loc))
+  #    except RuntimeError as e:
+  #      result.append("<error>location [%s] error [%s]</error>" % (location, str(e)))
 
-    return "<top>" + "".join(result) + "</top>"
+  #  return "<top>" + "".join(result) + "</top>"
 
   def setContext(self,context):
     """Sets the context (environment) object so commands can access it while they are executing"""

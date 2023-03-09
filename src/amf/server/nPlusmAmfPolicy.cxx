@@ -1161,8 +1161,12 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                           bool faultReport = true;
                           if (su->node.value && (su->node.value->presenceState.value == PresenceState::uninstantiated)&&(comp->presenceState !=  PresenceState::uninstantiated))
                           {
-                              logInfo("N+M","DSC","SU went out of service during Component [%s] instantiation.", comp->name.value.c_str());
+                              logInfo("N+M","DSC","SU [%s] of node [%s:%s] went out of service during Component [%s] instantiation.", su->name.value.c_str(), su->node.value->name.value.c_str(), c_str(su->node.value->presenceState.value), comp->name.value.c_str());
                               faultReport = false;
+                              if (status == CompStatus::Instantiated)
+                              {
+                                 amfOps->cleanup(comp);
+                              }
                               updateStateDueToProcessDeath(comp);
                           }
 
