@@ -973,6 +973,11 @@ By default the specified location and children are shown.  Use -N to specify how
             for child1 in root1.iter('current'):
               d = [child.tag, child1.text]
         if child.tag in configureItems:
+          if child.tag == "lastSUFailure" or child.tag == "lastRestart" or child.tag == "lastCompRestart":
+              mseconds = int(child.text)
+              if mseconds != 0:
+                s = time.strftime('%Y-%b-%d %H:%M:%S', time.localtime(mseconds/1000))
+                d = [child.tag, s]
           found = False
           for tmp in configureList:
             if tmp[0] == child.tag:
@@ -983,6 +988,11 @@ By default the specified location and children are shown.  Use -N to specify how
           else:
             tmp[1] = tmp[1] + ', ' + d[1]
         elif child.tag in statusItems:
+          if child.tag == "lastInstantiation" or child.tag == "pendingOperationExpiration":
+              mseconds = int(child.text)
+              if mseconds != 0:
+                s = time.strftime('%Y-%b-%d %H:%M:%S', time.localtime(mseconds/1000))
+                d = [child.tag, s]
           found = False
           for tmp in statusList:
             if tmp[0] == child.tag:
@@ -1158,10 +1168,14 @@ By default the specified location and children are shown.  Use -N to specify how
 
     entityTypes = "Node", "ServiceGroup", "ServiceUnit", "Component", "ServiceInstance"
     for entityType in entityTypes:
-      try:
-        print("for entityType is ", entityType, " : ", self.do_entityUnlock(entityType, entityName))
-      except RuntimeError as e:
-        print ("error: ", e)
+      listEntityName = self.parseXML(entityType)
+      if len(listEntityName) != 0:
+        for name in listEntityName:
+          if name == entityName:
+            try:
+              self.do_entityUnlock(entityType, entityName)
+            except RuntimeError as e:
+              print ("error: ", e)
     return ""
 
   def do_stop(self, entityName):
@@ -1170,10 +1184,14 @@ By default the specified location and children are shown.  Use -N to specify how
 
     entityTypes = "Node", "ServiceGroup", "ServiceUnit", "Component", "ServiceInstance"
     for entityType in entityTypes:
-      try:
-        print("for entityType is ", entityType, " : ", self.do_entityLockInstantiation(entityType, entityName))
-      except RuntimeError as e:
-        print ("error: ", e)
+      listEntityName = self.parseXML(entityType)
+      if len(listEntityName) != 0:
+        for name in listEntityName:
+          if name == entityName:
+            try:
+              self.do_entityLockInstantiation(entityType, entityName)
+            except RuntimeError as e:
+              print ("error: ", e)
     return ""
 
   def do_idle(self, entityName):
@@ -1182,10 +1200,14 @@ By default the specified location and children are shown.  Use -N to specify how
 
     entityTypes = "Node", "ServiceGroup", "ServiceUnit", "Component", "ServiceInstance"
     for entityType in entityTypes:
-      try:
-        print("for entityType is ", entityType, " : ", self.do_entityLockAssignment(entityType, entityName))
-      except RuntimeError as e:
-        print ("error: ", e)
+      listEntityName = self.parseXML(entityType)
+      if len(listEntityName) != 0:
+        for name in listEntityName:
+          if name == entityName:
+            try:
+              self.do_entityLockAssignment(entityType, entityName)
+            except RuntimeError as e:
+              print ("error: ", e)
     return ""
 
   def do_repair(self, entityName):
@@ -1194,10 +1216,14 @@ By default the specified location and children are shown.  Use -N to specify how
 
     entityTypes = "Node", "ServiceGroup", "ServiceUnit", "Component", "ServiceInstance"
     for entityType in entityTypes:
-      try:
-        print("for entityType is ", entityType, " : ", self.do_entityRepair(entityType, entityName))
-      except RuntimeError as e:
-        print ("error: ", e)
+      listEntityName = self.parseXML(entityType)
+      if len(listEntityName) != 0:
+        for name in listEntityName:
+          if name == entityName:
+            try:
+              self.do_entityRepair(entityType, entityName)
+            except RuntimeError as e:
+              print ("error: ", e)
     return ""
 
   def do_repairAll(self):
@@ -2215,10 +2241,10 @@ By default the specified location and children are shown.  Use -N to specify how
       print("error: ", e)
       return e
 
-  def do_CSIGetStatus(self, entityType, entityName):
-    """syntax: CSIGetStatus entityType entityName
+  def do_entityGetStatus(self, entityType, entityName):
+    """syntax: entityGetStatus entityType entityName
       Parameters:
-        entityType: ComponentServiceInstance
+        entityType: Component, Node, ServiceGroup, ServiceUnit, ServiceInstance or ComponentServiceInstance
         entityName: the string name of the entity
     """
     try:
@@ -2226,11 +2252,21 @@ By default the specified location and children are shown.  Use -N to specify how
       ret = access.amfMgmtInitialize(handleTest)
 
       if ret == 0x0:
-        if entityType == "ComponentServiceInstance":
+        if entityType == "Component":
+          ret = access.amfMgmtComponentGetStatus(handleTest, entityName)
+        elif entityType == "Node":
+          ret = access.amfMgmtNodeGetStatus(handleTest, entityName)
+        elif entityType == "ServiceGroup":
+          ret = access.amfMgmtSGGetStatus(handleTest, entityName)
+        elif entityType == "ServiceUnit":
+          ret = access.amfMgmtSUGetStatus(handleTest, entityName)
+        elif entityType == "ServiceInstance":
+          ret = access.amfMgmtSIGetStatus(handleTest, entityName)
+        elif entityType == "ComponentServiceInstance":
           ret = access.amfMgmtCSIGetStatus(handleTest, entityName)
         else:
-          print(self.do_CSIGetStatus.__doc__)
-          ret = 0x2
+          print(self.do_entityGetStatus.__doc__)
+          ret = 0x02
       else:
         print('amfMgmtInitialize failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
         return ret
@@ -2241,12 +2277,12 @@ By default the specified location and children are shown.  Use -N to specify how
         return retF
       if isinstance(ret, dict):
         if "error" in ret:
-          print('CSIGetStatus failed with error code [%s]: %s'% (hex(ret["error"]), errDesc[ret["error"]]))
+          print('entityGetStatus failed with error code [%s]: %s'% (hex(ret["error"]), errDesc[ret["error"]]))
           return ret["error"]
-        print("CSIGetStatus completed successfully")
+        print("entityGetStatus completed successfully")
         print("dictionary: ", ret)
       else:
-        print('CSIGetStatus failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
+        print('entityGetStatus failed with error code [%s]: %s'% (hex(ret), errDesc[ret]))
       return ret
     except RuntimeError as e:
       print("error: ", e)

@@ -2,6 +2,7 @@
 #include <cltypes.h>
 #include <pthread.h>
 #include <boost/python.hpp>
+#include <boost/preprocessor.hpp>
 
 #include <clLogApi.hxx>
 #include <clGlobals.hxx>
@@ -18,9 +19,10 @@
 #include <clAmfMgmtApi.hxx>
 #include <clGroupCliApi.hxx>
 
+#include <clLogIpi.hxx>
+
 using namespace SAFplus;
 using namespace boost::python;
-
 
 static object buffer_get(Buffer& self)
 {
@@ -53,6 +55,12 @@ static object ckpt_get(Checkpoint& self, char* key)
   return object();
 }
 
+void convertIntToTime(ClCharT *pStrTime, const time_t rawTime)
+{
+    struct tm *info = localtime(&rawTime );
+    sprintf(pStrTime, "%d-%02d-%02d %02d:%02d:%02d", info->tm_year+1900, info->tm_mon+1, info->tm_mday, info->tm_hour, info->tm_min, info->tm_sec);
+}
+
 static dict nodeGetConfig(const Handle & self, const std::string & key)
 {
     // get information into nodeConfig
@@ -67,13 +75,13 @@ static dict nodeGetConfig(const Handle & self, const std::string & key)
     }
 
     // set information into dictionary
-    dictionary["adminstate"] = std::to_string(nodeConfig->adminstate());
-    dictionary["autoRepair"] = std::to_string(nodeConfig->autorepair());
+    dictionary["adminstate"] = SAFplus::Rpc::amfMgmtRpc::AdministrativeState_Name(nodeConfig->adminstate());
+    dictionary["autoRepair"] = (nodeConfig->autorepair()) ? "true" : "false";
 //    dictionary["canBeInherited"] = std::to_string(nodeConfig->canBeInherited());
 //    dictionary["currentRecovery"] = std::to_string(nodeConfig->currentRecovery());
 //    dictionary["disableAssignmentOn"] = std::to_string(nodeConfig->disableAssignmentOn());
-    dictionary["failFastOnCleanupFailure"] = std::to_string(nodeConfig->failfastoncleanupfailure());
-    dictionary["failFastOnInstantiationFailure"] = std::to_string(nodeConfig->failfastoninstantiationfailure());
+    dictionary["failFastOnCleanupFailure"] = (nodeConfig->failfastoncleanupfailure()) ? "true" : "false";
+    dictionary["failFastOnInstantiationFailure"] = (nodeConfig->failfastoninstantiationfailure()) ? "true" : "false";
 //    dictionary["id"] = std::to_string(nodeConfig->id());
 //    dictionary["lastSUFailure"] = std::to_string(nodeConfig->lastSUFailure());
     dictionary["name"] = nodeConfig->name();
@@ -105,7 +113,8 @@ static dict nodeGetStatus(const Handle & self, const std::string & key)
     }
 
     // set information into dictionary
-    dictionary["presenceState"] = std::to_string(nodeStatus->presencestate());
+    dictionary["presenceState"] = SAFplus::Rpc::amfMgmtRpc::PresenceState_Name(nodeStatus->presencestate());
+    dictionary["operaState"] = (nodeStatus->operstate()) ? "true" : "false";
 
     return dictionary;
 }
@@ -124,10 +133,10 @@ static dict SGGetConfig(const Handle & self, const std::string & key)
     }
 
     // set information into dictionary
-    dictionary["adminstate"] = std::to_string(SGConfig->adminstate());
-    dictionary["autoAdjust"] = std::to_string(SGConfig->autoadjust());
+    dictionary["adminstate"] = SAFplus::Rpc::amfMgmtRpc::AdministrativeState_Name(SGConfig->adminstate());
+    dictionary["autoAdjust"] = (SGConfig->autoadjust()) ? "true" : "false";
     dictionary["autoAdjustInterval"] = std::to_string(SGConfig->autoadjustinterval().uint64());
-    dictionary["autoRepair"] = std::to_string(SGConfig->autorepair());
+    dictionary["autoRepair"] = (SGConfig->autorepair()) ? "true" : "false";
 //    dictionary["componentRestart"] = std::to_string(SGConfig->componentRestart());
 //    dictionary["id"] = std::to_string(SGConfig->id());
     dictionary["maxActiveWorkAssignments"] = std::to_string(SGConfig->maxactiveworkassignments());
@@ -155,6 +164,27 @@ static dict SGGetConfig(const Handle & self, const std::string & key)
     return dictionary;
 }
 
+static dict SGGetStatus(const Handle & self, const std::string & key)
+{
+    // get information into sgStatus
+    SAFplus::Rpc::amfMgmtRpc::ServiceGroupStatus* sgStatus;
+    ClRcT rc = amfMgmtSGGetStatus(self, key, &sgStatus);
+    Py_Initialize();
+    dict dictionary;
+    if (rc != CL_OK)
+    {
+        dictionary["error"] = rc;
+        return dictionary;
+    }
+
+    // set information into dictionary
+    dictionary["numassignedserviceunits"] = std::to_string(sgStatus->numassignedserviceunits().intstatistic().current());
+    dictionary["numidleserviceunits"] = std::to_string(sgStatus->numidleserviceunits().intstatistic().current());
+    dictionary["numspareserviceunits"] = std::to_string(sgStatus->numspareserviceunits().intstatistic().current());
+
+    return dictionary;
+}
+
 static dict SUGetConfig(const Handle & self, const std::string & key)
 {
     // get information into SUConfig
@@ -169,7 +199,7 @@ static dict SUGetConfig(const Handle & self, const std::string & key)
     }
 
     // set information into dictionary
-    dictionary["adminstate"] = std::to_string(SUConfig->adminstate());
+    dictionary["adminstate"] = SAFplus::Rpc::amfMgmtRpc::AdministrativeState_Name(SUConfig->adminstate());
 //    dictionary["assignedServiceInstances"] = std::to_string(SUConfig->assignedServiceInstances());
 //    dictionary["compRestartCount"] = std::to_string(SUConfig->compRestartCount());
     boost::python::list listComps;
@@ -180,7 +210,7 @@ static dict SUGetConfig(const Handle & self, const std::string & key)
     }
     dictionary["components"] = listComps;
 //    dictionary["currentRecovery"] = std::to_string(SUConfig->currentRecovery());
-    dictionary["failover"] = std::to_string(SUConfig->failover());
+    dictionary["failover"] = (SUConfig->failover()) ? "true" : "false";
 //    dictionary["id"] = std::to_string(SUConfig->id());
 //    dictionary["lastCompRestart"] = std::to_string(SUConfig->lastCompRestart());
 //    dictionary["lastRestart"] = std::to_string(SUConfig->lastRestart());
@@ -190,6 +220,33 @@ static dict SUGetConfig(const Handle & self, const std::string & key)
 //    dictionary["restartable"] = std::to_string(SUConfig->restartable());
 //    dictionary["saAmfSUHostNodeOrNodeGroup"] = std::to_string(SUConfig->saAmfSUHostNodeOrNodeGroup());
     dictionary["serviceGroup"] = SUConfig->servicegroup();
+
+    return dictionary;
+}
+
+static dict SUGetStatus(const Handle & self, const std::string & key)
+{
+    // get information into suStatus
+    SAFplus::Rpc::amfMgmtRpc::ServiceUnitStatus* suStatus;
+    ClRcT rc = amfMgmtSUGetStatus(self, key, &suStatus);
+    Py_Initialize();
+    dict dictionary;
+    if (rc != CL_OK)
+    {
+        dictionary["error"] = rc;
+        return dictionary;
+    }
+
+    // set information into dictionary
+    dictionary["hareadinessstate"] = SAFplus::Rpc::amfMgmtRpc::HighAvailabilityReadinessState_Name(suStatus->hareadinessstate());
+    dictionary["hastate"] = SAFplus::Rpc::amfMgmtRpc::HighAvailabilityState_Name(suStatus->hastate());
+    dictionary["numactiveserviceinstances"] = std::to_string(suStatus->numactiveserviceinstances().intstatistic().current());
+    dictionary["numstandbyserviceinstances"] = std::to_string(suStatus->numstandbyserviceinstances().intstatistic().current());
+    dictionary["operstate"] = (suStatus->operstate()) ? "true" : "false";
+    dictionary["preinstantiable"] = (suStatus->preinstantiable()) ? "true" : "false";
+    dictionary["presencestate"] = SAFplus::Rpc::amfMgmtRpc::PresenceState_Name(suStatus->presencestate());
+    dictionary["readinessstate"] = SAFplus::Rpc::amfMgmtRpc::ReadinessState_Name(suStatus->readinessstate());
+    dictionary["restartcount"] = std::to_string(suStatus->restartcount().intstatistic().current());
 
     return dictionary;
 }
@@ -208,7 +265,7 @@ static dict SIGetConfig(const Handle & self, const std::string & key)
     }
 
     // set information into dictionary
-    dictionary["adminstate"] = std::to_string(SIConfig->adminstate());
+    dictionary["adminstate"] = SAFplus::Rpc::amfMgmtRpc::AdministrativeState_Name(SIConfig->adminstate());
     boost::python::list listSIs;
     const int numOfSIs = SIConfig->componentserviceinstances_size();
     for(int i = 0; i < numOfSIs; ++i)
@@ -224,6 +281,41 @@ static dict SIGetConfig(const Handle & self, const std::string & key)
     dictionary["preferredStandbyAssignments"] = std::to_string(SIConfig->preferredstandbyassignments());
     dictionary["rank"] = std::to_string(SIConfig->rank());
     dictionary["serviceGroup"] = SIConfig->servicegroup();
+
+    return dictionary;
+}
+
+static dict SIGetStatus(const Handle & self, const std::string & key)
+{
+    // get information into siStatus
+    SAFplus::Rpc::amfMgmtRpc::ServiceInstanceStatus* siStatus;
+    ClRcT rc = amfMgmtSIGetStatus(self, key, &siStatus);
+    Py_Initialize();
+    dict dictionary;
+    if (rc != CL_OK)
+    {
+        dictionary["error"] = rc;
+        return dictionary;
+    }
+
+    // set information into dictionary
+    boost::python::list listActives;
+    const int numOfActives = siStatus->activeassignments_size();
+    for(int i = 0; i < numOfActives; ++i)
+    {
+        listActives.append(siStatus->activeassignments(i));
+    }
+    dictionary["activeassignments"] = listActives;
+    dictionary["assignmentstate"] = SAFplus::Rpc::amfMgmtRpc::AssignmentState_Name(siStatus->assignmentstate());
+    dictionary["numactiveassignments"] = std::to_string(siStatus->numactiveassignments().intstatistic().current());
+    dictionary["numstandbyassignments"] = std::to_string(siStatus->numstandbyassignments().intstatistic().current());
+    boost::python::list listStanbys;
+    const int numOfStandbys = siStatus->standbyassignments_size();
+    for(int i = 0; i < numOfStandbys; ++i)
+    {
+        listStanbys.append(siStatus->standbyassignments(i));
+    }
+    dictionary["standbyassignments"] = listStanbys;
 
     return dictionary;
 }
@@ -316,7 +408,13 @@ static dict ComponentGetConfig(const Handle & self, const std::string & key)
     // set information into dictionary
     dictionary["capabilityModel"] = std::to_string(ComponentConfig->capabilitymodel());
 //    dictionary["cleanup"] = std::to_string(ComponentConfig->cleanup());
-    dictionary["csiTypes"] = ComponentConfig->csitypes();
+    boost::python::list listCSITypes;
+    const int numCSITypes = ComponentConfig->csitypes_size();
+    for(int i = 0; i < numCSITypes; ++i)
+    {
+        listCSITypes.append(ComponentConfig->csitypes(i));
+    }
+    dictionary["csiTypes"] = listCSITypes;
 //    dictionary["currentRecovery"] = std::to_string(ComponentConfig->currentRecovery());
     dictionary["delayBetweenInstantiation"] = std::to_string(ComponentConfig->delaybetweeninstantiation());
 //    dictionary["id"] = std::to_string(ComponentConfig->id());
@@ -330,11 +428,46 @@ static dict ComponentGetConfig(const Handle & self, const std::string & key)
     dictionary["name"] = ComponentConfig->name();
 //    dictionary["proxied"] = std::to_string(ComponentConfig->proxied());
 //    dictionary["proxyCSI"] = std::to_string(ComponentConfig->proxyCSI());
-    dictionary["recovery"] = ComponentConfig->recovery();
-    dictionary["restartable"] = std::to_string(ComponentConfig->restartable());
+    dictionary["recovery"] = SAFplus::Rpc::amfMgmtRpc::Recovery_Name(ComponentConfig->recovery());
+    dictionary["restartable"] = (ComponentConfig->restartable()) ? "true" : "false";
     dictionary["serviceUnit"] = ComponentConfig->serviceunit();
 //    dictionary["terminate"] = std::to_string(ComponentConfig->terminate());
 //    dictionary["timeouts"] = std::to_string(ComponentConfig->timeouts());
+
+    return dictionary;
+}
+
+static dict ComponentGetStatus(const Handle & self, const std::string & key)
+{
+    // get information into compStatus
+    SAFplus::Rpc::amfMgmtRpc::ComponentStatus* compStatus;
+    ClRcT rc = amfMgmtComponentGetStatus(self, key, &compStatus);
+    Py_Initialize();
+    dict dictionary;
+    if (rc != CL_OK)
+    {
+        dictionary["error"] = rc;
+        return dictionary;
+    }
+
+    // set information into dictionary
+    dictionary["activeassignments"] = std::to_string(compStatus->activeassignments().intstatistic().current());
+    dictionary["compcategory"] = std::to_string(compStatus->compcategory());
+    dictionary["hareadinessstate"] = SAFplus::Rpc::amfMgmtRpc::HighAvailabilityReadinessState_Name(compStatus->hareadinessstate());
+    dictionary["hastate"] = SAFplus::Rpc::amfMgmtRpc::HighAvailabilityState_Name(compStatus->hastate());
+    ClCharT time[40];
+    convertIntToTime(time, (time_t)(compStatus->lastinstantiation().uint64()/1000));
+    dictionary["lastinstantiation"] = (compStatus->lastinstantiation().uint64()) ? time: "None";
+    dictionary["numinstantiationattempts"] = std::to_string(compStatus->numinstantiationattempts());
+    dictionary["operstate"] = (compStatus->operstate()) ? "true" : "false";
+    dictionary["pendingoperation"] = SAFplus::Rpc::amfMgmtRpc::PendingOperation_Name(compStatus->pendingoperation());
+    dictionary["pendingoperationexpiration"] = std::to_string(compStatus->pendingoperationexpiration().uint64());
+    dictionary["presencestate"] = SAFplus::Rpc::amfMgmtRpc::PresenceState_Name(compStatus->presencestate());
+    dictionary["processid"] = std::to_string(compStatus->processid());
+    dictionary["readinessstate"] = SAFplus::Rpc::amfMgmtRpc::ReadinessState_Name(compStatus->readinessstate());
+    dictionary["restartcount"] = std::to_string(compStatus->restartcount().intstatistic().current());
+    dictionary["safversion"] = compStatus->safversion();
+    dictionary["standbyassignments"] = std::to_string(compStatus->standbyassignments().intstatistic().current());
 
     return dictionary;
 }
@@ -1167,11 +1300,15 @@ BOOST_PYTHON_MODULE(pySAFplus)
   def("amfMgmtCompAddressGet",static_cast< Handle (*)(const std::string &) > (&SAFplus::amfMgmtCompAddressGet));
 
   def("amfMgmtComponentGetConfig",static_cast< dict (*)(const Handle &, const std::string &) > (&ComponentGetConfig));
+  def("amfMgmtComponentGetStatus",static_cast< dict (*)(const Handle &, const std::string &) > (&ComponentGetStatus));
   def("amfMgmtNodeGetConfig",static_cast< dict (*)(const Handle &, const std::string &) > (&nodeGetConfig));
   def("amfMgmtNodeGetStatus",static_cast< dict (*)(const Handle &, const std::string &) > (&nodeGetStatus));
   def("amfMgmtSGGetConfig",static_cast< dict (*)(const Handle &, const std::string &) > (&SGGetConfig));
+  def("amfMgmtSGGetStatus",static_cast< dict (*)(const Handle &, const std::string &) > (&SGGetStatus));
   def("amfMgmtSUGetConfig",static_cast< dict (*)(const Handle &, const std::string &) > (&SUGetConfig));
+  def("amfMgmtSUGetStatus",static_cast< dict (*)(const Handle &, const std::string &) > (&SUGetStatus));
   def("amfMgmtSIGetConfig",static_cast< dict (*)(const Handle &, const std::string &) > (&SIGetConfig));
+  def("amfMgmtSIGetStatus",static_cast< dict (*)(const Handle &, const std::string &) > (&SIGetStatus));
   def("amfMgmtCSIGetConfig",static_cast< dict (*)(const Handle &, const std::string &) > (&CSIGetConfig));
   def("amfMgmtCSIGetStatus",static_cast< dict (*)(const Handle &, const std::string &) > (&CSIGetStatus));
 

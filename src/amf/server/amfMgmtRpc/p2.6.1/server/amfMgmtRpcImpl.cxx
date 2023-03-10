@@ -4917,32 +4917,32 @@ namespace amfMgmtRpc {
     }
     else
     {
-        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp;
-        SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator endcomp = su->components.listEnd();
-
-        for (itcomp = su->components.listBegin(); itcomp != endcomp; itcomp++)
-        {
-
-            SAFplusAmf::Component* comp = dynamic_cast<SAFplusAmf::Component*>(*itcomp);
-            if (comp != NULL)
-            {
-                if (comp->operState.value == false)
-                {
-                  comp->operState.value = true;
-                  comp->operState.write(); // write to DB to prevent amf reload it from DB with the old value
-                  logInfo("MGMT","RPC","comp [%s] is repaired", comp->name.value.c_str());
-                }
-                else
-                {
-                    logDebug("MGMT","RPC","comp [%s] does not need repairing", comp->name.value.c_str());
-                }
-            }
-        }
       if (su->operState.value == false)
-      {       
-        su->operState.value = true;
-        su->operState.write(); // write to DB to prevent amf reload it from DB with the old value
-        logInfo("MGMT","RPC","su [%s] is repaired", suName.c_str());
+      {
+          SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator itcomp;
+          SAFplus::MgtIdentifierList<SAFplusAmf::Component*>::iterator endcomp = su->components.listEnd();
+
+          for (itcomp = su->components.listBegin(); itcomp != endcomp; itcomp++)
+          {
+
+              SAFplusAmf::Component* comp = dynamic_cast<SAFplusAmf::Component*>(*itcomp);
+              if (comp != NULL)
+              {
+                  if (comp->operState.value == false)
+                  {
+                      comp->operState.value = true;
+                      comp->operState.write(); // write to DB to prevent amf reload it from DB with the old value
+                      logInfo("MGMT","RPC","comp [%s] is repaired", comp->name.value.c_str());
+                  }
+                  else
+                  {
+                      logDebug("MGMT","RPC","comp [%s] does not need repairing", comp->name.value.c_str());
+                  }
+              }
+          }
+          su->operState.value = true;
+          su->operState.write(); // write to DB to prevent amf reload it from DB with the old value
+          logInfo("MGMT","RPC","su [%s] is repaired", suName.c_str());
       }
       else
       {
