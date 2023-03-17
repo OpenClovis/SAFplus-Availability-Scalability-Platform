@@ -3229,7 +3229,11 @@ namespace amfMgmtRpc {
           logError("MGMT","VALIDATE.OP","sg with name [%s] doesn't exist, cannot update it", sg.name().c_str());
           rc = CL_ERR_NOT_EXIST;
           break;
-
+        }
+        if (sg.has_adminstate())
+        {
+          logError("MGMT","VALIDATE.OP","Cannot set adminState of [%s], use lockAssignment, lockInstantiation or unlock instead", sg.name().c_str());
+          rc = CL_ERR_INVALID_PARAMETER;
         }
 #if 0
         if (SAFplus::effectiveAdminState(safSg) != SAFplusAmf::AdministrativeState::off)
@@ -3297,6 +3301,11 @@ namespace amfMgmtRpc {
           logError("MGMT","VALIDATE.OP","node with name [%s] doesn't exist, cannot update it", node.name().c_str());
           rc = CL_ERR_NOT_EXIST;         
         }
+        if (node.has_adminstate())
+        {
+          logError("MGMT","VALIDATE.OP","Cannot set adminState of [%s], use lockAssignment, lockInstantiation or unlock instead", node.name().c_str());
+          rc = CL_ERR_INVALID_PARAMETER;
+        }
         break;
       }
     case AMF_MGMT_OP_NODE_DELETE:
@@ -3363,6 +3372,11 @@ namespace amfMgmtRpc {
             rc = CL_ERR_INVALID_STATE;
           }
         }
+        if (su.has_adminstate())
+        {
+          logError("MGMT","VALIDATE.OP","Cannot set adminState of [%s], use lockAssignment, lockInstantiation or unlock instead", su.name().c_str());
+          rc = CL_ERR_INVALID_PARAMETER;
+        }
         break;
       }
     case AMF_MGMT_OP_SU_DELETE:
@@ -3428,6 +3442,11 @@ namespace amfMgmtRpc {
           {
             rc = CL_ERR_INVALID_STATE;
           }
+        }
+        if (si.has_adminstate())
+        {
+          logError("MGMT","VALIDATE.OP","Cannot set adminState of [%s], use lockAssignment, lockInstantiation or unlock instead", si.name().c_str());
+          rc = CL_ERR_INVALID_PARAMETER;
         }
         break;
       }
