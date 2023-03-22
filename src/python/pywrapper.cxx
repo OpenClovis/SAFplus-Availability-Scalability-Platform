@@ -61,6 +61,14 @@ void convertIntToTime(ClCharT *pStrTime, const time_t rawTime)
     sprintf(pStrTime, "%d-%02d-%02d %02d:%02d:%02d", info->tm_year+1900, info->tm_mon+1, info->tm_mday, info->tm_hour, info->tm_min, info->tm_sec);
 }
 
+bool check_number(std::string str)
+{
+    for (int i = 0; i < str.length(); i++)
+        if (isdigit(str[i]) == false)
+            return false;
+    return true;
+}
+
 static dict nodeGetConfig(const Handle & self, const std::string & key)
 {
     // get information into nodeConfig
@@ -114,7 +122,7 @@ static dict nodeGetStatus(const Handle & self, const std::string & key)
 
     // set information into dictionary
     dictionary["presenceState"] = SAFplus::Rpc::amfMgmtRpc::PresenceState_Name(nodeStatus->presencestate());
-    dictionary["operaState"] = (nodeStatus->operstate()) ? "true" : "false";
+    dictionary["operState"] = (nodeStatus->operstate()) ? "true" : "false";
 
     return dictionary;
 }
@@ -200,7 +208,6 @@ static dict SUGetConfig(const Handle & self, const std::string & key)
 
     // set information into dictionary
     dictionary["adminstate"] = SAFplus::Rpc::amfMgmtRpc::AdministrativeState_Name(SUConfig->adminstate());
-//    dictionary["assignedServiceInstances"] = std::to_string(SUConfig->assignedServiceInstances());
 //    dictionary["compRestartCount"] = std::to_string(SUConfig->compRestartCount());
     boost::python::list listComps;
     const int numOfComps = SUConfig->components_size();
@@ -247,6 +254,13 @@ static dict SUGetStatus(const Handle & self, const std::string & key)
     dictionary["presencestate"] = SAFplus::Rpc::amfMgmtRpc::PresenceState_Name(suStatus->presencestate());
     dictionary["readinessstate"] = SAFplus::Rpc::amfMgmtRpc::ReadinessState_Name(suStatus->readinessstate());
     dictionary["restartcount"] = std::to_string(suStatus->restartcount().intstatistic().current());
+    boost::python::list listSIs;
+    const int numOfSIs = suStatus->assignedserviceinstances_size();
+    for(int i = 0; i < numOfSIs; ++i)
+    {
+        listSIs.append(suStatus->assignedserviceinstances(i));
+    }
+    dictionary["assignedServiceInstances"] = listSIs;
 
     return dictionary;
 }
@@ -677,15 +691,39 @@ ClRcT updateServiceInstance(const SAFplus::Handle& mgmtHandle, boost::python::li
       }
       else if(!attr.compare("preferredActiveAssignments"))
       {
-          si->set_preferredactiveassignments(std::stoi(val));
+          if(check_number(val))
+          {
+              si->set_preferredactiveassignments(std::stoi(val));
+          }
+          else
+          {
+              std::cout << "The value of preferredActiveAssignments must be a number" << std::endl;
+              return CL_ERR_INVALID_PARAMETER;
+          }
       }
       else if(!attr.compare("preferredStandbyAssignments"))
       {
-          si->set_preferredstandbyassignments(std::stoi(val));
+          if(check_number(val))
+          {
+              si->set_preferredstandbyassignments(std::stoi(val));
+          }
+          else
+          {
+              std::cout << "The value of preferredStandbyAssignments must be a number" << std::endl;
+              return CL_ERR_INVALID_PARAMETER;
+          }
       }
       else if(!attr.compare("rank"))
       {
-          si->set_rank(std::stoi(val));
+          if(check_number(val))
+          {
+              si->set_rank(std::stoi(val));
+          }
+          else
+          {
+              std::cout << "The value of rank must be a number" << std::endl;
+              return CL_ERR_INVALID_PARAMETER;
+          }
       }
       else if(!attr.compare("componentServiceInstances"))
       {
@@ -724,11 +762,27 @@ ClRcT updateServiceUnit(const SAFplus::Handle& mgmtHandle, boost::python::list &
       }
       else if(!attr.compare("rank"))
       {
-          su->set_rank(std::stoi(val));
+          if(check_number(val))
+          {
+              su->set_rank(std::stoi(val));
+          }
+          else
+          {
+              std::cout << "The value of rank must be a number" << std::endl;
+              return CL_ERR_INVALID_PARAMETER;
+          }
       }
       else if(!attr.compare("failover"))
       {
-          su->set_failover(std::stoi(val));
+          if(check_number(val))
+          {
+              su->set_failover(std::stoi(val));
+          }
+          else
+          {
+              std::cout << "The value of failover must be a number" << std::endl;
+              return CL_ERR_INVALID_PARAMETER;
+          }
       }
       else if(!attr.compare("components"))
       {
@@ -771,15 +825,39 @@ ClRcT updateNode(const SAFplus::Handle& mgmtHandle, boost::python::list & argv)
         }
         else if(!attr.compare("autoRepair"))
         {
-            node->set_autorepair(std::stoi(val));
+            if(check_number(val))
+            {
+                node->set_autorepair(std::stoi(val));
+            }
+            else
+            {
+                std::cout << "The value of autoRepair must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("failFastOnInstantiationFailure"))
         {
-            node->set_failfastoninstantiationfailure(std::stoi(val));
+            if(check_number(val))
+            {
+                node->set_failfastoninstantiationfailure(std::stoi(val));
+            }
+            else
+            {
+                std::cout << "The value of failFastOnInstantiationFailure must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("failFastOnCleanupFailure"))
         {
-            node->set_failfastoncleanupfailure(std::stoi(val));
+            if(check_number(val))
+            {
+                node->set_failfastoncleanupfailure(std::stoi(val));
+            }
+            else
+            {
+                std::cout << "The value of failFastOnCleanupFailure must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("serviceUnits"))
         {
@@ -815,36 +893,100 @@ ClRcT updateServiceGroup(const SAFplus::Handle& mgmtHandle, boost::python::list 
         }
         else if(!attr.compare("autoRepair"))
         {
-            sg->set_autorepair(std::stoi(val));
+            if(check_number(val))
+            {
+                sg->set_autorepair(std::stoi(val));
+            }
+            else
+            {
+                std::cout << "The value of autoRepair must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("autoAdjust"))
         {
-            sg->set_autoadjust(std::stoi(val));
+            if(check_number(val))
+            {
+                sg->set_autoadjust(std::stoi(val));
+            }
+            else
+            {
+                std::cout << "The value of autoAdjust must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("autoAdjustInterval"))
         {
-            autoadjustinterval->set_uint64(std::stoi(val));
-            sg->set_allocated_autoadjustinterval(autoadjustinterval);
+            if(check_number(val))
+            {
+                autoadjustinterval->set_uint64(std::stoi(val));
+                sg->set_allocated_autoadjustinterval(autoadjustinterval);
+            }
+            else
+            {
+                std::cout << "The value of autoAdjustInterval must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("preferredNumActiveServiceUnits"))
         {
-            sg->set_preferrednumactiveserviceunits(std::stoi(val));
+            if(check_number(val))
+            {
+                sg->set_preferrednumactiveserviceunits(std::stoi(val));
+            }
+            else
+            {
+                std::cout << "The value of preferredNumActiveServiceUnits must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("preferredNumStandbyServiceUnits"))
         {
-            sg->set_preferrednumstandbyserviceunits(std::stoi(val));
+            if(check_number(val))
+            {
+                sg->set_preferrednumstandbyserviceunits(std::stoi(val));
+            }
+            else
+            {
+                std::cout << "The value of preferredNumStandbyServiceUnits must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("preferredNumIdleServiceUnits"))
         {
-            sg->set_preferrednumidleserviceunits(std::stoi(val));
+            if(check_number(val))
+            {
+                sg->set_preferrednumidleserviceunits(std::stoi(val));
+            }
+            else
+            {
+                std::cout << "The value of preferredNumIdleServiceUnits must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("maxActiveWorkAssignments"))
         {
-            sg->set_maxactiveworkassignments(std::stoi(val));
+            if(check_number(val))
+            {
+                sg->set_maxactiveworkassignments(std::stoi(val));
+            }
+            else
+            {
+                std::cout << "The value of maxActiveWorkAssignments must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("maxStandbyWorkAssignments"))
         {
-            sg->set_maxstandbyworkassignments(std::stoi(val));
+            if(check_number(val))
+            {
+                sg->set_maxstandbyworkassignments(std::stoi(val));
+            }
+            else
+            {
+                std::cout << "The value of maxStandbyWorkAssignments must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("serviceUnits"))
         {
@@ -913,31 +1055,55 @@ ClRcT updateComponent(const SAFplus::Handle& mgmtHandle, const std::string & com
         }
         else if(!attr.compare("capabilityModel"))
         {
-            if(std::stoi(val) == 0)
+            if(check_number(val))
             {
-                comp->set_capabilitymodel(SAFplus::Rpc::amfMgmtRpc::CapabilityModel_x_active_and_y_standby);
-            }
-            else if(std::stoi(val) == 1)
-            {
-                comp->set_capabilitymodel(SAFplus::Rpc::amfMgmtRpc::CapabilityModel_x_active_or_y_standby);
-            }
-            else if(std::stoi(val) == 2)
-            {
-                comp->set_capabilitymodel(SAFplus::Rpc::amfMgmtRpc::CapabilityModel_not_preinstantiable);
+                if(std::stoi(val) == 0)
+                {
+                    comp->set_capabilitymodel(SAFplus::Rpc::amfMgmtRpc::CapabilityModel_x_active_and_y_standby);
+                }
+                else if(std::stoi(val) == 1)
+                {
+                    comp->set_capabilitymodel(SAFplus::Rpc::amfMgmtRpc::CapabilityModel_x_active_or_y_standby);
+                }
+                else if(std::stoi(val) == 2)
+                {
+                    comp->set_capabilitymodel(SAFplus::Rpc::amfMgmtRpc::CapabilityModel_not_preinstantiable);
+                }
+                else
+                {
+                    std::cout << "Doesn't support capabilityModel value: " << val << std::endl;
+                    return CL_ERR_INVALID_PARAMETER;
+                }
             }
             else
             {
-                std::cout << "Doesn't support capabilityModel value: " << val << std::endl;
+                std::cout << "The value of capabilityModel must be a number" << std::endl;
                 return CL_ERR_INVALID_PARAMETER;
             }
         }
         else if(!attr.compare("maxActiveAssignments"))
         {
-            comp->set_maxactiveassignments(std::stoi(val));
+            if(check_number(val))
+            {
+                comp->set_maxactiveassignments(std::stoi(val));
+            }
+            else
+            {
+                std::cout << "The value of maxActiveAssignments must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("maxStandbyAssignments"))
         {
-            comp->set_maxstandbyassignments(std::stoi(val));
+            if(check_number(val))
+            {
+                comp->set_maxstandbyassignments(std::stoi(val));
+            }
+            else
+            {
+                std::cout << "The value of maxStandbyAssignments must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("commandInstantiate"))
         {
@@ -946,8 +1112,16 @@ ClRcT updateComponent(const SAFplus::Handle& mgmtHandle, const std::string & com
         }
         else if(!attr.compare("timeoutInstantiate"))
         {
-            exeInst->set_timeout(std::stoi(val));
-            commandFlag = 1;
+            if(check_number(val))
+            {
+                exeInst->set_timeout(std::stoi(val));
+                commandFlag = 1;
+            }
+            else
+            {
+                std::cout << "The value of timeoutInstantiate must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("commandTerminate"))
         {
@@ -955,9 +1129,17 @@ ClRcT updateComponent(const SAFplus::Handle& mgmtHandle, const std::string & com
         }
         else if(!attr.compare("timeoutTerminate"))
         {
-            exeTer->set_timeout(std::stoi(val));
-            terminate->set_allocated_execution(exeTer);
-            comp->set_allocated_terminate(terminate);
+            if(check_number(val))
+            {
+                exeTer->set_timeout(std::stoi(val));
+                terminate->set_allocated_execution(exeTer);
+                comp->set_allocated_terminate(terminate);
+            }
+            else
+            {
+                std::cout << "The value of timeoutTerminate must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("commandCleanup"))
         {
@@ -965,46 +1147,118 @@ ClRcT updateComponent(const SAFplus::Handle& mgmtHandle, const std::string & com
         }
         else if(!attr.compare("timeoutCleanup"))
         {
-            exeCl->set_timeout(std::stoi(val));
-            cleanup->set_allocated_execution(exeCl);
-            comp->set_allocated_cleanup(cleanup);
+            if(check_number(val))
+            {
+                exeCl->set_timeout(std::stoi(val));
+                cleanup->set_allocated_execution(exeCl);
+                comp->set_allocated_cleanup(cleanup);
+            }
+            else
+            {
+                std::cout << "The value of timeoutCleanup must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("maxInstantInstantiations"))
         {
-            comp->set_maxinstantinstantiations(std::stoi(val));
+            if(check_number(val))
+            {
+                comp->set_maxinstantinstantiations(std::stoi(val));
+            }
+            else
+            {
+                std::cout << "The value of maxInstantInstantiations must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("maxDelayedInstantiations"))
         {
-            comp->set_maxdelayedinstantiations(std::stoi(val));
+            if(check_number(val))
+            {
+                comp->set_maxdelayedinstantiations(std::stoi(val));
+            }
+            else
+            {
+                std::cout << "The value of maxDelayedInstantiations must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("instantiationSuccessDuration"))
         {
-            comp->set_instantiationsuccessduration(std::stoi(val));
+            if(check_number(val))
+            {
+                comp->set_instantiationsuccessduration(std::stoi(val));
+            }
+            else
+            {
+                std::cout << "The value of instantiationSuccessDuration must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("delayBetweenInstantiation"))
         {
-            comp->set_delaybetweeninstantiation(std::stoi(val));
+            if(check_number(val))
+            {
+                comp->set_delaybetweeninstantiation(std::stoi(val));
+            }
+            else
+            {
+                std::cout << "The value of delayBetweenInstantiation must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("terminateTimeout"))
         {
-            terminateTimeout->set_uint64(std::stoi(val));
-            timeouts->set_allocated_terminate(terminateTimeout);
+            if(check_number(val))
+            {
+                terminateTimeout->set_uint64(std::stoi(val));
+                timeouts->set_allocated_terminate(terminateTimeout);
+            }
+            else
+            {
+                std::cout << "The value of terminateTimeout must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("quiescingcompleteTimeout"))
         {
-            quiescingComplete->set_uint64(std::stoi(val));
-            timeouts->set_allocated_quiescingcomplete(quiescingComplete);
+            if(check_number(val))
+            {
+                quiescingComplete->set_uint64(std::stoi(val));
+                timeouts->set_allocated_quiescingcomplete(quiescingComplete);
+            }
+            else
+            {
+                std::cout << "The value of quiescingcompleteTimeout must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("workremovalTimeout"))
         {
-            workRemoval->set_uint64(std::stoi(val));
-            timeouts->set_allocated_workremoval(workRemoval);
+            if(check_number(val))
+            {
+                workRemoval->set_uint64(std::stoi(val));
+                timeouts->set_allocated_workremoval(workRemoval);
+            }
+            else
+            {
+                std::cout << "The value of workremovalTimeout must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("workassignmentTimeout"))
         {
-            workAssignment->set_uint64(std::stoi(val));
-            timeouts->set_allocated_workassignment(workAssignment);
-            comp->set_allocated_timeouts(timeouts);
+            if(check_number(val))
+            {
+                workAssignment->set_uint64(std::stoi(val));
+                timeouts->set_allocated_workassignment(workAssignment);
+                comp->set_allocated_timeouts(timeouts);
+            }
+            else
+            {
+                std::cout << "The value of workassignmentTimeout must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("serviceUnit"))
         {
@@ -1012,51 +1266,67 @@ ClRcT updateComponent(const SAFplus::Handle& mgmtHandle, const std::string & com
         }
         else if(!attr.compare("recovery"))
         {
-            if(std::stoi(val) == 1)
+            if(check_number(val))
             {
-                comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_NoRecommendation);
-            }
-            else if(std::stoi(val) == 2)
-            {
-                comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_Restart);
-            }
-            else if(std::stoi(val) == 3)
-            {
-                comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_Failover);
-            }
-            else if(std::stoi(val) == 4)
-            {
-                comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_NodeSwitchover);
-            }
-            else if(std::stoi(val) == 5)
-            {
-                comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_NodeFailover);
-            }
-            else if(std::stoi(val) == 6)
-            {
-                comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_NodeFailfast);
-            }
-            else if(std::stoi(val) == 7)
-            {
-                comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_ClusterReset);
-            }
-            else if(std::stoi(val) == 8)
-            {
-                comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_ApplicationRestart);
-            }
-            else if(std::stoi(val) == 9)
-            {
-                comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_ContainerRestart);
+                if(std::stoi(val) == 1)
+                {
+                    comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_NoRecommendation);
+                }
+                else if(std::stoi(val) == 2)
+                {
+                    comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_Restart);
+                }
+                else if(std::stoi(val) == 3)
+                {
+                    comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_Failover);
+                }
+                else if(std::stoi(val) == 4)
+                {
+                    comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_NodeSwitchover);
+                }
+                else if(std::stoi(val) == 5)
+                {
+                    comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_NodeFailover);
+                }
+                else if(std::stoi(val) == 6)
+                {
+                    comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_NodeFailfast);
+                }
+                else if(std::stoi(val) == 7)
+                {
+                    comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_ClusterReset);
+                }
+                else if(std::stoi(val) == 8)
+                {
+                    comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_ApplicationRestart);
+                }
+                else if(std::stoi(val) == 9)
+                {
+                    comp->set_recovery(SAFplus::Rpc::amfMgmtRpc::Recovery_ContainerRestart);
+                }
+                else
+                {
+                    std::cout << "Doesn't support recovery value: " << val << std::endl;
+                    return CL_ERR_INVALID_PARAMETER;
+                }
             }
             else
             {
-                std::cout << "Doesn't support recovery value: " << val << std::endl;
+                std::cout << "The value of recovery must be a number" << std::endl;
                 return CL_ERR_INVALID_PARAMETER;
             }
         }
         else if(!attr.compare("restartable"))
         {
-            comp->set_restartable(std::stoi(val));
+            if(check_number(val))
+            {
+                comp->set_restartable(std::stoi(val));
+            }
+            else
+            {
+                std::cout << "The value of restartable must be a number" << std::endl;
+                return CL_ERR_INVALID_PARAMETER;
+            }
         }
         else if(!attr.compare("csiTypes"))
         {
