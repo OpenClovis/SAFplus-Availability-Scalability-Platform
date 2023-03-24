@@ -12,6 +12,7 @@ ASP_RESTART_FILE = 'safplus_restart'
 ASP_WATCHDOG_RESTART_FILE='safplus_restart_watchdog'
 ASP_REBOOT_FILE = 'safplus_reboot'
 ASP_RESTART_DISABLE_FILE = 'safplus_restart_disable'
+ASP_LOAD_CLUSTER_MODEL_FILE="safplus_load_cluster_model"
 
 SAFPLUS_RESTART_DELAY = 20  # How long to delay before restarting.  If the AMF is able to restart before keepalives find it dead this will cause major issues in the AMF.
 
@@ -68,9 +69,11 @@ def amf_watchdog_loop():
     watchdog_restart_file = run_dir + '/' + ASP_WATCHDOG_RESTART_FILE
     reboot_file = asp.get_asp_bin_dir()+ '/' + ASP_REBOOT_FILE
     restart_disable_file = run_dir + '/' + ASP_RESTART_DISABLE_FILE
+    load_cluster_model_file = run_dir + '/' + ASP_LOAD_CLUSTER_MODEL_FILE
     safe_remove(restart_file)
     safe_remove(reboot_file)
     safe_remove(restart_disable_file)
+    safe_remove(load_cluster_model_file)
     if not ppid:
         logging.critical('ASP did not come up successfully...')
         sys.exit(1)
@@ -83,6 +86,9 @@ def amf_watchdog_loop():
                 logging.critical('SAFplus watchdog invoked on %s' % time.strftime('%a %d %b %Y %H:%M:%S'))
                 is_restart = os.access(restart_file, os.F_OK)
                 is_forced_restart = os.access(watchdog_restart_file, os.F_OK)
+                generate_db = False
+                if os.access(load_cluster_model_file, os.F_OK):
+                    generate_db = True
                 if is_restart or is_forced_restart:
                     safe_remove(restart_file)
                     safe_remove(watchdog_restart_file)
@@ -91,7 +97,7 @@ def amf_watchdog_loop():
                     time.sleep(SAFPLUS_RESTART_DELAY)
                     logging.debug('SAFplus watchdog restarting SAFplus...')
                     asp.save_asp_runtime_files()
-                    cmd = asp.get_amf_command()
+                    cmd = asp.get_amf_command(generate_db)
                     os.system(cmd)
                     asp.create_asp_cmd_marker('start')
                     if asp.reconfigWdLog:
@@ -129,7 +135,7 @@ def amf_watchdog_loop():
                             logging.debug('SAFplus watchdog stopping SAFplus for %d sec' % SAFPLUS_RESTART_DELAY)
                             time.sleep(SAFPLUS_RESTART_DELAY)
                             asp.save_asp_runtime_files()
-                            cmd = asp.get_amf_command()
+                            cmd = asp.get_amf_command(generate_db)
                             os.system(cmd)
                             asp.create_asp_cmd_marker('start')
                             if asp.reconfigWdLog:

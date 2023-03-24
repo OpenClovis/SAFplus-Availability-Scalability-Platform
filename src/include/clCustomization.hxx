@@ -17,6 +17,7 @@
 #define SAFPLUS_CLUSTERWIDE_LOG
 
 #define ASP_RESTART_DISABLE_FILE "safplus_restart_disable"
+#define ASP_LOAD_CLUSTER_MODEL_FILE "safplus_load_cluster_model"
 
 #define AMF_MASTER_HANDLE "AmfMasterHandle"
 

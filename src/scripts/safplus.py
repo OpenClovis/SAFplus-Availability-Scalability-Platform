@@ -1221,7 +1221,10 @@ def remove_lock_file(asp_file):
     cmd = '[ -f %s ] && rm -f %s' % (asp_file, asp_file)
     system(cmd)
 
-def get_amf_command():
+def get_amf_command(generate_db):
+    if generate_db:
+        # generate database for the case node run first and node will be leader
+        generate_db_for_node()
     cmd = "ulimit -c unlimited; %s/%s &" % (get_asp_bin_dir(), AmfName)
     return cmd
 

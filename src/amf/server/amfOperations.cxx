@@ -37,6 +37,7 @@ extern Handle           nodeHandle; //? The handle associated with this node
 extern SAFplus::Fault gfault;
 bool rebootFlag;
 extern SAFplusAmf::SAFplusAmfModule cfg;
+extern Group clusterGroup;
 
 namespace SAFplus
   {
@@ -2242,6 +2243,20 @@ namespace SAFplus
                 }
                 else
                 {
+                    if (SAFplus::SYSTEM_CONTROLLER && clusterGroup.getRoles().second==INVALID_HDL) // there is only active and no standby node, so during this node restarting, it needs to load cluster model
+                    {
+                       char asp_load_cluster_model_file[CL_MAX_NAME_LENGTH];
+                       snprintf(asp_load_cluster_model_file, CL_MAX_NAME_LENGTH-1, "%s/%s", (SAFplus::ASP_RUNDIR[0] != 0) ? SAFplus::ASP_RUNDIR : ".", ASP_LOAD_CLUSTER_MODEL_FILE);
+                       FILE* fp = fopen(asp_load_cluster_model_file, "w");
+                       if (fp)
+                       {
+                          fclose(fp);                        
+                       }
+                       else
+                       {
+                          logError("OPS","SHUTDOWN.AMF","Opening file [%s] fail. Error code [%d], error text [%s]", asp_load_cluster_model_file, errno, strerror(errno));
+                       }
+                    }
                     gfault.registerEntity(nodeHdl,FaultState::STATE_DOWN);
                 }
             }            
