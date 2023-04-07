@@ -100,6 +100,7 @@ SAFplus::FaultServer fs;
 SAFplusI::GroupServer gs;
 bool initOperValues = false;
 bool isNodeRegistered = false;
+static uint64_t lastBeat;
 //ClAmfPolicyPlugin_1* gAmfPolicy;
 EventServer evtServer;
 static void sigChildHandler(int signum)
@@ -503,6 +504,7 @@ void becomeActive(void)
   //updateNodesFaultState(cfg);  
 
   cfg.bind(myHandle,&cfg.safplusAmf);
+  lastBeat = beat;  // Don't rewrite the changes that loading makes
   activeAudit();
 }
 
@@ -1065,7 +1067,8 @@ int main(int argc, char* argv[])
   
   evtServer.initialize();
 
-  uint64_t lastBeat = beat; 
+  //uint64_t lastBeat = beat;
+  lastBeat = beat;
   uint64_t nowBeat;
 
   while(!quitting)  // Active/Standby transition loop
@@ -1188,7 +1191,7 @@ int main(int argc, char* argv[])
              name.set(AMF_MASTER_HANDLE,myHandle,NameRegistrar::MODE_NO_CHANGE);
              registerInstallInfo(true);
           }          
-          lastBeat = beat;  // Don't rewrite the changes that loading makes          
+          //lastBeat = beat;  // Don't rewrite the changes that loading makes
           }
         }
       if (myRole != Group::IS_STANDBY)

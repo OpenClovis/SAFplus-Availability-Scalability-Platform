@@ -38,6 +38,7 @@ extern SAFplus::Fault gfault;
 bool rebootFlag;
 extern SAFplusAmf::SAFplusAmfModule cfg;
 extern Group clusterGroup;
+extern volatile bool    quitting;
 
 namespace SAFplus
   {
@@ -2234,7 +2235,8 @@ namespace SAFplus
                     {
                         fclose(fp);
                         logDebug("OPS","NODE.ERR","Shutdown amf by setting node [%s] fault state DOWN", node->name.value.c_str());
-                        gfault.registerEntity(nodeHdl,FaultState::STATE_DOWN);
+                        //gfault.registerEntity(nodeHdl,FaultState::STATE_DOWN);
+                        quitting = true;
                     }
                     else
                     {
@@ -2257,7 +2259,8 @@ namespace SAFplus
                           logError("OPS","SHUTDOWN.AMF","Opening file [%s] fail. Error code [%d], error text [%s]", asp_load_cluster_model_file, errno, strerror(errno));
                        }
                     }
-                    gfault.registerEntity(nodeHdl,FaultState::STATE_DOWN);
+                    //gfault.registerEntity(nodeHdl,FaultState::STATE_DOWN);
+                    quitting = true;
                 }
             }            
             else

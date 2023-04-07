@@ -188,6 +188,22 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
     return ret;
     }
 
+
+  int getNumInstantiatedSUs(const std::vector<SAFplusAmf::ServiceUnit*> sus)
+  {
+     std::vector<SAFplusAmf::ServiceUnit*>::const_iterator itsu;
+     int num = 0;
+     for (itsu = sus.cbegin(); itsu != sus.cend(); itsu++)
+     {
+        const ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+        if (su->presenceState.value == SAFplusAmf::PresenceState::instantiated)
+        {
+           num++;
+        }
+     }
+     return num;
+  }
+
   void ServiceGroupPolicyExecution::start(Component** faultyComp)
     {
       const std::string& name = sg->name;
@@ -201,14 +217,22 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
 
         // Sort the SUs by rank so we start them up in the proper order.
         boost::sort(sus,suEarliestRanking);
-
+#if 0
         int numActive = 0;  // TODO: figure this out, so start can be called from a half-started situation.
         int numStandby = 0; // TODO: figure this out, so start can be called from a half-started situation.
         int numIdle = 0;    // TODO: figure this out, so start can be called from a half-started situation.
 
         int totalStarted = numActive + numStandby + numIdle;
-        int preferredTotal = sg->preferredNumActiveServiceUnits.value + sg->preferredNumStandbyServiceUnits.value + sg->preferredNumIdleServiceUnits.value;
+#endif
 
+        int totalStarted = 0;
+        int preferredTotal = sg->preferredNumActiveServiceUnits.value + sg->preferredNumStandbyServiceUnits.value + sg->preferredNumIdleServiceUnits.value;        
+        if ((totalStarted = getNumInstantiatedSUs(sus))>=preferredTotal)
+        {
+           logInfo("N+M","STRT","Already started [%d] out of [%d] service units in service group [%s], ", totalStarted, preferredTotal, name.c_str());
+           return;
+        }
+        totalStarted = 0;
         std::vector<SAFplusAmf::ServiceUnit*>::iterator itsu;
         int waits=0;
         int curRank = -1;
@@ -218,7 +242,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
           if (totalStarted >= preferredTotal)
             {
               logInfo("N+M","STRT","Already started [%d] out of [%d] service units in service group [%s], ", totalStarted, preferredTotal, name.c_str());
-            break;  // we have started enough
+              break;  // we have started enough
             }
           ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
           const std::string& suName = su->name;

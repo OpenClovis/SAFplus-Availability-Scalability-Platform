@@ -11,6 +11,7 @@ extern SAFplus::Handle nodeHandle; //? The handle associated with this node
 extern SAFplus::Fault gfault;
 bool rebootFlag;
 extern SAFplus::Group clusterGroup;
+extern volatile bool    quitting;
 
 namespace SAFplus {
 namespace Rpc {
@@ -180,7 +181,7 @@ namespace amfRpc {
   {
       bool restartAmf = request->restartamf();
       bool rebootNode = request->rebootnode();
-      logDebug("OPS","SHUTDOWN.AMF","Shutdown amf by setting node [%d] fault state DOWN", nodeHandle.getNode());
+      //logDebug("OPS","SHUTDOWN.AMF","Shutdown amf by setting node [%d] fault state DOWN", nodeHandle.getNode());
       if (!restartAmf)
       {
           char asp_restart_disable_file[CL_MAX_NAME_LENGTH];
@@ -190,7 +191,8 @@ namespace amfRpc {
           if (fp)
           {
               fclose(fp);
-              gfault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
+              //gfault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
+              quitting = true;
           }
           else
           {
@@ -215,7 +217,8 @@ namespace amfRpc {
                     logError("OPS","SHUTDOWN.AMF","Opening file [%s] fail. Error code [%d], error text [%s]", asp_load_cluster_model_file, errno, strerror(errno));
                  }
               }
-              gfault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
+              //gfault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
+              quitting = true;
           }
       }
   }
