@@ -519,6 +519,43 @@ class Ubuntu(OS):
 
 
 # ------------------------------------------------------------------------------
+class Ubuntu22(OS):
+    """ Ubuntu Distro class """
+    def pre_init(self):
+        self.name = 'Ubuntu'
+        self.apt = True
+    
+    def load_preinstall_deps(self):
+        
+        deps =  ['build-essential',
+                 'linux-headers-' + self.kernelVerString,
+                 'gettext',
+                 'uuid-dev',
+                 'bison',
+                 'flex',
+                 'gawk',
+                 'pkg-config',
+                 'libglib2.0-dev',
+                 'libgdbm-dev',
+                 'libdb-dev',
+                 'libsqlite3-0',
+                 'libsqlite3-dev',
+                 'e2fsprogs',
+                 'libperl-dev',
+                 'libltdl3-dev',
+                 'e2fslibs-dev',
+                 'libsnmp-dev',
+                 'zlib1g-dev',
+                 'tcl',
+                 'python3']
+        
+        
+        for name in deps:
+            D = objects.RepoDep(name)
+            self.pre_dep_list.append(D)
+            
+#-------------------------------------------------------------------------------
+
 class RedHat4(OS):
     
     def pre_init(self):
@@ -1042,6 +1079,7 @@ def determine_os():
             except:
                 return None
             
+            if 'jammy' in fdata or '22.' in fdata: return Ubuntu22()
             if 'ubuntu' in fdata:
                 return Ubuntu()
 
