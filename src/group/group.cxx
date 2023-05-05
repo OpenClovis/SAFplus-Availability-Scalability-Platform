@@ -122,16 +122,17 @@ char* Group::capStr(uint cap, char* buf)
   EntityIdentifier Group::getActive(SAFplus::Wakeable& execSemantics)
     {
     EntityIdentifier ret;
+    int tries = 0, delayMs = 100;    
     do
       {
       ret = getRoles().first;
       if (ret == INVALID_HDL)
         {
-        if (&execSemantics == &BLOCK) boost::this_thread::sleep(boost::posix_time::milliseconds(100));  // TODO use thread change condition
+        if (&execSemantics == &BLOCK) boost::this_thread::sleep(boost::posix_time::milliseconds(delayMs));  // TODO use thread change condition
         else if (&execSemantics != &ABORT)
           { clDbgCodeError(1,("Async call not supported")); }
         }
-      } while ((&execSemantics == &BLOCK) && (ret == INVALID_HDL));
+      } while ((&execSemantics == &BLOCK) && (ret == INVALID_HDL) && (++tries<30));
     return ret;
     }
 
@@ -140,6 +141,7 @@ char* Group::capStr(uint cap, char* buf)
   EntityIdentifier Group::getStandby(SAFplus::Wakeable& execSemantics)
     {
     EntityIdentifier ret;
+    int tries = 0;
     do
       {
       ret = getRoles().second;
@@ -149,7 +151,7 @@ char* Group::capStr(uint cap, char* buf)
         else if (&execSemantics != &ABORT)
           { clDbgCodeError(1,("Async call not supported")); }
         }
-      } while ((&execSemantics == &BLOCK) && (ret == INVALID_HDL));
+      } while ((&execSemantics == &BLOCK) && (ret == INVALID_HDL) && (++tries<30));
     return ret;
     }
 
