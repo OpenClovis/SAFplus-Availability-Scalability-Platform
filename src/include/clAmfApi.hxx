@@ -9,6 +9,13 @@
 */
 
 #include <clLogIpi.hxx>
+#include <notificationPublisher.hxx>
+
+#include <cxxabi.h>
+#include <cstdlib>
+#include <string>
+
+extern SAFplus::NotificationPublisher notifiPublisher;
 
 namespace SAFplus
   {
@@ -19,6 +26,16 @@ namespace SAFplus
     NplusM = 2,
     };
 
+#define GET_ENTITY_TYPE(obj, iStatus) ({                                                                \
+  char* className = abi::__cxa_demangle(typeid(obj).name(), 0, 0, &iStatus);                            \
+  std::string entityType = className;                                                                   \
+  std::string namespacePart = "SAFplusAmf::";                                                           \
+  entityType = entityType.substr(namespacePart.size(), entityType.size()); /*strip the namespace part*/ \
+  free(className);                                                                                      \
+  entityType;                                                                                           \
+})
+
+
 #ifndef oper_str
 #define oper_str(val) (val)?"enabled":"disabled"
 #endif
@@ -28,10 +45,26 @@ namespace SAFplus
   if ((entity)->operState.value != state)                            \
   {                                                            \
     logNotice("POL","N+M","operState of entity [%s] change from [%s] to [%s]", (entity)->name.value.c_str(), oper_str((entity)->operState.value), oper_str(state));     \
+    int status;                                                                                               \
+    std::string entityType = GET_ENTITY_TYPE(*(entity), status);                                              \
+    notifiPublisher.operStateNotifiPublish(entityType, (entity)->name.value, (entity)->operState.value, state); \
     (entity)->operState = state;                                \
   }                                                            \
 }                                                               \
 while(0)
+
+#define CL_AMF_SET_H_STATE(entity, siEntity, state) {                                                             \
+  if ((entity)->haState.value != state)                                                                           \
+  {                                                                                                               \
+    logNotice("POL","N+M","haState of entity [%s] change from [%s] to [%s]", (entity)->name.value.c_str(), c_str(entity->haState.value), c_str(state));     \
+    int status;                                                                                                   \
+    std::string entityType = GET_ENTITY_TYPE(*(entity), status);                                                  \
+    SAFplusAmf::ServiceInstance *si = (siEntity);                                                                 \
+    std::string siName = si ? si->name.value : "";                                                                \
+    notifiPublisher.haStateNotifiPublish(entityType, (entity)->name.value, siName, (entity)->haState.value, state); \
+    (entity)->haState = state;                                                                                    \
+  }                                                                                                               \
+}
 
   };
 

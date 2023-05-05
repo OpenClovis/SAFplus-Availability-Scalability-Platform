@@ -41,6 +41,21 @@ namespace SAFplusI
       AMF_HA_OPERATION_REMOVE = 5, // HighAvailabilityState.hxx:HighAvailabilityState::quiescing + 1
     };
   
+  enum CompAnnoucementType
+  {
+    ARRIVAL,
+    DEPARTURE
+  };
+
+  struct CompAnnouncementPayload
+  {
+    char compName[256];
+    char nodeName[256];
+    SAFplus::Handle compHdl;
+    SAFplus::Handle nodeHdl;
+    CompAnnoucementType type;
+  };
+
   extern AmfSession* amfSession;
   }
 

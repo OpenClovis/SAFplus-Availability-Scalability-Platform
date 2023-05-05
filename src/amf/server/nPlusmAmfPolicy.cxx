@@ -11,12 +11,15 @@
 #include <SAFplusAmfModule.hxx>
 #include <ServiceGroup.hxx>
 
+#include <notificationPublisher.hxx>
+
 typedef boost::unordered_map<SAFplusAmf::Node*, int> UninstantiatedCountMap;
 
 using namespace std;
 using namespace SAFplus;
 using namespace SAFplusAmf;
 
+extern SAFplus::NotificationPublisher notifiPublisher;
 
 namespace SAFplus
   {
@@ -108,6 +111,23 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
 	  return (a->instantiateLevel.value < b->instantiateLevel.value);
   }
 
+  void publishFaultNotification(Component *comp, Recovery recoveryActionTaken)
+  {
+    EntityId *entity;
+    std::string entityType;
+    if (recommendedRecovery == Recovery::NodeSwitchover || recommendedRecovery == Recovery::NodeFailover || recommendedRecovery == Recovery::NodeFailfast)
+    {
+        entity = comp->serviceUnit.value->node.value;
+        entityType = ENTITY_TYPE_NODE_STR;
+    }
+    else
+    {
+        entity = comp;
+        entityType = ENTITY_TYPE_COMP_STR;
+    }
+    notifiPublisher.faultNotifiPublish(entityType, entity->name.value, comp->name.value, recoveryActionTaken);
+  }
+
   int ServiceGroupPolicyExecution::start(ServiceUnit* su,Wakeable& w,Component** faultyComp)
     {
     int ret=0;
@@ -156,6 +176,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
         {
           logInfo("N+M","STRT","Faulting [%s]. Number of instantiation Attempts [%d] has exceeded its configured maximum [%d].",comp->name.value.c_str(),comp->numInstantiationAttempts.value, comp->maxInstantInstantiations + comp->maxDelayedInstantiations);
           CL_AMF_SET_O_STATE(comp, false);
+          notifiPublisher.faultNotifiPublish(ENTITY_TYPE_SU_STR, su->name.value, comp->name.value, Recovery::None);
           comp->numInstantiationAttempts = 0;
           continue;
         }
@@ -846,7 +867,21 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                   ||recommendedRecovery==SAFplusAmf::Recovery::NodeFailover
                   ||recommendedRecovery==SAFplusAmf::Recovery::NodeFailfast)&& processedComp && processedComp->serviceUnit.value->node.value)
               {
-                  amfOps->rebootNode(processedComp->serviceUnit.value->node.value);
+                  Node *node = processedComp->serviceUnit.value->node.value;
+                  if (node->operState.value)
+                  {
+                    Handle amfMasterHdl = ::name.getHandle(AMF_MASTER_HANDLE);
+                    Handle nodeHdl = ::name.getHandle(node->name.value);
+                    if (nodeHdl.getNode() != amfMasterHdl.getNode() && recommendedRecovery == SAFplusAmf::Recovery::NodeSwitchover)
+                    {
+                      notifiPublisher.nodeSwitchoverNotifiPublish(node);
+                    }
+                    else
+                    {
+                      notifiPublisher.nodeFailoverNotifiPublish(nodeHdl);
+                    }
+                  }
+                  amfOps->rebootNode(node);
                   processedComp =NULL;
               }
           }
@@ -1345,7 +1380,8 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                   {
                       // high availability state changed.
                       logInfo("N+M","AUDIT","High Availability state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.value.c_str(),c_str(su->haState.value),(int) su->haState.value, c_str(ha), (int) ha);
-                      su->haState = ha;
+                      //su->haState = ha;
+                      CL_AMF_SET_H_STATE(su, NULL, ha);
                       amfOps->reportChange();
 
                       // TODO: Event?
@@ -1481,6 +1517,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                       }
                       else
                       {
+                          notifiPublisher.adminStateNotifiPublish(ENTITY_TYPE_SU_STR, su->name.value, su->adminState.value, AdministrativeState::idle);
                           su->adminState = AdministrativeState::idle;
                       }
 
@@ -1502,6 +1539,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                           if(numSus == numSusIdle)
                           {
                               logInfo("N+M","AUDIT","set sg [%s] to idle after quiescing", sg->name.value.c_str());
+                              notifiPublisher.adminStateNotifiPublish(ENTITY_TYPE_SG_STR, sg->name.value, sg->adminState.value, AdministrativeState::idle);
                               sg->adminState = AdministrativeState::idle;
                           }
                       }
@@ -1523,6 +1561,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                           if(numSus == numSusIdle)
                           {
                               logInfo("N+M","AUDIT","set node [%s] to idle after quiescing", suNode->name.value.c_str());
+                              notifiPublisher.adminStateNotifiPublish(ENTITY_TYPE_NODE_STR, suNode->name.value, suNode->adminState.value, AdministrativeState::idle);
                               suNode->adminState = AdministrativeState::idle;
                           }
                       }
@@ -1569,6 +1608,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
               {
                   logInfo("N+M","AUDIT","Assignment state of service instance [%s] changed from [%s (%d)] to [%s (%d)]", si->name.value.c_str(),c_str(si->assignmentState.value),(int) si->assignmentState.value, c_str(as), (int) as);
                   si->assignmentState = as;
+                  notifiPublisher.assignmentStateNotifiPublish(si);
                   amfOps->reportChange();
               }
           }
@@ -1674,6 +1714,8 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
           CL_AMF_SET_O_STATE(comp, true);
       }
       logDebug("POL","N+M","processing faulty component [%s], recommended recovery [%s], escalation [%s]", comp->name.value.c_str(),c_str(recommendedRecovery), escalation?"Yes":"No");
+
+      publishFaultNotification(comp, recommendedRecovery);
   }
 
   void NplusMPolicy::computeCompRecoveryAction(Component* comp, Recovery* recovery, bool* escalation)

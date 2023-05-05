@@ -139,6 +139,11 @@ $(LIB_DIR)/libclEventServer.so: $(wildcard $(SAFPLUS_SRC_DIR)/event/server/*.cxx
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/event/server
 endif
 
+ifndef SAFPLUS_NOTIFICATION_LIB
+$(LIB_DIR)/libclNotification.so: $(SAFPLUS_SRC_DIR)/amf/notificationClient.cxx $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx)
+	$(MAKE) -C $(SAFPLUS_SRC_DIR)/amf $@
+endif
+
 ifndef SAFPLUS_AMF_LIB
 $(LIB_DIR)/libclAmf.so: $(wildcard $(SAFPLUS_SRC_DIR)/amf/*.cxx)
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/amf

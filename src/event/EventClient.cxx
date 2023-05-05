@@ -126,9 +126,15 @@ ClRcT EventClient::eventPublishRpc(std::string evtChannelName, EventChannelScope
 				return openRequestRes.saerror();
 			}
 		}
-	} catch (...)
+	} catch (Error &e)
 	{
-		throw;
+		// throw;
+		if (e.clError == Error::DOES_NOT_EXIST)
+		{
+				logWarning("EVT", "EVENT_ENTITY", "Active event server's fault state is DOWN. Ignore event publish request.");
+				return CL_ERR_INVALID_STATE;
+		}
+		return CL_ERR_NOT_EXIST;        //Fault manager has no information about destination
 	}
 	return CL_OK;
 }

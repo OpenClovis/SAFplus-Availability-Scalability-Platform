@@ -181,6 +181,21 @@ SaAisErrorT saAmfDispatch(SaAmfHandleT amfHandle, SaDispatchFlagsT dispatchFlags
   sess->dispatchCount.lock();
   }
 
+void sendCompAnnouncement(CompAnnoucementType type)
+{
+  Handle remoteAmfHdl = name.getHandle(AMF_MASTER_HANDLE, 2000);
+  Handle nodeHandle = getNodeHandle(SAFplus::ASP_NODEADDR);
+  CompAnnouncementPayload payload;
+
+  strcpy(payload.compName, SAFplus::ASP_COMPNAME);
+  strcpy(payload.nodeName, SAFplus::ASP_NODENAME);
+  payload.compHdl = myHandle;
+  payload.nodeHdl = nodeHandle;
+  payload.type = type;
+
+  // Send announcement to notification publihser on AMF server
+  safplusMsgServer.SendMsg(remoteAmfHdl, &payload, sizeof(CompAnnouncementPayload), SAFplusI::EVENT_MSG_TYPE);
+}
 
 SaAisErrorT saAmfComponentRegister(SaAmfHandleT amfHandle,const SaNameT *compName,const SaNameT *proxyCompName)
   {
@@ -228,6 +243,7 @@ SaAisErrorT saAmfComponentRegister(SaAmfHandleT amfHandle,const SaNameT *compNam
       name.set((const char*)compName->value,compHdl,NameRegistrar::MODE_NO_CHANGE);
       name.setLocalObject(compHdl,(void*) amfHandle);
     }    
+    sendCompAnnouncement(CompAnnoucementType::ARRIVAL);
   }
   return SA_AIS_OK;
   }
@@ -237,6 +253,7 @@ SaAisErrorT saAmfComponentUnregister(SaAmfHandleT amfHandle, const SaNameT *comp
   // Maybe send a message to AMF telling it that I am no longer the component, for now just remove the name from the name server
   logInfo("AMF","INI","Unregistering component name [%s] as invalid handle", SAFplus::ASP_COMPNAME);
   name.set(SAFplus::ASP_COMPNAME,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE);
+  sendCompAnnouncement(CompAnnoucementType::DEPARTURE);
   return SA_AIS_OK;
   }
 

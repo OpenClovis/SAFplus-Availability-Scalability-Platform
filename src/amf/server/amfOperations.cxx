@@ -24,6 +24,8 @@
 #include <unordered_map>
 #include <boost/range/algorithm.hpp>
 
+#include <notificationPublisher.hxx>
+
 //#ifdef SAFPLUS_AMF_LOG_NODE_REPRESENTATIVE
 #include "../../log/clLogIpi.hxx"
 //#endif
@@ -39,6 +41,7 @@ bool rebootFlag;
 extern SAFplusAmf::SAFplusAmfModule cfg;
 extern Group clusterGroup;
 extern volatile bool    quitting;
+extern SAFplus::NotificationPublisher notifiPublisher;
 
 namespace SAFplus
   {
@@ -57,6 +60,7 @@ namespace SAFplus
   ClRcT setAdminState(SAFplusAmf::ServiceGroup* sg,SAFplusAmf::AdministrativeState tgt, bool writeChanges)
     {
       //SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*>::ContainerType::iterator itsu;
+    SAFplusAmf::AdministrativeState oldState = sg->adminState.value;
     ClRcT rc = CL_OK;
     SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator itsu;
     //SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*>::ContainerType::iterator endsu = sg->serviceUnits.value.end();
@@ -149,9 +153,10 @@ namespace SAFplus
      else
        rc = CL_ERR_INVALID_STATE;
 
-    if (rc == CL_OK && writeChanges)
+    if (rc == CL_OK && writeChanges) {
       sg->adminState.write();
-
+      notifiPublisher.adminStateNotifiPublish(ENTITY_TYPE_SG_STR, sg->name.value, oldState, tgt);
+    }
     return rc;
 
     }   
@@ -159,6 +164,7 @@ namespace SAFplus
     // Move this node and all contained elements to the specified state.
   ClRcT setAdminState(SAFplusAmf::Node* node,SAFplusAmf::AdministrativeState tgt, bool writeChanges)
   {
+    SAFplusAmf::AdministrativeState oldState = node->adminState.value;
     ClRcT rc = CL_OK;
     SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator itsu;
     SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*>::iterator endsu = node->serviceUnits.listEnd();
@@ -204,6 +210,7 @@ namespace SAFplus
         // TODO: transactional and event
         }
       }
+    SAFplusAmf::AdministrativeState currAdminState = node->adminState.value;
     if (node->adminState.value != tgt)
     {
         if(tgt == SAFplusAmf::AdministrativeState::shuttingDown)
@@ -248,14 +255,28 @@ namespace SAFplus
     else
       rc = CL_ERR_INVALID_STATE;
 
-    if (rc == CL_OK && writeChanges)
-      node->adminState.write();
-
+    if (rc == CL_OK && writeChanges) {
+       node->adminState.write();
+       notifiPublisher.adminStateNotifiPublish(ENTITY_TYPE_SG_STR, node->name.value, oldState, tgt);
+      if (currAdminState == SAFplusAmf::AdministrativeState::on &&
+          (tgt == SAFplusAmf::AdministrativeState::idle || tgt == SAFplusAmf::AdministrativeState::shuttingDown)) {
+        Handle nodeHdl = name.getHandle(node->getName());
+        if (nodeHdl != nodeHandle) {
+          if (node->operState == false || !clusterGroup.isMember(nodeHdl)) {
+            notifiPublisher.nodeFailoverNotifiPublish(nodeHdl);
+          }
+          else {
+            notifiPublisher.nodeSwitchoverNotifiPublish(node);
+          }
+        }
+      }
+    }
     return rc;
   }
 
   ClRcT setAdminState(SAFplusAmf::ServiceUnit* su,SAFplusAmf::AdministrativeState tgt, bool writeChanges)
   {
+    SAFplusAmf::AdministrativeState oldState = su->adminState.value;
     ClRcT rc = CL_OK;    
     if (su->adminState.value != tgt)
     {
@@ -268,14 +289,17 @@ namespace SAFplus
     else
       rc = CL_ERR_INVALID_STATE;
 
-    if (rc == CL_OK && writeChanges)
+    if (rc == CL_OK && writeChanges) {
       su->adminState.write();
+      notifiPublisher.adminStateNotifiPublish(ENTITY_TYPE_SU_STR, su->name.value, oldState, tgt);
+    }
 
     return rc;
   }
   
   ClRcT setAdminState(SAFplusAmf::ServiceInstance* si,SAFplusAmf::AdministrativeState tgt, bool writeChanges)
   {
+    SAFplusAmf::AdministrativeState oldState = si->adminState.value;
     ClRcT rc = CL_OK;    
     if (si->adminState.value != tgt)
     {
@@ -288,8 +312,10 @@ namespace SAFplus
     else
       rc = CL_ERR_INVALID_STATE;
 
-    if (rc == CL_OK && writeChanges)
+    if (rc == CL_OK && writeChanges) {
       si->adminState.write();
+      notifiPublisher.adminStateNotifiPublish(ENTITY_TYPE_SI_STR, si->name.value, oldState, tgt);
+    }
 
     return rc;
   }
@@ -510,7 +536,8 @@ namespace SAFplus
           {
           assert(wat.comp->pendingOperation == PendingOperation::workAssignment);  // No one should be issuing another operation until this one is aborted
 
-          wat.comp->haState = (SAFplusAmf::HighAvailabilityState) wat.state; // TODO: won't work with multiple assignments of active and standby, for example
+          //wat.comp->haState = (SAFplusAmf::HighAvailabilityState) wat.state; // TODO: won't work with multiple assignments of active and standby, for example
+          CL_AMF_SET_H_STATE(wat.comp, wat.si, (SAFplusAmf::HighAvailabilityState) wat.state);
           // if (wat.si->assignmentState = AssignmentState::fullyAssigned;  // TODO: for now just make the SI happy to see something work
 
           // pending operation completed.  Clear it out
@@ -534,7 +561,8 @@ namespace SAFplus
           {
           assert(wat.comp->pendingOperation == PendingOperation::workRemoval);  // No one should be issuing another operation until this one is aborted
 
-          wat.comp->haState = SAFplusAmf::HighAvailabilityState::idle;
+          //wat.comp->haState = SAFplusAmf::HighAvailabilityState::idle;
+          CL_AMF_SET_H_STATE(wat.comp, wat.si, SAFplusAmf::HighAvailabilityState::idle);
           // if (wat.si->assignmentState = AssignmentState::fullyAssigned;  // TODO: for now just make the SI happy to see something work
 
           // pending operation completed.  Clear it out
@@ -858,6 +886,7 @@ namespace SAFplus
             }
           if ((si->numActiveAssignments.current.value == 0)||(si->numStandbyAssignments.current.value == 0)) si->assignmentState = AssignmentState::partiallyAssigned;
           if ((si->numActiveAssignments.current.value == 0)&&(si->numStandbyAssignments.current.value == 0)) si->assignmentState = AssignmentState::unassigned;
+          notifiPublisher.assignmentStateNotifiPublish(si);
         }
 
       // Update the Service Unit's statistics and SI list.
@@ -999,7 +1028,7 @@ namespace SAFplus
                         request.set_invocation(invocation++);
                         request.set_csiname("");
                         request.clear_keyvaluepairs();
-                        pendingWorkOperations[request.invocation()] = WorkOperationTracker(comp,nullptr,nullptr,(uint32_t)HighAvailabilityState::idle,SA_AMF_CSI_TARGET_ONE);
+                        pendingWorkOperations[request.invocation()] = WorkOperationTracker(comp,nullptr,si,(uint32_t)HighAvailabilityState::idle,SA_AMF_CSI_TARGET_ONE);
                         amfAppRpc->workOperation(hdl, &request);
                     }
                     else if(comp->haState == HighAvailabilityState::idle && comp->quiescedAssignments == 0 && si->numQuiescedAssignments > 0) // update status of active SU
@@ -1062,7 +1091,7 @@ namespace SAFplus
                         request.set_invocation(invocation++);
                         request.set_csiname("");
                         request.clear_keyvaluepairs();
-                        pendingWorkOperations[request.invocation()] = WorkOperationTracker(comp,nullptr,nullptr,(uint32_t)HighAvailabilityState::quiescing,SA_AMF_CSI_TARGET_ONE);
+                        pendingWorkOperations[request.invocation()] = WorkOperationTracker(comp,nullptr,si,(uint32_t)HighAvailabilityState::quiescing,SA_AMF_CSI_TARGET_ONE);
                         amfAppRpc->workOperation(hdl, &request);
                     }
                     else if(comp->haState == HighAvailabilityState::quiescing && comp->quiescingAssignments == 0 && si->numQuiescingAssignments > 0)
@@ -2076,6 +2105,19 @@ namespace SAFplus
     ClRcT AmfOperations::nodeErrorReport(SAFplusAmf::Node* node, bool gracefulSwitchover, bool shutdownAmf, bool restartAmf, bool rebootNode)
     {
         logDebug("OPS","NODE.ERR","Error reported for node [%s]", node->name.value.c_str());
+        Handle nodeHdl;
+        bool inClusterGroup = clusterGroup.isMember(getProcessHandle(SAFplusI::AMF_IOC_PORT, nodeHdl.getNode()));
+        bool operState = node->operState.value;
+        try
+        {
+          nodeHdl = name.getHandle(node->name.value);
+        }
+        catch (NameException& ne)
+        {
+             logError("OPS", "NODE.REPORT", "Handle got exception for name [%s]", node->name.value.c_str());
+             return CL_ERR_NOT_EXIST;
+        }
+        //TODO: this is where the node define which notification its should use to publish
         if (node->operState.value == false)
         {
             return CL_ERR_NO_OP;
@@ -2214,18 +2256,11 @@ namespace SAFplus
         if (shutdownAmf)
         {
             boost::this_thread::sleep(boost::posix_time::milliseconds(1500));
-            Handle nodeHdl;
-            try
-            {
-                nodeHdl = name.getHandle(node->name.value);
-            }
-            catch (NameException& ne)
-            {
-                logError("OPS", "NODE.REPORT", "Handle got exception for name [%s]", node->name.value.c_str());
-                return CL_ERR_NOT_EXIST;
-            }            
             if (nodeHdl == nodeHandle)  // Handle this request locally.  This is an optimization.  The RPC call will also work locally.
             {
+                if(operState == true && inClusterGroup) {
+                  notifiPublisher.nodeFailoverNotifiPublish(nodeHdl);
+                }
                 if (!restartAmf)
                 {
                     char asp_restart_disable_file[CL_MAX_NAME_LENGTH];
@@ -2245,6 +2280,9 @@ namespace SAFplus
                 }
                 else
                 {
+                    if(operState == true) {
+                      notifiPublisher.nodeFailoverNotifiPublish(nodeHdl);
+                    }
                     if (SAFplus::SYSTEM_CONTROLLER && clusterGroup.getRoles().second==INVALID_HDL) // there is only active and no standby node, so during this node restarting, it needs to load cluster model
                     {
                        char asp_load_cluster_model_file[CL_MAX_NAME_LENGTH];
@@ -2265,6 +2303,9 @@ namespace SAFplus
             }            
             else
             {
+                if (operState == true && inClusterGroup) {
+                  notifiPublisher.nodeSwitchoverNotifiPublish(node);
+                }
                 Handle remoteAmfHdl = getProcessHandle(SAFplusI::AMF_IOC_PORT, nodeHdl.getNode());
                 if (FaultState::STATE_UP == fault.getFaultState(remoteAmfHdl))
                 {
@@ -2283,8 +2324,27 @@ namespace SAFplus
         }
         if (rebootNode)
         {
+              //nodeRestart
+            if (!shutdownAmf && !restartAmf) {
+              if (operState == true && inClusterGroup) {
+                if (nodeHdl == nodeHandle) {
+                  notifiPublisher.nodeFailoverNotifiPublish(nodeHdl);
+                }
+                else {
+                  notifiPublisher.nodeSwitchoverNotifiPublish(node);
+                }
+              }
+            }
             boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
             this->rebootNode(node);
+        }
+        else
+        {
+          if (!shutdownAmf && !restartAmf) {
+            if (nodeHdl != nodeHandle && operState == true && inClusterGroup) {
+              notifiPublisher.nodeFailoverNotifiPublish(nodeHdl);
+            }
+          }
         }
         //nodeGracefulSwitchover = false;
 #if 0

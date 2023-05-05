@@ -7,6 +7,7 @@
 #include <SAFplusAmfModule.hxx>
 #include <clNameApi.hxx>
 #include <clFaultServerIpi.hxx>
+#include <notificationPublisher.hxx>
 #include <amfOperations.hxx>
 #include <signal.h>
 
@@ -30,6 +31,7 @@ extern AmfOperations *amfOpsMgmt;
 extern volatile bool    quitting;  // Set to true to tell all threads to quit
 extern SAFplusI::GroupServer gs;
 extern ClRcT registerInstallInfo(bool active);
+extern SAFplus::NotificationPublisher notifiPublisher;
 
 struct HeartbeatData
 {
@@ -214,6 +216,11 @@ void NodeMonitor::monitorThread(void)
                         {
                           logInfo("HB","CLM","active: not heard from node %d",i);
                           Handle faultHdl = getNodeHandle(i);
+                          FaultState fstate = gfault.getFaultState(faultHdl);
+                          if (fstate == FaultState::STATE_UP)
+                          {
+                            notifiPublisher.nodeFailoverNotifiPublish(faultHdl);  // AMF is down unexpectedly
+                          }
                           try {
                             name.handleFailure(NameRegistrar::FailureType::FAILURE_NODE,faultHdl);
                           }catch (Error& e) {
@@ -556,6 +563,7 @@ active_exists:
                 {
                     logInfo("HB","NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, nodeHandle.id[0],nodeHandle.id[1]);
                     name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE);
+                    notifiPublisher.nodeNotifiPublish(ASP_NODENAME, nodeHandle, ClAmfNotificationType::CL_AMF_NOTIFICATION_NODE_ARRIVAL);
                     do
                     {  // Loop because active fault manager may not be chosen yet
                       logInfo("HB","CLM","Registering handle [%" PRIx64 ":%" PRIx64 "] as fault state UP",nodeHandle.id[0],nodeHandle.id[1]);

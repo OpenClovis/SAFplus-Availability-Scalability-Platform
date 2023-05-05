@@ -11,6 +11,7 @@
 #include <Recovery.hxx>
 #include <AdministrativeState.hxx>
 #include <amfOperations.hxx>
+#include <notificationPublisher.hxx>
 #include <clDbalBase.hxx>
 #include <clHandleApi.hxx>
 #include <boost/unordered_map.hpp>
@@ -53,12 +54,19 @@ do {                                                                    \
     }                                                                   \
 } while (0)
 
+#define PUBLISH_ENTITY_NOTIFICATION(rc, entityType, entityName, notificationType) {  \
+  if (rc == CL_OK)                                                                    \
+    notifiPublisher.entityNotifiPublish(entityType, entityName, notificationType);      \
+}
+
 extern SAFplus::MgtDatabase amfDb;
 extern SAFplusAmf::SAFplusAmfModule cfg;
 extern SAFplus::AmfOperations *amfOpsMgmt;
 extern SAFplus::RedPolicyMap redPolicies;
 extern ClRcT setInstallInfo(const std::string& nodeName, const std::string& safplusInstallInfo);
 extern ClRcT getInstallInfo(const std::string& nodeName, std::string& safplusInstallInfo);
+extern SAFplus::NotificationPublisher notifiPublisher;
+
 
 //namespace SAFplus {
 
@@ -2661,6 +2669,7 @@ namespace amfMgmtRpc {
         request.ParseFromString(strRequestData);
         const ComponentConfig& comp = request.componentconfig();
         rc = compCommit(comp);
+        PUBLISH_ENTITY_NOTIFICATION(rc, ENTITY_TYPE_COMP_STR, comp.name(), CL_AMF_NOTIFICATION_ENTITY_CREATE);
         break;
       }
     case AMF_MGMT_OP_COMPONENT_UPDATE:
@@ -2681,6 +2690,7 @@ namespace amfMgmtRpc {
         request.ParseFromString(strRequestData);
         //const std& comp = request.componentconfig();
         rc = compDeleteCommit(request.name());
+        PUBLISH_ENTITY_NOTIFICATION(rc, ENTITY_TYPE_COMP_STR, request.name(), CL_AMF_NOTIFICATION_ENTITY_DELETE);
         break;
       }
     case AMF_MGMT_OP_SG_CREATE:
@@ -2692,6 +2702,7 @@ namespace amfMgmtRpc {
         const ServiceGroupConfig& sg = request.servicegroupconfig();
         logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, sg.name().c_str());
         rc = sgCommit(sg);
+        PUBLISH_ENTITY_NOTIFICATION(rc, ENTITY_TYPE_SG_STR, sg.name(), CL_AMF_NOTIFICATION_ENTITY_CREATE);
         break;
       }
     case AMF_MGMT_OP_SG_UPDATE:
@@ -2712,6 +2723,7 @@ namespace amfMgmtRpc {
         strRequestData.assign((ClCharT*)recData, dataSize);
         request.ParseFromString(strRequestData);
         rc = sgDeleteCommit(request.name());
+        PUBLISH_ENTITY_NOTIFICATION(rc, ENTITY_TYPE_SG_STR, request.name(), CL_AMF_NOTIFICATION_ENTITY_DELETE);
         break;
       }
     case AMF_MGMT_OP_NODE_CREATE:
@@ -2723,6 +2735,7 @@ namespace amfMgmtRpc {
         const NodeConfig& node = request.nodeconfig();
         logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, node.name().c_str());
         rc = nodeCommit(node);
+        PUBLISH_ENTITY_NOTIFICATION(rc, ENTITY_TYPE_NODE_STR, node.name(), CL_AMF_NOTIFICATION_ENTITY_CREATE);
         break;
       }
     case AMF_MGMT_OP_NODE_UPDATE:
@@ -2743,6 +2756,7 @@ namespace amfMgmtRpc {
         strRequestData.assign((ClCharT*)recData, dataSize);
         request.ParseFromString(strRequestData);
         rc = nodeDeleteCommit(request.name());
+        PUBLISH_ENTITY_NOTIFICATION(rc, ENTITY_TYPE_NODE_STR, request.name(), CL_AMF_NOTIFICATION_ENTITY_DELETE);
         break;
       }
     case AMF_MGMT_OP_SU_CREATE:
@@ -2754,6 +2768,7 @@ namespace amfMgmtRpc {
         const ServiceUnitConfig& su = request.serviceunitconfig();
         logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, su.name().c_str());
         rc = suCommit(su);
+        PUBLISH_ENTITY_NOTIFICATION(rc, ENTITY_TYPE_SU_STR, su.name(), CL_AMF_NOTIFICATION_ENTITY_CREATE);
         break;
       }
     case AMF_MGMT_OP_SU_UPDATE:
@@ -2775,6 +2790,7 @@ namespace amfMgmtRpc {
         request.ParseFromString(strRequestData);        
         logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, request.name().c_str());
         rc = suDeleteCommit(request.name());
+        PUBLISH_ENTITY_NOTIFICATION(rc, ENTITY_TYPE_SU_STR, request.name(), CL_AMF_NOTIFICATION_ENTITY_DELETE);
         break;
       }
     case AMF_MGMT_OP_SI_CREATE:
@@ -2786,6 +2802,7 @@ namespace amfMgmtRpc {
         const ServiceInstanceConfig& si = request.serviceinstanceconfig();
         logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, si.name().c_str());
         rc = siCommit(si);
+        PUBLISH_ENTITY_NOTIFICATION(rc, ENTITY_TYPE_SI_STR, si.name(), CL_AMF_NOTIFICATION_ENTITY_CREATE);
         break;
       }
     case AMF_MGMT_OP_SI_UPDATE:
@@ -2807,6 +2824,7 @@ namespace amfMgmtRpc {
         request.ParseFromString(strRequestData);
         logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, request.name().c_str());
         rc = siDeleteCommit(request.name());
+        PUBLISH_ENTITY_NOTIFICATION(rc, ENTITY_TYPE_SI_STR, request.name(), CL_AMF_NOTIFICATION_ENTITY_DELETE);
         break;
       }
     case AMF_MGMT_OP_CSI_CREATE:
@@ -2818,6 +2836,7 @@ namespace amfMgmtRpc {
         const ComponentServiceInstanceConfig& csi = request.componentserviceinstanceconfig();
         logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, csi.name().c_str());
         rc = csiCommit(csi, false);
+        PUBLISH_ENTITY_NOTIFICATION(rc, ENTITY_TYPE_CSI_STR, csi.name(), CL_AMF_NOTIFICATION_ENTITY_CREATE);
         break;
       }
     case AMF_MGMT_OP_CSI_UPDATE:
@@ -2839,6 +2858,7 @@ namespace amfMgmtRpc {
         request.ParseFromString(strRequestData);        
         logDebug("MGMT","COMMIT","handleCommit op [%d], entity [%s]", op, request.name().c_str());
         rc = csiDeleteCommit(request.name());
+        PUBLISH_ENTITY_NOTIFICATION(rc, ENTITY_TYPE_CSI_STR, request.name(), CL_AMF_NOTIFICATION_ENTITY_DELETE);
         break;
       }
     case AMF_MGMT_OP_CSI_NVP_DELETE:

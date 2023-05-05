@@ -561,7 +561,7 @@ namespace SAFplus
     MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
   }
 
-  void MgtRoot::clMgtMsgCreateHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
+  ClRcT MgtRoot::clMgtMsgCreateHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt& reqMsg)
   {
     ClRcT rc = CL_OK;
     std::string xpath = reqMsg.bind();
@@ -609,7 +609,7 @@ namespace SAFplus
             /*
              * Not allow multiple objects
              */
-            return;
+            return rc;
           }
       }
       else
@@ -619,6 +619,7 @@ namespace SAFplus
     }
     logDebug("MGT","CRET","Creating object [%s] failed, errorCode [0x%x]", xpath.c_str(), rc);
     MgtRoot::sendReplyMsg(srcAddr, (void *) &rc, sizeof(ClRcT));
+    return rc;
   }
 
   void MgtRoot::clMgtMsgRPCHandler(SAFplus::Handle srcAddr, Mgt::Msg::MsgRpc& reqMsg)
@@ -861,6 +862,7 @@ namespace SAFplus
     if(mgtMsgReq.ParseFromArray(msg, msglen))
     {
       logDebug("MGT","MSG","process MGT message [%d]",mgtMsgReq.type());
+      ClRcT rc = CL_ERR_COMMON_MAX;
       switch(mgtMsgReq.type())
       {
         case Mgt::Msg::MsgMgt::CL_MGT_MSG_XGET:
@@ -870,7 +872,7 @@ namespace SAFplus
           mRoot->clMgtMsgXSetHandler(from,mgtMsgReq);
           break;
         case Mgt::Msg::MsgMgt::CL_MGT_MSG_CREATE:
-          mRoot->clMgtMsgCreateHandler(from,mgtMsgReq);
+          rc = mRoot->clMgtMsgCreateHandler(from,mgtMsgReq);
           break;
         case Mgt::Msg::MsgMgt::CL_MGT_MSG_DELETE:
           mRoot->clMgtMsgDeleteHandler(from,mgtMsgReq);
@@ -893,6 +895,8 @@ namespace SAFplus
         default:
           break;
       }
+      ClRcT *rcOut = static_cast<ClRcT *>(cookie);
+      *rcOut = rc;
     }
     else
     {

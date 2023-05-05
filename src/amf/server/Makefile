@@ -9,7 +9,7 @@ MakefileDepend :=
 
 CPP_FLAGS += -I$(BOOST_DIR)  -I. -I..  -I../rpc -I./amfRpc/$(PROTOBUFVER) -I../amfAppRpc/$(PROTOBUFVER) -I../amfMgmtRpc/$(PROTOBUFVER) -I../../group/groupCliRpc/$(PROTOBUFVER) $(SAFPLUS_MGT_INC_FLAGS)
 
-LINK_SO_LIBS += -lprotobuf -lprotoc $(XML2_LINK)
+LINK_SO_LIBS += -lprotobuf -lprotoc -lboost_serialization $(XML2_LINK)
 
 # Specify the required libraries
 SAFPLUS_LIBS := clLogServer clLogRep clRpc clMgt clName clFaultServer clEventServer clEvent clFault clCkpt clGroup clTimer clMsg clUtils clLog clDbal clOsal clAmfMgmt clAmf
@@ -27,7 +27,7 @@ CPP_FLAGS += -I$(COMMON_DIR)/SAFplusTypes -ISAFplusAmf
 
 
 SERVER_H := $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hpp) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx) $(wildcard SAFplusAmf/*.hxx) $(wildcard $(COMMON_DIR)/SAFplusTypes/*.hxx)
-SERVER_SRC := main.cxx nPlusmAmfPolicy.cxx amfcommon.cxx nodeMonitor.cxx $(wildcard amfRpc/$(PROTOBUFVER)/*.cc) $(wildcard amfRpc/$(PROTOBUFVER)/*.cxx) $(wildcard amfMgmtRpc/$(PROTOBUFVER)/*.cc) $(wildcard amfMgmtRpc/$(PROTOBUFVER)/*.cxx) amfAppRpcImpl.cxx amfRpcImpl.cxx $(wildcard amfMgmtRpc/$(PROTOBUFVER)/server/*.cxx) #amfMgmtRpcImpl.cxx
+SERVER_SRC := main.cxx nPlusmAmfPolicy.cxx amfcommon.cxx nodeMonitor.cxx notificationPublisher.cxx $(wildcard amfRpc/$(PROTOBUFVER)/*.cc) $(wildcard amfRpc/$(PROTOBUFVER)/*.cxx) $(wildcard amfMgmtRpc/$(PROTOBUFVER)/*.cc) $(wildcard amfMgmtRpc/$(PROTOBUFVER)/*.cxx) amfAppRpcImpl.cxx amfRpcImpl.cxx $(wildcard amfMgmtRpc/$(PROTOBUFVER)/server/*.cxx) #amfMgmtRpcImpl.cxx
 
 POLICY_ENV_SRC := amfOperations.cxx portAllocator.cxx $(wildcard SAFplusAmf/*.cxx) $(wildcard $(COMMON_DIR)/SAFplusTypes/*.cxx) $(wildcard amfAppRpc/$(PROTOBUFVER)/*.cxx) $(wildcard amfAppRpc/$(PROTOBUFVER)/*.cc)
 
@@ -60,8 +60,8 @@ $(POLICY_ENV_LIB): $(POLICY_ENV_OBJ) $(SAFPLUS_DEP_LIBS)
 $(PLUGIN_DIR)/customAmfPolicy.so: $(OBJ_DIR)/amfsvr/customAmfPolicy.o $(POLICY_ENV_LIB) $(SAFPLUS_DEP_LIBS)
 	$(LINK_SO) $@ $(OBJ_DIR)/amfsvr/customAmfPolicy.o -lAmfPolicyEnv $(SAFPLUS_LINK_LIBS) -lprotobuf -lprotoc $(LINK_SO_LIBS)
 
-$(PLUGIN_DIR)/nPlusmAmfPolicy.so: $(OBJ_DIR)/amfsvr/nPlusmAmfPolicy.o $(POLICY_ENV_LIB) $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@ $(OBJ_DIR)/amfsvr/nPlusmAmfPolicy.o -lAmfPolicyEnv $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
+$(PLUGIN_DIR)/nPlusmAmfPolicy.so: $(OBJ_DIR)/amfsvr/nPlusmAmfPolicy.o $(OBJ_DIR)/amfsvr/notificationPublisher.o $(POLICY_ENV_LIB) $(SAFPLUS_DEP_LIBS)
+	$(LINK_SO) $@ $(OBJ_DIR)/amfsvr/nPlusmAmfPolicy.o $(OBJ_DIR)/amfsvr/notificationPublisher.o -lAmfPolicyEnv $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
 
 # SAFplus AMF binary
 $(BIN_DIR)/safplus_amf: $(OBJ_DIR)/clPluginHelper.o $(SERVER_OBJ) $(POLICY_ENV_LIB) $(SAFPLUS_DEP_LIBS)

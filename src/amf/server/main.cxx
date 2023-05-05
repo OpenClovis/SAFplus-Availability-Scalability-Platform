@@ -26,6 +26,7 @@
 #include <clFaultServerIpi.hxx>
 #include <EventServer.hxx>
 #include <EventClient.hxx>
+#include <notificationPublisher.hxx>
 #include <clMsgPortsAndTypes.hxx>
 #include <clProcessStats.hxx>
 #include <clNodeStats.hxx>
@@ -59,6 +60,8 @@
 #ifdef SAFPLUS_AMF_LOG_NODE_REPRESENTATIVE
 #include "../../log/clLogIpi.hxx"
 #endif
+
+#include <regex>
 
 using namespace SAFplus;
 using namespace SAFplusI;
@@ -150,7 +153,20 @@ class MgtMsgHandler : public SAFplus::MsgHandler
       }
       else
       {
-        MgtRoot::getInstance()->mgtMessageHandler.msgHandler(from, svr, msg, msglen, cookie);
+        ClRcT rc = CL_ERR_COMMON_MAX;
+        MgtRoot::getInstance()->mgtMessageHandler.msgHandler(from, svr, msg, msglen, &rc);
+
+        if (rc == CL_OK)
+        {
+          std::string xpath = mgtMsgReq.bind();
+          std::regex regexp(".*/(.*?)/(.*?)$");
+          std::smatch match;
+
+          std::regex_search(xpath, match, regexp);
+          std::string entityType = match.str(1);
+          std::string entityName = match.str(2);
+          notifiPublisher.entityNotifiPublish(entityType, entityName, ClAmfNotificationType::CL_AMF_NOTIFICATION_ENTITY_CREATE);
+        }
       }
     }
 
@@ -188,6 +204,10 @@ static unsigned int MAX_HANDLER_THREADS=10;
 boost::thread    logServer;
 boost::thread    compStatsRefresh;
 extern bool rebootFlag;
+
+// Event
+SAFplus::NotificationPublisher notifiPublisher;
+
 
 //user data. i.e safplus installation information e.g ethernet name:ipaddress,aspdir
 
@@ -1067,6 +1087,8 @@ int main(int argc, char* argv[])
   
   evtServer.initialize();
 
+  notifiPublisher.initialize(nodeHandle);
+
   //uint64_t lastBeat = beat;
   lastBeat = beat;
   uint64_t nowBeat;
@@ -1181,6 +1203,7 @@ int main(int argc, char* argv[])
           {
             logInfo(LogArea,"NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, nodeHandle.id[0],nodeHandle.id[1]);
             name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE);
+            notifiPublisher.nodeNotifiPublish(ASP_NODENAME, nodeHandle, ClAmfNotificationType::CL_AMF_NOTIFICATION_NODE_ARRIVAL);
           }
           nodeMonitor.currentActive = myHandle;
           if (myRole != Group::IS_ACTIVE) //if my previous HA state is ACTIVE, do not anything
@@ -1210,6 +1233,7 @@ int main(int argc, char* argv[])
               {
                 logInfo(LogArea,"NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, nodeHandle.id[0],nodeHandle.id[1]);
                 name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE);
+                notifiPublisher.nodeNotifiPublish(ASP_NODENAME, nodeHandle, ClAmfNotificationType::CL_AMF_NOTIFICATION_NODE_ARRIVAL);
               }
               initOperValues = false;
               if (myRole != Group::IS_STANDBY) //if my previous HA state is STANDBY, do not anything
@@ -1226,6 +1250,8 @@ int main(int argc, char* argv[])
 
   //fs.notify(nodeHandle,AlarmStateT::ALARM_STATE_ASSERT, AlarmCategoryTypeT::ALARM_CATEGORY_EQUIPMENT,...);
   logNotice("---","---","Finalizing AMF...");
+  notifiPublisher.nodeNotifiPublish(ASP_NODENAME, nodeHandle, ClAmfNotificationType::CL_AMF_NOTIFICATION_NODE_DEPARTURE);
+  notifiPublisher.finalize();
   if (nodeMonitor.active)
   {
     amfMgmtRpcFinalize(mgmtRpc,mgmtRpcChannel,amfMgmtRpc);
