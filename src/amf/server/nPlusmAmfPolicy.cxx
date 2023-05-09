@@ -871,14 +871,21 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                   if (node->operState.value)
                   {
                     Handle amfMasterHdl = ::name.getHandle(AMF_MASTER_HANDLE);
-                    Handle nodeHdl = ::name.getHandle(node->name.value);
-                    if (nodeHdl.getNode() != amfMasterHdl.getNode() && recommendedRecovery == SAFplusAmf::Recovery::NodeSwitchover)
+                    Handle nodeHdl = INVALID_HDL;
+                    try
                     {
-                      notifiPublisher.nodeSwitchoverNotifiPublish(node);
+                        Handle nodeHdl = ::name.getHandle(node->name.value);
                     }
-                    else
+                    catch (NameException &e)
                     {
-                      notifiPublisher.nodeFailoverNotifiPublish(nodeHdl);
+                        logWarning("N+M", "AUDIT", "Not publishing node notification due to handle for node [%s] not found.", node->getName().c_str());
+                    }
+                    if (nodeHdl != INVALID_HDL)
+                    {
+                        if (nodeHdl.getNode() != amfMasterHdl.getNode() && recommendedRecovery == SAFplusAmf::Recovery::NodeSwitchover)
+                            notifiPublisher.nodeSwitchoverNotifiPublish(node);
+                        else
+                            notifiPublisher.nodeFailoverNotifiPublish(nodeHdl);
                     }
                   }
                   amfOps->rebootNode(node);

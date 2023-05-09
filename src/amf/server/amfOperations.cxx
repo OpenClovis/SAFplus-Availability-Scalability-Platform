@@ -260,7 +260,14 @@ namespace SAFplus
        notifiPublisher.adminStateNotifiPublish(ENTITY_TYPE_SG_STR, node->name.value, oldState, tgt);
       if (currAdminState == SAFplusAmf::AdministrativeState::on &&
           (tgt == SAFplusAmf::AdministrativeState::idle || tgt == SAFplusAmf::AdministrativeState::shuttingDown)) {
-        Handle nodeHdl = name.getHandle(node->getName());
+        Handle nodeHdl = INVALID_HDL;
+        try {
+          nodeHdl = name.getHandle(node->getName());
+        }
+        catch (NameException &e) {
+          logWarning("N+M", "AUDIT", "Not publishing node notification due to handle for node [%s] not found.", node->getName().c_str());
+          return rc;
+        }
         if (nodeHdl != nodeHandle) {
           if (node->operState == false || !clusterGroup.isMember(nodeHdl)) {
             notifiPublisher.nodeFailoverNotifiPublish(nodeHdl);
