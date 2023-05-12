@@ -888,7 +888,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                             notifiPublisher.nodeFailoverNotifiPublish(nodeHdl);
                     }
                   }
-                  amfOps->rebootNode(node);
+                  amfOps->rebootNode(node, CL_AMF_NODE_REBOOT);
                   processedComp =NULL;
               }
           }

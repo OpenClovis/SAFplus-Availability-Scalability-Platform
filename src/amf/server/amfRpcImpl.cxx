@@ -180,8 +180,8 @@ namespace amfRpc {
                                 ::SAFplus::Rpc::amfRpc::ShutdownAmfResponse* response)
   {
       bool restartAmf = request->restartamf();
-      bool rebootNode = request->rebootnode();
-      //logDebug("OPS","SHUTDOWN.AMF","Shutdown amf by setting node [%d] fault state DOWN", nodeHandle.getNode());
+      int amfShutdownFlags = request->rebootnode();
+      //logDebug("OPS","SHUTDOWN.AMF","restartAmf [%d], rebootNode [%d]",restartAmf, amfShutdownFlags&CL_AMF_NODE_REBOOT);
       if (!restartAmf)
       {
           char asp_restart_disable_file[CL_MAX_NAME_LENGTH];
@@ -192,18 +192,16 @@ namespace amfRpc {
           {
               fclose(fp);
               //gfault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
-              quitting = true;
+              //quitting = true;
           }
           else
           {
               logError("OPS","SHUTDOWN.AMF","Opening file [%s] fail. Error code [%d], error text [%s]", asp_restart_disable_file, errno, strerror(errno));
           }
       }
-      else
+      if (!(amfShutdownFlags&CL_AMF_NODE_REBOOT))
       {
-          if (!rebootNode)
-          {
-              if (SAFplus::SYSTEM_CONTROLLER && clusterGroup.getRoles().second==INVALID_HDL) // there is only active and no standby node, so during this node restarting, it needs to load cluster model
+          if (SAFplus::SYSTEM_CONTROLLER && clusterGroup.getRoles().second==INVALID_HDL) // there is only active and no standby node, so during this node restarting, it needs to load cluster model
               {
                  char asp_load_cluster_model_file[CL_MAX_NAME_LENGTH];
                  snprintf(asp_load_cluster_model_file, CL_MAX_NAME_LENGTH-1, "%s/%s", (SAFplus::ASP_RUNDIR[0] != 0) ? SAFplus::ASP_RUNDIR : ".", ASP_LOAD_CLUSTER_MODEL_FILE);
@@ -218,9 +216,16 @@ namespace amfRpc {
                  }
               }
               //gfault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
-              quitting = true;
-          }
+              //quitting = true;
       }
+      else
+          {
+             rebootFlag = true;
+          }
+      if (amfShutdownFlags&CL_AMF_AMF_SHUTDOWN)
+          {
+             quitting = true;
+          }
   }
 
 }  // namespace amfRpc

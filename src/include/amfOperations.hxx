@@ -14,6 +14,12 @@ namespace SAFplusAmf
   class ComponentServiceInstance;
   }
 
+enum {
+  CL_AMF_AMF_SHUTDOWN = 0x1,
+  CL_AMF_AMF_RESTART = 0x2,
+  CL_AMF_NODE_REBOOT = 0x4,
+};
+
 namespace SAFplus
   {
 
@@ -113,7 +119,7 @@ namespace SAFplus
     void abort(SAFplusAmf::Component* comp, bool changePS = true, Wakeable& w = *((Wakeable*)nullptr));  // Stops a component via a signal (without removing work)
     void stop(SAFplusAmf::Component* comp,Wakeable& w = *((Wakeable*)nullptr));  // Stops a component via terminate RPC
     void cleanup(SAFplusAmf::Component* comp,Wakeable& w = *((Wakeable*)nullptr));  // Stops a component via terminate RPC
-    void rebootNode(SAFplusAmf::Node* node, Wakeable& w = *((Wakeable*)nullptr));
+    void rebootNode(SAFplusAmf::Node* node, int shutdownFlags, Wakeable& w = *((Wakeable*)nullptr));
 
     bool assignWork(SAFplusAmf::ServiceUnit* su, SAFplusAmf::ServiceInstance* si, SAFplusAmf::HighAvailabilityState state,Wakeable& w = *((Wakeable*)nullptr));
     void removeWork(SAFplusAmf::ServiceInstance* si,Wakeable& w = *((Wakeable*)nullptr));

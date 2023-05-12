@@ -438,7 +438,7 @@ void protobuf_AddDesc_amfRpc_2eproto() {
     "\021*\t\010\350\007\020\200\200\200\200\002\"\036\n\021RebootNodeRequest*\t\010\350\007\020\200"
     "\200\200\200\002\",\n\022RebootNodeResponse\022\013\n\003err\030\001 \001(\021*"
     "\t\010\350\007\020\200\200\200\200\002\"G\n\022ShutdownAmfRequest\022\022\n\nrest"
-    "artAmf\030\001 \001(\010\022\022\n\nrebootNode\030\002 \001(\010*\t\010\350\007\020\200\200"
+    "artAmf\030\001 \001(\010\022\022\n\nrebootNode\030\002 \001(\021*\t\010\350\007\020\200\200"
     "\200\200\002\"-\n\023ShutdownAmfResponse\022\013\n\003err\030\001 \001(\021*"
     "\t\010\350\007\020\200\200\200\200\0022\240\006\n\006amfRpc\022g\n\016startComponent\022"
     ").SAFplus.Rpc.amfRpc.StartComponentReque"
@@ -4211,7 +4211,7 @@ ShutdownAmfRequest::ShutdownAmfRequest(const ShutdownAmfRequest& from)
 void ShutdownAmfRequest::SharedCtor() {
   _cached_size_ = 0;
   restartamf_ = false;
-  rebootnode_ = false;
+  rebootnode_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -4291,12 +4291,12 @@ bool ShutdownAmfRequest::MergePartialFromCodedStream(
         break;
       }
 
-      // optional bool rebootNode = 2;
+      // optional sint32 rebootNode = 2;
       case 2: {
         if (tag == 16) {
          parse_rebootNode:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_SINT32>(
                  input, &rebootnode_)));
           set_has_rebootnode();
         } else {
@@ -4341,9 +4341,9 @@ void ShutdownAmfRequest::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteBool(1, this->restartamf(), output);
   }
 
-  // optional bool rebootNode = 2;
+  // optional sint32 rebootNode = 2;
   if (has_rebootnode()) {
-    ::google::protobuf::internal::WireFormatLite::WriteBool(2, this->rebootnode(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteSInt32(2, this->rebootnode(), output);
   }
 
   // Extension range [1000, 536870912)
@@ -4365,9 +4365,9 @@ void ShutdownAmfRequest::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(1, this->restartamf(), target);
   }
 
-  // optional bool rebootNode = 2;
+  // optional sint32 rebootNode = 2;
   if (has_rebootnode()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(2, this->rebootnode(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteSInt32ToArray(2, this->rebootnode(), target);
   }
 
   // Extension range [1000, 536870912)
@@ -4391,9 +4391,11 @@ int ShutdownAmfRequest::ByteSize() const {
       total_size += 1 + 1;
     }
 
-    // optional bool rebootNode = 2;
+    // optional sint32 rebootNode = 2;
     if (has_rebootnode()) {
-      total_size += 1 + 1;
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::SInt32Size(
+          this->rebootnode());
     }
 
   }

@@ -1338,12 +1338,12 @@ class ShutdownAmfRequest : public ::google::protobuf::Message {
   inline bool restartamf() const;
   inline void set_restartamf(bool value);
 
-  // optional bool rebootNode = 2;
+  // optional sint32 rebootNode = 2;
   inline bool has_rebootnode() const;
   inline void clear_rebootnode();
   static const int kRebootNodeFieldNumber = 2;
-  inline bool rebootnode() const;
-  inline void set_rebootnode(bool value);
+  inline ::google::protobuf::int32 rebootnode() const;
+  inline void set_rebootnode(::google::protobuf::int32 value);
 
   GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ShutdownAmfRequest)
   // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfRpc.ShutdownAmfRequest)
@@ -1360,7 +1360,7 @@ class ShutdownAmfRequest : public ::google::protobuf::Message {
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
   bool restartamf_;
-  bool rebootnode_;
+  ::google::protobuf::int32 rebootnode_;
   friend void  protobuf_AddDesc_amfRpc_2eproto();
   friend void protobuf_AssignDesc_amfRpc_2eproto();
   friend void protobuf_ShutdownFile_amfRpc_2eproto();
@@ -2253,7 +2253,7 @@ inline void ShutdownAmfRequest::set_restartamf(bool value) {
   // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfRpc.ShutdownAmfRequest.restartAmf)
 }
 
-// optional bool rebootNode = 2;
+// optional sint32 rebootNode = 2;
 inline bool ShutdownAmfRequest::has_rebootnode() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
@@ -2264,14 +2264,14 @@ inline void ShutdownAmfRequest::clear_has_rebootnode() {
   _has_bits_[0] &= ~0x00000002u;
 }
 inline void ShutdownAmfRequest::clear_rebootnode() {
-  rebootnode_ = false;
+  rebootnode_ = 0;
   clear_has_rebootnode();
 }
-inline bool ShutdownAmfRequest::rebootnode() const {
+inline ::google::protobuf::int32 ShutdownAmfRequest::rebootnode() const {
   // @@protoc_insertion_point(field_get:SAFplus.Rpc.amfRpc.ShutdownAmfRequest.rebootNode)
   return rebootnode_;
 }
-inline void ShutdownAmfRequest::set_rebootnode(bool value) {
+inline void ShutdownAmfRequest::set_rebootnode(::google::protobuf::int32 value) {
   set_has_rebootnode();
   rebootnode_ = value;
   // @@protoc_insertion_point(field_set:SAFplus.Rpc.amfRpc.ShutdownAmfRequest.rebootNode)

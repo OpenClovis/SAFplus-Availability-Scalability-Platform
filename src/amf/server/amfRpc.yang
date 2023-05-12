@@ -190,7 +190,7 @@ module amfRpc
          type boolean; // true: restart the amf; false: otherwise
       }
       leaf rebootNode {
-         type boolean; // true: reboot the node; false: otherwise
+         type int32; // true: reboot the node; false: otherwise
       }
     }
     output
