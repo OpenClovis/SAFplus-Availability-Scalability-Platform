@@ -5,7 +5,11 @@ import pdb
 
 # export PYTHONPATH=/code/git/mgt/3rdparty/pyang
 import sys
-sys.path.append("../3rdparty/base/pyang")
+from pathlib import Path
+sourcePath = Path(__file__).resolve()
+curdir = sourcePath.parent
+#print(curdir)
+sys.path.append(str(curdir)+"/../3rdparty/base/pyang")
 import pyang
 from pyang import plugin
 from pyang import error

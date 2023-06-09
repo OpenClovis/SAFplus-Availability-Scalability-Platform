@@ -131,7 +131,7 @@ class Ubuntu16(OS):
                 'python3-gi'
                 ]
 
-        pip_deps =  ['genshi', 'watchdog', 'paramiko']
+        pip_deps =  ['genshi', 'watchdog', 'paramiko', 'wxPython==4.1.1']
         
         for name in deps:
             D = objects.RepoDep(name)
@@ -145,6 +145,48 @@ class Ubuntu16(OS):
             D = objects.RepoDep(name)
             self.pre_pip_dep_list.append(D)
 # ------------------------------------------------------------------------------
+
+class Ubuntu18(OS):
+    """ Ubuntu Distro class """
+    def pre_init(self):
+        self.name = 'Ubuntu'
+        self.apt = True
+
+    def load_preinstall_deps(self):
+
+        deps =  ['build-essential',
+                 'autoconf',
+                 'python3.6-dev',
+                 #'python-pip',
+                 'pkg-config',
+                 'libtool',
+                 'curl',
+                 'python3-pip'
+                ]
+
+        ide_deps = ['libffi-dev',
+                'libgtk-3-dev',
+                'gir1.2-rsvg-2.0',
+                'python3-cairo',
+                'python-gi-cairo',
+                'python3-gi'
+                ]
+
+        pip_deps =  ['genshi', 'watchdog', 'paramiko', 'wxPython==4.1.1']
+
+        for name in deps:
+            D = objects.RepoDep(name)
+            self.pre_dep_list.append(D)
+
+        for name in ide_deps:
+            D = objects.RepoDep(name)
+            self.ide_pre_dep_list.append(D)
+
+        for name in pip_deps:
+            D = objects.RepoDep(name)
+            self.pre_pip_dep_list.append(D)
+# ------------------------------------------------------------------------------
+
 class CentOS8(OS):
     
     def pre_init(self):
@@ -334,7 +376,9 @@ def determine_os():
                 #if '14.' in fdata: # ubuntu 14 is not supported. Need newwer one than it, e.g. 16, 18 or 20...
                 #    return Ubuntu14()
                 if '16.' in fdata:
-                    return Ubuntu16()                
+                    return Ubuntu16()
+                elif '18.' in fdata:
+                    return Ubuntu18()
             
         # Debian
         if os.path.isfile('/etc/debian_version'):
