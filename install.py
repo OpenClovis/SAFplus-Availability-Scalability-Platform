@@ -31,11 +31,11 @@ except ImportError:
 # Settings
 # ------------------------------------------------------------------------------
 
-THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-7.0.0'                # Look for PKG starting with this name
-THIRDPARTYPKG_DEFAULT        = '3rdparty-base-7.0.0.tar'            # search this package if no 3rdPartyPkg found
+THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-7.0.1'                # Look for PKG starting with this name
+THIRDPARTYPKG_DEFAULT        = '3rdparty-base-7.0.1.tar'            # search this package if no 3rdPartyPkg found
 if determine_bit() == 64:
-  THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-7.0.0'       # Look for PKG starting with this name
-  THIRDPARTYPKG_DEFAULT        = '3rdparty-base-7.0.0.tar'
+  THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-7.0.1'       # Look for PKG starting with this name
+  THIRDPARTYPKG_DEFAULT        = '3rdparty-base-7.0.1.tar'
 SUPPORT_EMAIL                = 'support@openclovis.com'            # email for script maintainer
 INSTALL_LOCKFILE             = '/tmp/.openclovis_installer'        # installer lockfile location
 
@@ -472,7 +472,7 @@ class ASPInstaller:
             else:
                syscall('apt-get update;')      
                self.debug('Installing via apt-get: ' + install_str)
-               (retval, result, signal, core) = system('apt-get -y --force-yes install %s' % install_str)
+               (retval, result, signal, core) = system('apt-get -y install %s' % install_str)
                self.debug("Result: %d, output: %s" % (retval, str(result)))
 
                if "Could not get lock" in "".join(str(result)):
@@ -480,7 +480,7 @@ class ASPInstaller:
                if retval != 0:
                  self.feedback("\n\nPreinstall via apt-get was not successful.  You may need to install some of the following packages yourself.\n%s\n\nOutput of apt-get was:\n%s" % (install_str,"".join(result)), fatal=True)
                self.debug('Installing via apt-get: ' + ide_install_str)
-               (retval, result, signal, core) = system('apt-get -y --force-yes install %s' % ide_install_str)
+               (retval, result, signal, core) = system('apt-get -y install %s' % ide_install_str)
                self.debug("Result: %d, output: %s" % (retval, str(result)))
 
                if "Could not get lock" in "".join(str(result)):
@@ -488,25 +488,42 @@ class ASPInstaller:
                if retval != 0:
                  self.feedback("\n\nPreinstall via apt-get for ide was not successful.  You may need to install some of the following packages yourself.\n%s\n\nOutput of apt-get was:\n%s" % (install_str,"".join(result)), fatal=True)
 
-               python3_version = int(subprocess.check_output('python3 --version', shell=True).split()[1].decode('UTF-8').split('.')[1])
-               if python3_version <= 5:
-                 pip3_21 = 'curl https://bootstrap.pypa.io/pip/3.5/get-pip.py -o get-pip.py'
-               else:
-                 pip3_21 = 'curl https://bootstrap.pypa.io/pip -o get-pip.py'
-               system(pip3_21)
-               system('python3 get-pip.py --force-reinstall')
+               #python3_version = int(subprocess.check_output('python3 --version', shell=True).split()[1].decode('UTF-8').split('.')[1])
+               #if python3_version <= 5:
+               #  pip3_21 = 'curl https://bootstrap.pypa.io/pip/3.5/get-pip.py -o get-pip.py'
+               #else:
+               #  pip3_21 = 'curl https://bootstrap.pypa.io/pip -o get-pip.py'
+               #system(pip3_21)
+               #system('python3 get-pip.py --force-reinstall')
                syscall('pip3 install --upgrade pip;')
                self.debug('Installing via pip3: ' + pip_install_str)
                (retval, result, signal, core) = system('pip3 install %s' % pip_install_str)
                self.debug("Result: %d, output: %s" % (retval, str(result)))
                if retval != 0:
                  self.feedback("\n\nPreinstall via pip3 was not successful.  You may need to install some of the following packages yourself.\n%s\n\nOutput of apt-get was:\n%s" % (pip_install_str,"".join(result)), fatal=True)
+                 return
                #system('git clone https://github.com/mbj4668/pyang pyang')
                #os.chdir('pyang')
                #system('git reset --hard a6e51ba83f06829d3d26849bcb306f49f335267f')
                #system('python3 setup.py install')
-
-
+               pythonPath = syscall('which python')
+               ret = True
+               if not pythonPath: # no python but python3, maybe
+                 pythonPath = syscall('which python3')
+                 if pythonPath:                        
+                   idx = pythonPath.rfind('/')
+                   pythonPath = pythonPath[:idx]
+                   #print('python3 path:', pythonPath)
+                   output = syscall('ln -s %s/python3 %s/python'%(pythonPath,pythonPath))
+                   #self.feedback(output)
+                   #if output: ret = False
+                   #else:
+                   #  self.debug('There is no python2 or python3 in the system')
+                   #  ret = False
+                   #  return
+               else:
+                 self.debug('There is python being used')
+  
             self.feedback('Successfully installed preinstall dependencies.')
         
         

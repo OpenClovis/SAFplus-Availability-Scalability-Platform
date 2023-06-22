@@ -401,13 +401,15 @@ $(LIBXML2_PKG):
 $(BOOST): $(BOOST_PKG)
 	(rm -rf $@-$(BOOST_VER))
 	(tar xvfz $<  > /dev/null)
-	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); CC= CXX= CFLAGS= ./bootstrap.sh --with-python-version=$(PYTHON_VER) --prefix=$(InstDir) --without-icu) # This is a native tool so remove all the cross compilation env vars
+	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); CC= CXX= CFLAGS= ./bootstrap.sh --prefix=$(InstDir) --without-icu) # This is a native tool so remove all the cross compilation env vars
 ifneq ($(Xtarget),)
 	-rm -f ~/user-config.jam
 	echo "using gcc : cross : $(COMPILER) ;" > ~/user-config.jam
-	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); $(Xenv); ./b2 $(BOOST_FLAVOR) --prefix=$(InstDir) toolset=gcc-cross install)
+	#echo "using python : $(PYTHON_VER) : /usr/bin/python3 : /usr/include/python$(PYTHON_VER) : /usr/lib ;" > ~/user-config.jam
+	#Xenv+=CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:/usr/include/python$PYTHON_VER"
+	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); $(Xenv); export CPLUS_INCLUDE_PATH="$(CPLUS_INCLUDE_PATH):/usr/include/python$(PYTHON_VER)/"; ./b2 $(BOOST_FLAVOR) -q --prefix=$(InstDir) toolset=gcc-cross install)
 else
-	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); $(Xenv); ./b2 --prefix=$(InstDir) install)
+	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); $(Xenv); export CPLUS_INCLUDE_PATH="$(CPLUS_INCLUDE_PATH):/usr/include/python$(PYTHON_VER)/"; ./b2 -q --prefix=$(InstDir) install)
 endif
 
 $(BOOST_PKG):

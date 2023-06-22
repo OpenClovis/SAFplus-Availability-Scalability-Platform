@@ -4,7 +4,7 @@ include ../../mk/preface.mk
 
 CP=cp -f
 PYTHON_VER :=$(shell python3 -c "import sys; print (\"%d.%d\" % (sys.version_info[0], sys.version_info[1]))")
-CPP_FLAGS +=-I$(SYSTEM_INC_DIR) -I$(SYSTEM_INC_DIR)/python$(PYTHON_VER)m
+CPP_FLAGS +=-I$(SYSTEM_INC_DIR) -I$(SYSTEM_INC_DIR)/python$(PYTHON_VER)m -I$(SYSTEM_INC_DIR)/python$(PYTHON_VER)
 
 # Specify the required libraries
 SAFPLUS_LIBS := clMgt clDbal

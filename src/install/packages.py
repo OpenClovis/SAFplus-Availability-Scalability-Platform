@@ -187,6 +187,47 @@ class Ubuntu18(OS):
             self.pre_pip_dep_list.append(D)
 # ------------------------------------------------------------------------------
 
+class Ubuntu22(OS):
+    """ Ubuntu Distro class """
+    def pre_init(self):
+        self.name = 'Ubuntu'
+        self.apt = True
+
+    def load_preinstall_deps(self):
+
+        deps =  ['build-essential',
+                 'autoconf',
+                 'python3.10-dev',
+                 #'python-pip',
+                 'pkg-config',
+                 'libtool',
+                 'curl',
+                 'python3-pip'
+                ]
+
+        ide_deps = ['libffi-dev',
+                'libgtk-3-dev',
+                'gir1.2-rsvg-2.0',
+                'python3-cairo',
+                'python3-gi-cairo',
+                'python3-gi'
+                ]
+
+        pip_deps =  ['genshi', 'watchdog', 'paramiko','attrdict3', 'wxPython==4.2.0']
+
+        for name in deps:
+            D = objects.RepoDep(name)
+            self.pre_dep_list.append(D)
+
+        for name in ide_deps:
+            D = objects.RepoDep(name)
+            self.ide_pre_dep_list.append(D)
+
+        for name in pip_deps:
+            D = objects.RepoDep(name)
+            self.pre_pip_dep_list.append(D)
+# ------------------------------------------------------------------------------
+
 class CentOS8(OS):
     
     def pre_init(self):
@@ -379,7 +420,8 @@ def determine_os():
                     return Ubuntu16()
                 elif '18.' in fdata:
                     return Ubuntu18()
-            
+                elif '22.' in fdata:
+                    return Ubuntu22()
         # Debian
         if os.path.isfile('/etc/debian_version'):
             print ('Debian OS')
