@@ -85,7 +85,7 @@ class SliderCustom(wx.PyControl):
     self.slider = wx.Slider(self,id,v,rang[0],rang[1],size=(200,60), style = wx.SL_HORIZONTAL) #  | wx.SL_AUTOTICKS | wx.SL_LABELS)
 
     self.tickFreq = rang[1] / 20
-    self.slider.SetTickFreq(self.tickFreq)
+    self.slider.SetTickFreq(int(self.tickFreq))
 
     sizer = wx.BoxSizer(wx.HORIZONTAL)
     sizer.Add(self.sliderText, 0, wx.ALIGN_CENTER | wx.FIXED_MINSIZE | wx.ALL, 0)

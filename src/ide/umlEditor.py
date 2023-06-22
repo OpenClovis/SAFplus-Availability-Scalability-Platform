@@ -951,7 +951,7 @@ class Panel(scrolled.ScrolledPanel):
           if e == first:
             virtRct = wx.Rect(e.pos[0]*self.scale, e.pos[1]*self.scale, e.size[0]*e.scale[0]*self.scale, e.size[1]*e.scale[1]*self.scale)
           else:
-            virtRct.Union(wx.Rect(e.pos[0]*self.scale, e.pos[1]*self.scale, e.size[0]*e.scale[0]*self.scale, e.size[1]*e.scale[1]*self.scale))
+            virtRct.Union(wx.Rect(int(e.pos[0]*self.scale), int(e.pos[1]*self.scale), int(e.size[0]*e.scale[0]*self.scale), int(e.size[1]*e.scale[1]*self.scale)))
       return virtRct
  
     def UpdateVirtualSize(self):

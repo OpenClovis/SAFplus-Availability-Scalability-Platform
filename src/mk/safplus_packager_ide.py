@@ -277,8 +277,8 @@ def package(base_dir, tar_name, prefix_dir, machine=None, pre_build_dir=None,exe
     # gen_tar_name = create_archive(tar_name, archive_suffix, image_dir, compress_format)
     # select the corresponding package generation class method from the package module
     if yum_package:
-	from package import RPM
-	rpm_gen = RPM(prefix_dir, pkg_ver, pkg_rel)
+        from package import RPM
+        rpm_gen = RPM(prefix_dir, pkg_ver, pkg_rel)
         rpm_template_dir = os.path.abspath(os.path.dirname(__file__) + os.sep + "pkg_templates/rpm")
         rpm_gen.rpm_build(tar_name, rpm_template_dir, "Makefile", "package.spec")
     if debain_package:
@@ -429,7 +429,7 @@ def parser(args):
             log.info("DEBIAN PACKAGE")
         elif opt in ("-i", "--install_dir"):
             install_dir = get_option_value(arg)
-	    log.info(" Package Installation directory on the target Machine is {}".format(install_dir))
+            log.info(" Package Installation directory on the target Machine is {}".format(install_dir))
         elif opt in ("-v", "--pkg-version"):
             pkg_ver = get_option_value(arg)
         elif opt in ("-r", "--pkg-release"):
@@ -455,7 +455,7 @@ def parser(args):
             else:
                 fail_and_exit(" For RPM/Debian packages generation Archive name is mandatory and does not starts with safplus") 
     if debian_package or yum_package:
-	if model_dir is not None:
+        if model_dir is not None:
             if check_dir_exists(model_dir):
                 install_dir = "/opt" + os.sep + os.path.split(model_dir)[1]
             else:

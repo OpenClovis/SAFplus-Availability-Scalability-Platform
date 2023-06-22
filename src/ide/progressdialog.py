@@ -24,7 +24,7 @@ class ProgressDialog(wx.Dialog):
         self.Show()
 
     def OnTimer(self, evt):
-        if self.thread.isAlive():
+        if self.thread.is_alive():
             x = int(self.gauge.GetValue())
             if x >= 500:
                 x = 0
@@ -34,7 +34,7 @@ class ProgressDialog(wx.Dialog):
             self.OnQuit(None)
 
     def OnQuit(self, event):
-        if self.thread.isAlive():
+        if self.thread.is_alive():
             self.parent.setCancelProgress(True)
             self.parent.stopCurrentProcess()
             self.thread.join()

@@ -473,4 +473,4 @@ class LazyLineGesture(Gesture,wx.Timer):
       drawCurvyArrow(ctx, self.downPos,self.curPos,[self.center],self.cust)
  
 def getRectInstance(ent, scale):
-  return wx.Rect(ent.pos[0]*scale, ent.pos[1]*scale, ent.size[0]*ent.scale[0]*scale, ent.size[1]*ent.scale[1]*scale)
+  return wx.Rect(int(ent.pos[0]*scale), int(ent.pos[1]*scale), int(ent.size[0]*ent.scale[0]*scale), int(ent.size[1]*ent.scale[1]*scale))
