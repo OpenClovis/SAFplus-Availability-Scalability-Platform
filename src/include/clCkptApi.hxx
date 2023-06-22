@@ -88,12 +88,14 @@ namespace SAFplus
     Buffer& operator = (char c)
     {
       memset(data,c,len());
+      return *this;
     }
 
     //? Set the buffer to the passed null terminated string
     Buffer& operator = (const char* s)
     {
       strncpy(data,s,len());
+      return *this;
     }
 
     //? Get the buffer's data

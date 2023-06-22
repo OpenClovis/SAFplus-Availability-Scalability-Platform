@@ -143,7 +143,7 @@ namespace SAFplus
         If the name has more than one mapping another mapping will become the default response for this name. 
         This association is valid for all SAFplus API name lookups, and for AMF entity names.
      */   
-     void append(const char* name, SAFplus::Handle handle, MappingMode m=MODE_NO_CHANGE) throw (NameException&);
+     void append(const char* name, SAFplus::Handle handle, MappingMode m=MODE_NO_CHANGE);
 
      /* Associate a name with a handle and pointer and associate a handle with a pointer (if object != NULL).
         If the name does not exist, it is created.  If the name exists, this mapping is appended (the original mapping is not removed).
@@ -152,52 +152,52 @@ namespace SAFplus
         If the name has more than one mapping another mapping will become the default response for this name. 
         This association is valid for all SAFplus API name lookups, and for AMF entity names.
      */   
-     void append(const std::string& name, SAFplus::Handle handle, MappingMode m=MODE_NO_CHANGE) throw (NameException&);
+     void append(const std::string& name, SAFplus::Handle handle, MappingMode m=MODE_NO_CHANGE);
 
      void setLocalObject(const char* name, void* object);
      void setLocalObject(const std::string& name, void* object);
      void setLocalObject(SAFplus::Handle handle, void* object);
      
      //? Associate name with arbitrary data. A copy of the data is made.
-     void set(const char* name, const void* data, int length, bool overwrite=false) throw (NameException&);
+     void set(const char* name, const void* data, int length, bool overwrite=false);
      //? Associate name with arbitrary data. A copy of the data is made.
-     void set(const std::string& name, const void* data, int length, bool overwrite=false) throw (NameException&); 
+     void set(const std::string& name, const void* data, int length, bool overwrite=false);
    
      //? Associate name with arbitrary data. A copy of the data is NOT made; this call transfers the reference count (ownership) to the callee.
-     void set(const char* name, SAFplus::Buffer*, bool overwrite=false) throw (NameException&);
+     void set(const char* name, SAFplus::Buffer*, bool overwrite=false);
      //? Associate name with arbitrary data. A copy of the data is NOT made; this call transfers the reference count (ownership) to the callee.
-     void set(const std::string& name, SAFplus::Buffer*, bool overwrite=false) throw (NameException&);
+     void set(const std::string& name, SAFplus::Buffer*, bool overwrite=false);
 
      //? Remove a name
-     void remove(const char* name) throw (NameException&);
+     void remove(const char* name);
      //? Remove a name
-     void remove(const std::string& name) throw (NameException&);
+     void remove(const std::string& name);
   
      //? Get a handle associated with the data. The SAFplus APIs use these calls to resolve names to handles or objects.
-     RefObjMapPair get(const char* name) throw(NameException&);
+     RefObjMapPair get(const char* name);
      //? Get a handle associated with the data. The SAFplus APIs use these calls to resolve names to handles or objects.
-     RefObjMapPair get(const std::string& name) throw(NameException&);
+     RefObjMapPair get(const std::string& name);
      //? Get a handle associated with the data. The SAFplus APIs use these calls to resolve names to handles or objects.
-     void* get(const SAFplus::Handle&) throw(NameException&);
+     void* get(const SAFplus::Handle&);
      
      //? This function gets the name associated with the specified handle
-     char* getName(const SAFplus::Handle& handle) throw(NameException&); 
+     char* getName(const SAFplus::Handle& handle);
    
      //? Gets the handle associated with a name.  Throws exception <ref>NameException</ref> if the name does not exist or the stored handle is INVALID_HDL, after timeoutMs milliseconds
-     SAFplus::Handle& getHandle(const char* name, unsigned int timeoutMs=0) throw(NameException&);
+     SAFplus::Handle& getHandle(const char* name, unsigned int timeoutMs=0);
      //? Gets the handle associated with a name.  Throws exception <ref>NameException</ref> if the name does not exist or the stored handle is INVALID_HDL, after timeoutMs milliseconds
-     SAFplus::Handle& getHandle(const std::string& name, unsigned int timeoutMs=0) throw(NameException&);
+     SAFplus::Handle& getHandle(const std::string& name, unsigned int timeoutMs=0);
    
        
      //? Get a handle associated with the data.
      // The SAFplus APIs use these calls to resolve names to handles or objects.
      // Do not free the returned buffer, call Buffer.decRef();
-     const SAFplus::Buffer& getData(const char* name) throw(NameException&);
+     const SAFplus::Buffer& getData(const char* name);
 
      //? Get a handle associated with the data.
      // The SAFplus APIs use these calls to resolve names to handles or objects.
      // Do not free the returned buffer, call Buffer.decRef();
-     const SAFplus::Buffer& getData(const std::string& name) throw(NameException&);
+     const SAFplus::Buffer& getData(const std::string& name);
 
      //? Failure handling. This function tells this object that a particular process has failed.  Typically, it is used only internally by SAFplus.
      //void processFailed(const uint32_t pid, const uint32_t amfId);

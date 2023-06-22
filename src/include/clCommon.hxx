@@ -151,7 +151,7 @@ void heapFree(void* buffer, const char* file, uint_t line);
     {
     public:
     void *memory;
-    void* operator = (void* o) { memory = o; }
+    void* operator = (void* o) { memory = o; return memory;}
     operator  void* () const { return memory; } 
     ScopedAllocation(void* o=NULL) {memory = o; }
     ScopedAllocation(unsigned long int count) { memory = malloc(count); }
