@@ -259,6 +259,7 @@ namespace SAFplus
   inline Handle wellKnownEntity(const WellKnownHandle& h, int port, int node,uint_t clusterId=0)
   {
     Handle ret(SAFplus::PersistentHandle,h.getIndex(),port,node,0);
+    return ret;
   }
 
   enum

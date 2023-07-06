@@ -74,7 +74,7 @@ void NameRegistrar::set(const std::string& name, Handle handle, MappingMode m,bo
    set(name.c_str(), handle, m,overwrite);
 }
 
-void NameRegistrar::append(const char* name, Handle handle, MappingMode m) throw (NameException&)
+void NameRegistrar::append(const char* name, Handle handle, MappingMode m)
 {
    const Buffer& buf = m_checkpoint.read(name);
    if (&buf == NULL)
@@ -135,7 +135,7 @@ void NameRegistrar::append(const char* name, Handle handle, MappingMode m) throw
    }
 }
 
-void NameRegistrar::append(const std::string& name, Handle handle, MappingMode m) throw (NameException&)
+void NameRegistrar::append(const std::string& name, Handle handle, MappingMode m)
 {
    try {
       append(name.c_str(), handle, m);
@@ -191,7 +191,7 @@ void NameRegistrar::setLocalObject(Handle handle, void* object)
    m_mapObject.insert(vt);
 }
 
-void NameRegistrar::set(const char* name, const void* data, int length,bool overwrite) throw (NameException&)
+void NameRegistrar::set(const char* name, const void* data, int length,bool overwrite)
 {
    size_t valLen = length;
    char vdata[sizeof(Buffer)-1+valLen];
@@ -200,7 +200,7 @@ void NameRegistrar::set(const char* name, const void* data, int length,bool over
    m_checkpoint.write(name,*val,overwrite);
 }
 
-void NameRegistrar::set(const std::string& name, const void* data, int length,bool overwrite) throw (NameException&)
+void NameRegistrar::set(const std::string& name, const void* data, int length,bool overwrite)
 {
    try {
       set(name.c_str(), data, length,overwrite);
@@ -209,23 +209,23 @@ void NameRegistrar::set(const std::string& name, const void* data, int length,bo
    }
 }
 
-void NameRegistrar::remove(const char* name) throw (NameException&)
+void NameRegistrar::remove(const char* name)
 {
    m_checkpoint.remove(name);
 }
 
-void NameRegistrar::remove(const std::string& name) throw (NameException&)
+void NameRegistrar::remove(const std::string& name)
 {
   m_checkpoint.remove(name);
 }
 
 
-void NameRegistrar::set(const char* name, Buffer* p_buf,bool overwrite) throw (NameException&)
+void NameRegistrar::set(const char* name, Buffer* p_buf,bool overwrite)
 {
    m_checkpoint.write(name,*p_buf,overwrite);
 }
 
-void NameRegistrar::set(const std::string& name, Buffer* p_buf, bool overwrite) throw (NameException&)
+void NameRegistrar::set(const std::string& name, Buffer* p_buf, bool overwrite)
 {
    try {
       set(name.c_str(), p_buf,overwrite);
@@ -234,7 +234,7 @@ void NameRegistrar::set(const std::string& name, Buffer* p_buf, bool overwrite) 
    }
 }
 
-RefObjMapPair NameRegistrar::get(const char* name) throw(NameException&)
+RefObjMapPair NameRegistrar::get(const char* name)
 {
 #if 0
    try
@@ -308,7 +308,7 @@ RefObjMapPair NameRegistrar::get(const char* name) throw(NameException&)
    }
 }
 
-RefObjMapPair NameRegistrar::get(const std::string& name) throw(NameException&)
+RefObjMapPair NameRegistrar::get(const std::string& name)
 {
    try
    {
@@ -322,7 +322,7 @@ RefObjMapPair NameRegistrar::get(const std::string& name) throw(NameException&)
    }
 }
 
-void* NameRegistrar::get(const Handle& handle) throw (NameException&)
+void* NameRegistrar::get(const Handle& handle)
 {
    ObjHashMap::iterator contents = m_mapObject.find(handle);
    if (contents != m_mapObject.end()) // record already exists; return its value
@@ -346,7 +346,7 @@ HandleData& NameRegistrar::Iterator::handle()
   return *data;
   }
 
-Handle& NameRegistrar::getHandle(const char* name,unsigned int timeoutMs) throw(NameException&)
+Handle& NameRegistrar::getHandle(const char* name,unsigned int timeoutMs)
 {
   uint_t change;
   bool occurence;  // whether the ckpt changed
@@ -433,13 +433,13 @@ Handle& NameRegistrar::getHandle(const char* name,unsigned int timeoutMs) throw(
   throw NameException("name provided does not exist");
 }
 
-Handle& NameRegistrar::getHandle(const std::string& name, unsigned int timeoutMs) throw(NameException&)
+Handle& NameRegistrar::getHandle(const std::string& name, unsigned int timeoutMs)
 {
   Handle& handle = getHandle(name.c_str(),timeoutMs);
   return handle;
 }
 
-char* NameRegistrar::getName(const SAFplus::Handle& handle) throw(NameException&)
+char* NameRegistrar::getName(const SAFplus::Handle& handle)
 {
    Checkpoint::Iterator ibegin = m_checkpoint.begin();
    Checkpoint::Iterator iend = m_checkpoint.end();
@@ -473,7 +473,7 @@ char* NameRegistrar::getName(const SAFplus::Handle& handle) throw(NameException&
    throw NameException("Handle provided doesn't exist in Name");
 }
 
-const Buffer& NameRegistrar::getData(const char* name) throw(NameException&)
+const Buffer& NameRegistrar::getData(const char* name)
 {
    const Buffer& buf = m_checkpoint.read(name);
    if (&buf != NULL)
@@ -488,7 +488,7 @@ const Buffer& NameRegistrar::getData(const char* name) throw(NameException&)
    throw NameException("Name provided does not exist");
 }
 
-const Buffer& NameRegistrar::getData(const std::string& name) throw(NameException&)
+const Buffer& NameRegistrar::getData(const std::string& name)
 {
    try
    {
