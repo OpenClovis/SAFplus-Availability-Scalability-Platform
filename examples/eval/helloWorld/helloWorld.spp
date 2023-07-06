@@ -1,0 +1,5 @@
+<SAFplusProject version='7.0'>
+  <datamodel>SAFplusAmf.yang</datamodel>
+  <model>helloWorldModel.xml</model>
+  <src></src>
+</SAFplusProject>

@@ -1,0 +1,7 @@
+<Nodes>
+  <HelloNode1>
+    <name>HelloNode1</name>
+    <slot>SC</slot>
+    <netInterface>enp0s8</netInterface>
+  </HelloNode1>
+</Nodes>
