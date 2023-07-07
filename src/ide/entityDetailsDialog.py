@@ -205,6 +205,43 @@ class GenericObjectValidator(wx.PyValidator):
       
     def GetErrorMsg(self):
       return self.errorStr
+
+class DefaultObjectValidator(GenericObjectValidator):
+    def __init__(self, currentValue):
+      GenericObjectValidator.__init__(self)
+      self.currentValue = currentValue
+    
+    def Clone(self):
+      return DefaultObjectValidator(self.currentValue)
+
+    def Validate(self):
+      return (not self.isError)
+
+    def OnChar(self, evt):
+      self.clearError
+      evt.Skip()
+
+class CommandObjectValidator(GenericObjectValidator):
+    def __init__(self, currentValue):
+      GenericObjectValidator.__init__(self)
+      self.length = (1,255)
+      self.currentValue = currentValue
+
+    def Clone(self):
+      return CommandObjectValidator(self.currentValue)
+
+    def Validate(self):
+      textCtrl = self.GetWindow()
+      value = textCtrl.GetValue()
+
+      if (len(value) < self.length[0] or len(value) > self.length[1]):
+        self.setError("Length value should be [%d..%d]" %(self.length[0], self.length[1]))
+      
+      return (not self.isError)
+    
+    def OnChar(self, evt):
+      self.clearError()
+      evt.Skip()
     
 
 class NameObjectValidator(GenericObjectValidator):
@@ -528,13 +565,16 @@ class Panel(scrolled.ScrolledPanel):
       if type(typeData) is dict and "type" in typeData:
         if typeData["type"] == "boolean":
           query = wx.CheckBox(self.tree.GetMainWindow(),id,"")
+          query.SetValidator(DefaultObjectValidator(value))
           #checked = bool(value)
-          if value == 'true':
-            #checked = True
-            query.SetValue(True)
-          elif value == 'false':
-            #checked = False
-            query.SetValue(False)
+
+          # if value == 'true':
+          #   #checked = True
+          #   query.SetValue(True)
+          # elif value == 'false':
+          #   #checked = False
+          #   query.SetValue(False)
+          query.SetValue(value)
           
         elif typeData["type"] in YangIntegerTypes or typeData["type"]=="SAFplusTypes:SaTimeT":
           v = 0
@@ -572,6 +612,7 @@ class Panel(scrolled.ScrolledPanel):
           if not value in choices:  # OOPS!  Either initial case or the datatype was changed
               value = choices[0]  # so set the value to the first one TODO: set to default one
           query = wx.ComboBox(self.tree.GetMainWindow(),id,value=value,choices=[x[0] for x in vals],style=wx.CB_READONLY | wx.TE_PROCESS_ENTER)
+          query.SetValidator(DefaultObjectValidator(value))
 
         elif typeData["type"] in self.model.dataTypes:
           typ = self.model.dataTypes[typeData["type"]]
@@ -586,8 +627,10 @@ class Panel(scrolled.ScrolledPanel):
             # TODO other datatypes 
             query  = wx.TextCtrl(self.tree.GetMainWindow(), id, value,style = wx.BORDER_SIMPLE | wx.TE_PROCESS_ENTER)
             query.Bind(wx.EVT_KILL_FOCUS, self.OnUnfocus)
+          query.SetValidator(DefaultObjectValidator(value))
         else:  # Default control is a text box
           query  = wx.TextCtrl(self.tree.GetMainWindow(), id, str(value),style = wx.BORDER_SIMPLE | wx.TE_PROCESS_ENTER)
+          query.SetValidator(CommandObjectValidator(''))
           # Works: query.SetToolTip("test")
           query.Bind(wx.EVT_KILL_FOCUS, self.OnUnfocus)
         

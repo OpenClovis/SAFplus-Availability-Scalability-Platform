@@ -2259,10 +2259,13 @@ class Panel(scrolled.ScrolledPanel):
         self.statusBarText.SetWarning("Instance name must not be empty.")
         query.ChangeValue(validator.currentValue)
         return False
-      elif (key.split("_")[-1] != "name") and (newValue.isdigit() != True):
-        self.statusBarText.SetWarning("Invalid input, must contains numbers only")
-        query.ChangeValue(validator.currentValue)
-        return False
+      elif (key.split("_")[-1] != "name" and key.split("_")[-1] != "command") and (type(newValue) != bool) and (newValue.isdigit() != True):
+        if ('adminState' in key) or ('capabilityModel' in key) or ('recovery' in key):
+          pass
+        else:
+          self.statusBarText.SetWarning("Invalid input, must contains numbers only")
+          query.ChangeValue(validator.currentValue)
+          return False
       self.statusBarText.SetLabel(" ")
       for (name, e) in list(self.model.instances.items()):
         if e == ent:
