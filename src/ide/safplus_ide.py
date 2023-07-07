@@ -735,6 +735,7 @@ class SAFplusApp(wx.App):
     """ WX Application wrapper for SAFplus IDE"""
     def __init__(self, redirect):
       wx.App.__init__(self, redirect=redirect)
+      self.GTKSuppressDiagnostics()
 
     def OnInit(self):
       self.frame = SAFplusFrame(None, "SAFplus IDE")
@@ -916,13 +917,22 @@ class GoToLine(wx.Dialog):
       """Constructor"""
       wx.Dialog.__init__(self, None, wx.ID_ANY, "Goto Line",size= (336,165), style=wx.DEFAULT_DIALOG_STYLE)
       self.parent = parent
-      self.panel = wx.Panel(self, wx.ID_ANY)
+      mainSizer = wx.BoxSizer(wx.VERTICAL)
+      # self.panel = wx.Panel(self, wx.ID_ANY)
       sizeLabel = (296,27)
       text = "Line (1 - %s)" % lineMax
-      self.currentInfo = wx.StaticText(self.panel, label=text, size=sizeLabel, pos =(20,10))
-      self.lineColumn = wx.TextCtrl(self.panel, size=sizeLabel, pos=(20,42), style = wx.TE_PROCESS_ENTER)
-      self.line = wx.StaticLine(self.panel, size=(296,1), pos=(20, 84))
-      self.btn = wx.Button(self.panel, label="OK", size=(82,27), pos =(234,100))
+      self.currentInfo = wx.StaticText(self, label=text, size=sizeLabel, pos =(20,10))
+      self.lineColumn = wx.TextCtrl(self, size=sizeLabel, pos=(20,42), style = wx.TE_PROCESS_ENTER)
+      self.line = wx.StaticLine(self, size=(296,1), pos=(20, 84))
+      self.btn = wx.Button(self, label="OK", size=(82,27), pos =(234,100))
+
+      mainSizer.Add(self.currentInfo, 0, wx.TOP | wx.LEFT | wx.ALIGN_LEFT, 15)
+      mainSizer.Add(self.lineColumn, 0, wx.ALIGN_CENTER_HORIZONTAL)
+      mainSizer.Add(self.line, 0, wx.TOP | wx.ALIGN_CENTER_HORIZONTAL, 15)
+      mainSizer.Add(self.btn, 0, wx.TOP | wx.RIGHT | wx.BOTTOM | wx.ALIGN_RIGHT, 15)
+
+      self.SetSizerAndFit(mainSizer)
+
       self.btn.Bind(wx.EVT_BUTTON, self.onClicked)
       self.lineColumn.Bind(wx.EVT_TEXT_ENTER, self.onTextChange)
 

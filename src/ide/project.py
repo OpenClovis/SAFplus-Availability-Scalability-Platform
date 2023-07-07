@@ -291,16 +291,28 @@ class RenameDialog(wx.Dialog):
     def __init__(self, parent, fileName):
         """Constructor"""
         wx.Dialog.__init__(self, None, wx.ID_ANY, fileName[2],size= (336,165), style=wx.DEFAULT_DIALOG_STYLE)
+        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        btnSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.parent = parent
         self.fileName = fileName
-        self.panel = wx.Panel(self, wx.ID_ANY)
+        # self.panel = wx.Panel(self, wx.ID_ANY)
         sizeLabel = (296,27)
-        self.currentInfo = wx.StaticText(self.panel, label=fileName[1], size=sizeLabel, pos =(20,10))
-        self.lineColumn = wx.TextCtrl(self.panel, size=sizeLabel, pos=(20,42))
+        self.currentInfo = wx.StaticText(self, label=fileName[1], size=sizeLabel, pos =(20,10))
+        self.lineColumn = wx.TextCtrl(self, size=sizeLabel, pos=(20,42))
         self.lineColumn.SetValue(fileName[0])
-        self.line = wx.StaticLine(self.panel, size=(296,1), pos=(20, 84))
-        self.okBtn = wx.Button(self.panel, label="OK", size=(82,27), pos =(234,100))
-        self.cancelBtn = wx.Button(self.panel, label="Cancel", size=(82,27), pos =(134,100))
+        self.line = wx.StaticLine(self, size=(296,1), pos=(20, 84))
+        self.okBtn = wx.Button(self, label="OK", size=(82,27), pos =(234,100))
+        self.cancelBtn = wx.Button(self, label="Cancel", size=(82,27), pos =(134,100))
+
+        mainSizer.Add(self.currentInfo, 0, wx.TOP | wx.LEFT | wx.ALIGN_LEFT, 15)
+        mainSizer.Add(self.lineColumn, 0, wx.ALIGN_CENTER_HORIZONTAL)
+        mainSizer.Add(self.line, 0, wx.TOP | wx.ALIGN_CENTER_HORIZONTAL, 15)
+        btnSizer.Add(self.okBtn, 0)
+        btnSizer.Add(self.cancelBtn, 0, wx.LEFT, 10)
+        mainSizer.Add(btnSizer, 0, wx.ALL | wx.ALIGN_RIGHT, 15)
+
+        self.SetSizerAndFit(mainSizer)
+
         self.okBtn.Bind(wx.EVT_BUTTON, self.onOkClicked)
         self.cancelBtn.Bind(wx.EVT_BUTTON, self.onCancelClicked)
         self.lineColumn.Bind(wx.EVT_TEXT, self.onTextChange)
@@ -1556,11 +1568,13 @@ class ProjectTreePanel(wx.Panel):
     vBox.Add(hBox, 0, wx.ALL|wx.ALIGN_LEFT, 5)
     vBox.Add(text2, 0, wx.LEFT, 50)
     vBox.Add(text3, 0, wx.LEFT, 50)
-    vBox1 = wx.BoxSizer(wx.VERTICAL)
-    vBox1.Add(okBtn, 0, wx.LEFT, 257)
-    vBox.Add(vBox1, 0, wx.TOP, 28)
+    # vBox1 = wx.BoxSizer(wx.VERTICAL)
+    # vBox1.Add(okBtn, 0, wx.LEFT, 257)
+    # vBox.Add(vBox1, 0, wx.TOP, 28)
+    vBox.Add(okBtn, 0, wx.ALL | wx.ALIGN_RIGHT, 15)
 
-    self.dlg.SetSizer(vBox)
+    # self.dlg.SetSizer(vBox)
+    self.dlg.SetSizerAndFit(vBox)
     self.dlg.ShowModal()
     self.dlg.Destroy()
 
@@ -1739,7 +1753,8 @@ class ClearProjectData(wx.Dialog):
       hBox.Add(CancelBtn, 0, wx.LEFT, 300)
       hBox.Add(ClearBtn, 0, wx.LEFT, 10)
       vBox.Add(hBox, 0, wx.ALL, 15)
-      self.SetSizer(vBox)
+      # self.SetSizer(vBox)
+      self.SetSizerAndFit(vBox)
 
     def onClickCancelBtn(self, event):
       self.Close()
@@ -1826,7 +1841,8 @@ class PropertiesDialog(wx.Dialog):
       vBox.Add(hBox, 0, wx.ALL, 0)
       vBox.Add(line2, 0, wx.ALIGN_TOP, 5)
       vBox.Add(hBox2, 0, wx.ALL|wx.ALIGN_RIGHT, 0)
-      self.SetSizer(vBox)
+      # self.SetSizer(vBox)
+      self.SetSizerAndFit(vBox)
    
     def onSelectChange(self, event):
       pass
@@ -1989,7 +2005,8 @@ class DeployDialog(wx.Dialog):
       vBox1.Add(hBox, 0, wx.ALL|wx.CENTER, 5)
       vBox1.Add(line, 0, wx.ALIGN_TOP, 0)
       vBox1.Add(btn_sizer2, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
-      self.SetSizer(vBox1)
+      # self.SetSizer(vBox1)
+      self.SetSizerAndFit(vBox1)
       vBox1.Layout()
       self.deployInfos = {}
       self.key = self.getKey()
@@ -2222,7 +2239,8 @@ class MakeImages(wx.Dialog):
       mainBox.Add(self.configPanel, 0, wx.ALL|wx.CENTER, 5)
       mainBox.Add(btn_sizer, 0, wx.TOP|wx.ALIGN_RIGHT,5)
 
-      self.SetSizer(mainBox)
+      # self.SetSizer(mainBox)
+      self.SetSizerAndFit(mainBox)
       mainBox.Layout()
       
     def onClickOkBtn(self, event):
@@ -2388,7 +2406,8 @@ class NewPrjDialog(wx.Dialog):
               
         main_sizer.Add(btn_sizer, 0, wx.ALL|wx.ALIGN_RIGHT, 0)
 
-        self.SetSizer(main_sizer)
+        # self.SetSizer(main_sizer)
+        self.SetSizerAndFit(main_sizer)
         main_sizer.Layout()
         prjname_sizer.Layout()
  
@@ -2474,11 +2493,13 @@ class SaveAsDialog(wx.Dialog):
   
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         btn_sizer.Add(OK_btn, 0, wx.ALL|wx.CENTER, 5)
-        btn_sizer.Add(cancel_btn, 0, wx.ALL|wx.CENTER, 5)  
-              
-        main_sizer.Add(btn_sizer, 0, wx.ALL|wx.CENTER, 5)
+        btn_sizer.Add(cancel_btn, 0, wx.ALL|wx.CENTER, 5)
 
-        self.SetSizer(main_sizer)
+        main_sizer.AddSpacer(50)
+        main_sizer.Add(btn_sizer, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
+
+        # self.SetSizer(main_sizer)
+        self.SetSizerAndFit(main_sizer)
  
     #----------------------------------------------------------------------
     def onBtnHandler(self, event):

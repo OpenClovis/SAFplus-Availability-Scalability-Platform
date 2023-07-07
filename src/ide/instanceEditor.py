@@ -768,12 +768,14 @@ class GenerateTool(Tool):
     vBox.Add(self.checkBox, 0, wx.ALL, 5)
     vBox.Add(lablel5, 0, wx.ALL, 5)
 
-    hBox.Add(noBtn, 0, wx.CENTER, 0)
-    hBox.Add(cancelBtn, 0, wx.CENTER, 0)
-    hBox.Add(yesBtn, 0, wx.CENTER|wx.RIGHT, 15)
-    vBox.Add(hBox, 0, wx.TOP|wx.ALIGN_RIGHT, 30)
+    hBox.Add(noBtn, 0, wx.LEFT, 10)
+    hBox.Add(cancelBtn, 0, wx.LEFT, 10)
+    hBox.Add(yesBtn, 0, wx.LEFT, 10)
+    vBox.AddSpacer(30)
+    vBox.Add(hBox, 0, wx.BOTTOM | wx.RIGHT | wx.ALIGN_RIGHT, 15)
 
-    self.dlg.SetSizer(vBox)
+    # self.dlg.SetSizer(vBox)
+    self.dlg.SetSizerAndFit(vBox)
     result = self.dlg.ShowModal()
     return result
 
@@ -810,12 +812,14 @@ class GenerateTool(Tool):
     vBox.Add(self.checkBox, 0, wx.ALL, 5)
     vBox.Add(lablel5, 0, wx.ALL, 5)
 
-    hBox.Add(noBtn, 0, wx.CENTER, 0)
-    hBox.Add(cancelBtn, 0, wx.CENTER, 0)
-    hBox.Add(yesBtn, 0, wx.CENTER|wx.RIGHT, 15)
-    vBox.Add(hBox, 0, wx.TOP|wx.ALIGN_RIGHT, 30)
+    hBox.Add(noBtn, 0, wx.LEFT, 10)
+    hBox.Add(cancelBtn, 0, wx.LEFT, 10)
+    hBox.Add(yesBtn, 0, wx.LEFT, 10)
+    vBox.AddSpacer(30)
+    vBox.Add(hBox, 0, wx.BOTTOM | wx.RIGHT | wx.ALIGN_RIGHT, 15)
 
-    self.dlg.SetSizer(vBox)
+    # self.dlg.SetSizer(vBox)
+    self.dlg.SetSizerAndFit(vBox)
 
     result = self.dlg.ShowModal()
     return result
@@ -2400,12 +2404,14 @@ class Reminder:
     vBox.Add(self.checkBox, 0, wx.ALL, 5)
     vBox.Add(lablel5, 0, wx.ALL, 5)
 
-    hBox.Add(noBtn, 0, wx.CENTER, 0)
-    hBox.Add(cancelBtn, 0, wx.CENTER, 0)
-    hBox.Add(yesBtn, 0, wx.CENTER|wx.RIGHT, 15)
-    vBox.Add(hBox, 0, wx.TOP|wx.ALIGN_RIGHT, 30)
+    hBox.Add(noBtn, 0, wx.LEFT, 10)
+    hBox.Add(cancelBtn, 0, wx.LEFT, 10)
+    hBox.Add(yesBtn, 0, wx.LEFT, 10)
+    vBox.AddSpacer(30)
+    vBox.Add(hBox, 0, wx.BOTTOM | wx.RIGHT | wx.ALIGN_RIGHT, 15)
 
-    self.dlg.SetSizer(vBox)
+    # self.dlg.SetSizer(vBox)
+    self.dlg.SetSizerAndFit(vBox)
 
     result = self.dlg.ShowModal()
     return result
