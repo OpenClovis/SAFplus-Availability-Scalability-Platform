@@ -888,7 +888,7 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
                             notifiPublisher.nodeFailoverNotifiPublish(nodeHdl);
                     }
                   }
-                  amfOps->rebootNode(node, CL_AMF_NODE_REBOOT);
+                  amfOps->rebootNode(node, CL_AMF_AMF_SHUTDOWN|CL_AMF_NODE_REBOOT);
                   processedComp =NULL;
               }
           }
@@ -1701,17 +1701,26 @@ class NplusMPolicy:public ClAmfPolicyPlugin_1
               }
               amfOps->cleanup(iterComp);
               updateStateDueToProcessDeath(iterComp);
-
+          }
+          if(comp->pendingOperation != PendingOperation::none)
+          {
               if(recommendedRecovery == SAFplusAmf::Recovery::CompFailover /*&& comp->operState == false*/ && comp->serviceUnit.value->operState.value)
               {   
-                  //csi remove timeout case
-                  CL_AMF_SET_O_STATE(comp->serviceUnit.value, false);                  
+                 //csi remove timeout case
+                 CL_AMF_SET_O_STATE(comp->serviceUnit.value, false);                  
               }
           }
-          if (recommendedRecovery == SAFplusAmf::Recovery::SuRestart)
+          else
           {
-              CL_AMF_SET_O_STATE(comp, true);
-              CL_AMF_SET_O_STATE(comp->serviceUnit.value, true);
+             if ((recommendedRecovery==SAFplusAmf::Recovery::CompFailover && 
+                  comp->serviceUnit.value->serviceGroup.value->autoRepair.value) ||
+                 (recommendedRecovery!=SAFplusAmf::Recovery::CompFailover &&
+		  recommendedRecovery != SAFplusAmf::Recovery::SuRestart &&
+                  comp->serviceUnit.value->node.value->autoRepair))
+             {
+                CL_AMF_SET_O_STATE(comp->serviceUnit.value, true);
+                CL_AMF_SET_O_STATE(comp, true);
+             }
           }
       }
       else

@@ -3098,7 +3098,7 @@ def main(argLst):
 
   cmds,handlers = access.Initialize()
 
-  config = configparser.SafeConfigParser()
+  config = configparser.ConfigParser()
   config.read(".safplus_cli.cfg")  
 
   RED='\033[0;31m'

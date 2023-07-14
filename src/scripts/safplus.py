@@ -433,7 +433,7 @@ def set_up_asp_config():
     d['hpi_ip'] = asp_getenv('SAHPI_UNSPECIFIED_DOMAIN_ID', default='undefined')
 
     d['save_prev_logs'] = asp_getenv('ASP_SAVE_PREV_LOGS', default='0')
-    if d['save_prev_logs'] is '0':
+    if d['save_prev_logs'] == '0':
         d['core_files_dir'] = get_dir(d['save_log_dir'] + '/cores')
     else:
         d['crash_log_dir'] = get_dir(d['save_log_dir'] + '/crash')
