@@ -568,13 +568,15 @@ class Panel(scrolled.ScrolledPanel):
           query.SetValidator(DefaultObjectValidator(value))
           #checked = bool(value)
 
-          # if value == 'true':
-          #   #checked = True
-          #   query.SetValue(True)
-          # elif value == 'false':
-          #   #checked = False
-          #   query.SetValue(False)
-          query.SetValue(value)
+          if isinstance(value, bool):
+            query.SetValue(value)
+          else:
+            if value == 'true':
+              #checked = True
+              query.SetValue(True)
+            elif value == 'false':
+              #checked = False
+              query.SetValue(False)
           
         elif typeData["type"] in YangIntegerTypes or typeData["type"]=="SAFplusTypes:SaTimeT":
           v = 0
