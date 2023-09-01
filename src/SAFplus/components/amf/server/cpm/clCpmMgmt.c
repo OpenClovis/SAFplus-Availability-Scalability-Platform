@@ -895,6 +895,137 @@ static ClRcT cpmCompSetConfig(ClAmsEntityConfigT *entityConfig,
     return rc;
 }
 
+static ClRcT cpmNodeSetConfig(ClAmsEntityConfigT *entityConfig,
+                              ClUint64T bitMask)
+{
+    ClRcT rc = CL_OK;
+    if (!(bitMask&NODE_CONFIG_ID) || !(bitMask&NODE_CONFIG_SUB_CLASS_TYPE))
+    {
+       clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_MGM, "No nodeID or node subclassType provided");
+       goto failure;
+    }
+    ClCpmLT *cpm = NULL;
+    ClUint16T nodeKey = 0;
+    ClCpmSlotInfoT slotInfo = {0};
+    ClAmsNodeConfigT *nodeConfig = (ClAmsNodeConfigT *)entityConfig;
+    ClCharT* nodeName = nodeConfig->entity.name.value;
+    if (!nodeName)
+    {
+        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_MGM, "NULL pointer passed.");
+        goto failure;
+    }
+
+    clOsalMutexLock(gpClCpm->cpmTableMutex);
+    rc = cpmNodeFindLocked(nodeName, &cpm);
+    clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+    if (cpm)
+    {
+        clLogWarning(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_MGM, "Node [%s] already exists on this node.", nodeName);
+        rc = CL_CPM_RC(CL_ERR_ALREADY_EXIST);
+        goto failure;
+    }
+
+    cpm = clHeapAllocate(sizeof(ClCpmLT));
+    if (!cpm)
+    {
+        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_MGM,
+                   "Unable to allocate memory");
+        goto failure;
+    }
+
+    memset(cpm, 0, sizeof(ClCpmLT));
+    
+    strncpy(cpm->nodeName, nodeName, strlen(nodeName));
+    
+    rc = clCksm16bitCompute((ClUint8T *)cpm->nodeName,
+                            strlen(cpm->nodeName),
+                            &nodeKey);
+    if (CL_OK != rc)
+    {
+        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_MGM,
+                   "Failed to compute checksum for node, "
+                   "error [%#x]",
+                   rc);
+        goto failure;
+    }
+
+    /* 
+     * Filling the CPML with defaults.  
+     */
+
+    clNameSet(&cpm->nodeType, nodeConfig->subClassType.value);
+    clNameSet(&cpm->nodeIdentifier, nodeName);
+    /*
+     * Set the class type to CLASS_C.
+     */
+    strncpy(cpm->classType, "CL_AMS_NODE_CLASS_C", sizeof(cpm->classType)-1);
+    /*
+     * Get the MOID of the master node. Assuming that node add is
+     * only invoked on the master.
+     */
+    slotInfo.slotId = clIocLocalAddressGet();
+
+    rc = clCpmSlotInfoGet(CL_CPM_SLOT_ID, &slotInfo);
+    if(rc == CL_OK)
+    {
+        rc = cpmCorMoIdToMoIdNameGet(&slotInfo.nodeMoId, &cpm->nodeMoIdStr);
+    }
+    if(rc != CL_OK)
+    {
+        if((CL_GET_ERROR_CODE(rc) != CL_IOC_ERR_COMP_UNREACHABLE) && (CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST))
+        {
+            goto failure;
+        }
+        else
+        {
+            rc = CL_OK;
+            clLogWarning(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_MGM, "COR server not running so cannot discover the Node's MoId");
+        }
+    }
+
+    clOsalMutexLock(gpClCpm->cpmTableMutex);
+
+    rc = clCntNodeAdd(gpClCpm->cpmTable,
+                      (ClCntKeyHandleT)(ClWordT)nodeKey,
+                      (ClCntDataHandleT) cpm,
+                      NULL);
+    if (CL_OK != rc)
+    {
+        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_MGM,
+                   "Failed to add node to the CPM node table, "
+                   "error [%#x]",
+                   rc);
+        clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+        goto failure;
+    }
+
+    ++gpClCpm->noOfCpm;
+
+    clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+
+    /*
+     * Add this to the slotinfo.
+     */
+
+    clOsalMutexLock(&gpClCpm->cpmMutex);
+    rc = cpmSlotClassAdd(&cpm->nodeType, &cpm->nodeIdentifier, nodeConfig->id);
+    clOsalMutexUnlock(&gpClCpm->cpmMutex);
+
+    if(rc != CL_OK)
+    {
+        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_MGM,
+                   "Node [%s] class add returned [%#x]", cpm->nodeType.value, rc);
+    }
+
+    clLogNotice("DYN", "NODE", "Node [%s] added to the cpm table with identity [%.*s]",
+                cpm->nodeName, cpm->nodeIdentifier.length, cpm->nodeIdentifier.value);
+                
+    return CL_OK;
+
+    failure:
+    return rc;
+}
+
 ClRcT cpmEntitySetConfig(ClAmsEntityConfigT *entityConfig, ClUint64T bitMask)
 {
     switch(entityConfig->type)
@@ -902,6 +1033,10 @@ ClRcT cpmEntitySetConfig(ClAmsEntityConfigT *entityConfig, ClUint64T bitMask)
         case CL_AMS_ENTITY_TYPE_COMP:
         {
             return cpmCompSetConfig(entityConfig, bitMask);
+        }
+        case CL_AMS_ENTITY_TYPE_NODE:
+        {
+            return cpmNodeSetConfig(entityConfig, bitMask);
         }
         default:
         {

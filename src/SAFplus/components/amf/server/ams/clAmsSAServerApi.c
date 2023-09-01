@@ -1437,7 +1437,8 @@ ClRcT _clAmsSAEntityAdd(CL_IN ClAmsEntityRefT *entityRef)
     switch (entityRef->entity.type)
     {
         case CL_AMS_ENTITY_TYPE_COMP:
-        case CL_AMS_ENTITY_TYPE_NODE:
+        //case CL_AMS_ENTITY_TYPE_NODE: 
+        /* for new dynamic created node, this is called when setNodeConfig */
         {
             AMS_CHECK_RC_ERROR ( (*gAmsToCpmCallbackFuncs->
                                   cpmEntityAdd)(entityRef) );
@@ -1525,11 +1526,19 @@ ClRcT _clAmsSAEntitySetConfig(CL_IN ClAmsEntityConfigT *entityConfig,
     switch (entityConfig->type)
     {
         case CL_AMS_ENTITY_TYPE_COMP:
+        case CL_AMS_ENTITY_TYPE_NODE:
         {
             AMS_CHECK_RC_ERROR ( (*gAmsToCpmCallbackFuncs->
                                   cpmEntitySetConfig)(entityConfig, bitMask) );
             break;
         }
+        /*case CL_AMS_ENTITY_TYPE_NODE:
+        // this is already called at above case for node
+        {
+            AMS_CHECK_RC_ERROR ( (*gAmsToCpmCallbackFuncs->
+                                  cpmEntityAdd)(entityConfig, bitMask) );
+            break;
+        }*/
         default:
         {
             break;
