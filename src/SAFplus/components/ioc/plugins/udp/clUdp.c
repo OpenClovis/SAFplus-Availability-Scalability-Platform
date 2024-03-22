@@ -601,17 +601,18 @@ static ClRcT clUdpGetBackplaneInterface(const ClCharT *xportType, ClCharT *virtu
                 strtok_r(net_addr, ":", &token);
             }
             snprintf(inf, CL_MAX_FIELD_LENGTH, "%s", net_addr);
-            /* If we are not using the existing IP addr then we need to use a virtual device to make sure we don't overwrite an already-configured address */
-            if (!gClUdpUseExistingIp)
-            {
-              snprintf(virtualInf, CL_MAX_FIELD_LENGTH, "%s:%d", net_addr, gIocLocalBladeAddress + 10);
-              printf("virtual backplane if [%s]", virtualInf);              
-            }           
         }
         else
         {
             clLogInfo("UDP", "INI", "%s env is exported. Value is %s", envlinkNameType, linkName);
             snprintf(inf, CL_MAX_FIELD_LENGTH, "%s", linkName);
+	    snprintf(net_addr, CL_MAX_FIELD_LENGTH, "%s", linkName);
+        }
+        /* If we are not using the existing IP addr then we need to use a virtual device to make sure we don't overwrite an already-configured address */
+        if (!gClUdpUseExistingIp)
+        {
+            snprintf(virtualInf, CL_MAX_FIELD_LENGTH, "%s:%d", net_addr, gIocLocalBladeAddress + 10);
+            printf("virtual backplane if [%s]", virtualInf);
         }
     }
     return CL_OK;
