@@ -57,6 +57,9 @@ import re
 import subprocess
 from functools import cmp_to_key
 
+windowed = False
+wxInstalled = False
+
 try:
     from lxml import etree as et
     import xml.dom.minidom as minidom
@@ -64,6 +67,13 @@ try:
 except ImportError:
     import xml.dom.minidom as minidom
     hasLxml = False
+
+try:
+    import wx
+    wxInstalled = True
+except ImportError:
+    #print ('Running safplus_info in commandline mode')
+    pass
 
 def on_platform(p):
   return p in sys.platform
@@ -2246,11 +2256,412 @@ echo_cmd = '/bin/echo'
       raise AspError('Module name [%s] could not be created'%modeName)
     return d
 
+if wxInstalled:
+    import wx
+    import wx.lib.mixins.listctrl as listmix
+    import wx.lib.scrolledpanel as scrolled
+
+    def get_setup():
+        """Show various information on this SAFplus installation (does not need SAFplus running)"""
+       
+        d={}
+        install = check_install()       
+        d['installation'] = install
+               
+        # FIXME: implement build number retrieval [I'm on it -M.S.]
+        
+        info = get_node_info_from_cpm()
+        d['node instance name']=info.nodename
+        d['node class']=info.nodeclass
+        d['node type']=info.nodetype
+        
+        #conf = load_asp_conf()
+        d['default node address']=info.defnodeaddr
+        d['node address assignment']=info.assignmode
+        d['tipc netid']=info.netid
+        d['tipc address']=info.addr
+        d['cluster interface(s)']='\n                         '.join(info.ifaces)
+
+        try: info = get_gms_info()
+        except AspError as e:
+            MessageBox(str(e),"Error", wx.OK|wx.ICON_ERROR)
+            return {}
+        d['gms multicast ip']=info['mip']
+        d['gms multicast port']=info['mport']
+        return d
+
+
+
+    class MyTreeCtrl(wx.TreeCtrl):
+        def __init__(self, parent, id, pos, size, style):
+            wx.TreeCtrl.__init__(self, parent, id, pos, size, style)
+        
+    def OnCompareItems(self, item1, item2):
+        t1 = self.GetItemText(item1)
+        t2 = self.GetItemText(item2)
+        self.log.WriteText('compare: ' + t1 + ' <> ' + t2 + '\n')
+        if t1 < t2: return -1
+        if t1 == t2: return 0
+        return 1
+
+    class TreeCtrlPanel(wx.Panel):
+        def __init__(self, parent, rightPane):
+            # Use the WANTS_CHARS style so the panel doesn't eat the Return key.
+            wx.Panel.__init__(self, parent, -1, style=wx.WANTS_CHARS)
+            self.Bind(wx.EVT_SIZE, self.OnSize)
+            self.rightPane = rightPane
+            self.splitter = parent
+            tID = wx.NewIdRef()
+
+            self.tree = MyTreeCtrl(self, tID, wx.DefaultPosition, wx.DefaultSize,
+                               wx.TR_HAS_BUTTONS
+                               #| wx.TR_EDIT_LABELS
+                               #| wx.TR_MULTIPLE
+                               #| wx.TR_HIDE_ROOT
+                               )
+
+            isz = (16,16)
+            il = wx.ImageList(isz[0], isz[1])
+            fldridx     = il.Add(wx.ArtProvider.GetBitmap(wx.ART_FOLDER,      wx.ART_OTHER, isz))
+            fldropenidx = il.Add(wx.ArtProvider.GetBitmap(wx.ART_FOLDER_OPEN, wx.ART_OTHER, isz))
+            fileidx     = il.Add(wx.ArtProvider.GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, isz))
+            #smileidx    = il.Add(images.Smiles.GetBitmap())
+
+            self.tree.SetImageList(il)
+            self.il = il
+
+            # NOTE:  For some reason tree items have to have a data object in
+            #        order to be sorted.  Since our compare just uses the labels
+            #        we don't need any real data, so we'll just use None below for
+            #        the item data.
+
+            self.root = self.tree.AddRoot("Safplus commands")
+            self.tree.SetItemData(self.root, None)
+            self.tree.SetItemImage(self.root, fldridx, wx.TreeItemIcon_Normal)
+            self.tree.SetItemImage(self.root, fldropenidx, wx.TreeItemIcon_Expanded)
+
+            cmds = ['status','nodes','cluster','forest','role','sg','sgs','su','sus','tree','safplus','components','lock_i','lock_a','unlock','host','network','setup','uptime']
+            for c in cmds:
+                child = self.tree.AppendItem(self.root, c)
+                self.tree.SetItemData(child, None)
+                self.tree.SetItemImage(child, fldridx, wx.TreeItemIcon_Normal)
+                self.tree.SetItemImage(child, fldropenidx, wx.TreeItemIcon_Expanded)
+
+            self.tree.Expand(self.root)
+
+            self.tree.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
+
+        def OnSize(self, event):
+            w,h = self.GetClientSize()
+            self.tree.SetSize(0, 0, w, h)
+
+        def OnLeftDClick(self, event):
+            pt = event.GetPosition();
+            item, flags = self.tree.HitTest(pt)
+            if item:
+                p = None
+                if self.tree.GetItemText(item)=='setup':
+                    data = get_setup()
+                    headers = ['Name','Value']
+                    p = ListCtrlPanel(self.splitter, headers, data)                    
+                elif self.tree.GetItemText(item)=='host':
+                    p = HostPanel(self.splitter)                    
+                if p:
+                    self.splitter.ReplaceWindow(self.rightPane, p)
+                    self.rightPane.Destroy()
+                    self.rightPane = p
+            event.Skip()
+
+    class MyListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
+        def __init__(self, parent, ID, pos=wx.DefaultPosition,
+                 size=wx.DefaultSize, style=0):
+            wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
+            listmix.ListCtrlAutoWidthMixin.__init__(self)
+
+
+    class ListCtrlPanel(wx.Panel, listmix.ColumnSorterMixin):
+        def __init__(self, parent, headers, data):
+            wx.Panel.__init__(self, parent, -1, style=wx.WANTS_CHARS)
+            #scrolled.ScrolledPanel.__init__(self, parent, -1)
+            tID = wx.NewIdRef()
+
+            sizer = wx.BoxSizer(wx.VERTICAL)
+
+            self.list = MyListCtrl(self, tID,
+                                 style=wx.LC_REPORT
+                                 #| wx.BORDER_SUNKEN
+                                 | wx.BORDER_NONE
+                                 #| wx.LC_EDIT_LABELS
+                                 #| wx.LC_SORT_ASCENDING    # disabling initial auto sort gives a
+                                 #| wx.LC_NO_HEADER         # better illustration of col-click sorting
+                                 #| wx.LC_VRULES
+                                 #| wx.LC_HRULES
+                                 #| wx.LC_SINGLE_SEL
+                                 )
+            self.headers = headers
+            self.data = data
+            sizer.Add(self.list, 1, wx.EXPAND)
+            self.PopulateList()
+
+            # Now that the list exists we can init the other base class,
+            # see wx/lib/mixins/listctrl.py
+            self.SetSizer(sizer)
+            self.SetAutoLayout(True)            
+            #self.SetupScrolling()
+            #self.SetVirtualSize(self.GetBestSize())
+            #self.SetScrollRate(5,5)
+
+        def PopulateList(self):
+            
+            #for normal, simple columns, you can add them like this:
+            i=0
+            for col in self.headers:
+                self.list.InsertColumn(i, col)
+                i+=1
+                #self.list.InsertColumn(1, e", wx.LIST_FORMAT_LEFT)
+                #self.list.InsertColumn(2, "Genre")
+
+            items = self.data.items()
+            for key, data in items:
+                index = self.list.InsertItem(self.list.GetItemCount(), key)
+                if isinstance(data,list):
+                    i=1
+                    for item in data:
+                        self.list.SetItem(index, i, item)
+                        i+=1
+                else:
+                    self.list.SetItem(index, 1, data)
+                if index%2:
+                    self.list.SetItemBackgroundColour(index,wx.LIGHT_GREY)
+                                  
+            for j in range(0,i):
+                self.list.SetColumnWidth(j, wx.LIST_AUTOSIZE)        
+        
+        
+    class HostPanel(scrolled.ScrolledPanel):
+        def __init__(self, parent):
+            #wx.Panel.__init__(self, parent, -1, style=wx.WANTS_CHARS)
+            scrolled.ScrolledPanel.__init__(self, parent,-1, #size=(350, 100),
+                                 style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER, name="hostPanel")
+            sizer = wx.BoxSizer(wx.VERTICAL)
+            #1. Host info ListCtrl
+            hostInfoBox = wx.StaticBox(self, -1, "Host Info")
+            (ec, res, s, c) = system('hostid')
+            d = {}
+            if ec:
+                wx.MessageBox('hostid command exited with error',"Error", wx.OK|wx.ICON_ERROR)                
+            else:
+                d['hostid'] = ''.join(res)
+            (ec, res, s, c) = system('hostname')            
+            if ec:
+                wx.MessageBox('hostname command exited with error',"Error", wx.OK|wx.ICON_ERROR)
+            else:
+                d['hostname'] = ''.join(res)
+            headers = ['Name','Value']
+            hostInfoListCtrl = ListCtrlPanel(hostInfoBox, headers,d)
+            sizer.Add(hostInfoListCtrl, 1, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT)
+            hostInfoBox.SetSizer(sizer)
+            border = wx.BoxSizer(wx.VERTICAL)
+            border.Add(hostInfoBox, 0, wx.EXPAND|wx.ALL, 5)
+            #panel2 = scrolled.ScrolledPanel(self, -1, size=(350, 50),
+            #                     style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER, name="panel2")
+            #2. CPU info ListCtrl
+            d.clear()
+            (ec, res, s, c) = system('uname')
+            _os = res
+            if _os != 'SunOS':
+                f = open('/proc/cpuinfo','r')
+                if f:
+                    cinfo = f.read()
+                    f.close()
+                    clines = cinfo.split('\n')
+                    for l in clines:
+                        l.strip()
+                        if l: 
+                            ll = l.split(':')
+                            d[ll[0]] = ll[1]
+                    cinfoBox = wx.StaticBox(self, -1, "CPU Info")
+                    cpuInfoListCtrl = ListCtrlPanel(cinfoBox, headers,d)
+                    cpuSizer = wx.BoxSizer(wx.VERTICAL)
+                    cpuSizer.Add(cpuInfoListCtrl, 1, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT)
+                    cinfoBox.SetSizer(cpuSizer)
+                    border.Add(cinfoBox, 4, wx.EXPAND|wx.ALL, 5)
+            #3. Kernel Info ListCtrl
+            d.clear()
+            (ec, res, s, c) = system('uname -a')
+            if ec:
+                wx.MessageBox('uname command exited with error',"Error", wx.OK|wx.ICON_ERROR)                
+            else:
+                d['uname'] = ''.join(res)
+            f = open('/proc/cmdline','r')
+            if f:
+                cmdline = f.read()
+                f.close()
+                d['cmdline'] = cmdline.split('\n')[0]
+                kernelInfoBox = wx.StaticBox(self, -1, "Kernel Info")
+                kernelInfoListCtrl = ListCtrlPanel(kernelInfoBox, headers,d)
+                kernelInfoSizer = wx.BoxSizer(wx.VERTICAL)
+                kernelInfoSizer.Add(kernelInfoListCtrl, 1, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT)
+                kernelInfoBox.SetSizer(kernelInfoSizer)
+                border.Add(kernelInfoBox, 0, wx.EXPAND|wx.ALL, 5)
+                
+            #4. Misc system info
+            d.clear()
+            if os.path.exists('/etc/motd'):
+                f = open('/etc/motd','r')
+                if f:
+                    motd = f.read()
+                    f.close()
+                    d['motd'] = motd
+                    miscInfoBox = wx.StaticBox(self, -1, "Misc System Info")
+                    miscInfoListCtrl = ListCtrlPanel(miscInfoBox, headers,d)
+                    miscInfoSizer = wx.BoxSizer(wx.VERTICAL)
+                    miscInfoSizer.Add(miscInfoListCtrl, 1, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT)
+                    miscInfoBox.SetSizer(miscInfoSizer)
+                    border.Add(miscInfoBox, 0, wx.EXPAND|wx.ALL, 5)
+            
+            #5. meminfo
+            d.clear()            
+            if _os != 'SunOS':
+                f = open('/proc/meminfo','r')
+                if f:
+                    meminfo = f.read()
+                    f.close()
+                    mlines = meminfo.split('\n')
+                    for l in mlines:
+                        l.strip()
+                        if l: 
+                            ll = l.split(':')
+                            d[ll[0].strip()] = ll[1].strip()
+                    memInfoBox = wx.StaticBox(self, -1, "Memory Info")
+                    memInfoListCtrl = ListCtrlPanel(memInfoBox, headers,d)
+                    memInfoSizer = wx.BoxSizer(wx.VERTICAL)
+                    memInfoSizer.Add(memInfoListCtrl, 1, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT)
+                    memInfoBox.SetSizer(memInfoSizer)
+                    border.Add(memInfoBox, 4, wx.EXPAND|wx.ALL, 5)
+            
+            #6. Disk info
+            d.clear()
+            if _os != 'SunOS':
+                ec2 = -1  # unknown error
+                (ec, res, s, c) = system('fdisk -l')            
+                if ec == 127:
+                    (ec2, res, s, c) = system('/usr/sbin/fdisk -l')
+                    if ec2:
+                        wx.MessageBox('/usr/sbin/fdisk command exited with error %d'%ec2,"Error", wx.OK|wx.ICON_ERROR)                    
+                if ec==0 or ec2==0:
+                    diskInfoBox = wx.StaticBox(self, -1, "Disk Info")
+                    diskInfoText = wx.StaticText(diskInfoBox,-1,''.join(res))
+                    diskInfoSizer = wx.BoxSizer(wx.VERTICAL)
+                    diskInfoSizer.Add(diskInfoText, 1, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT)
+                    diskInfoBox.SetSizer(diskInfoSizer)
+                    border.Add(diskInfoBox, 2, wx.EXPAND|wx.ALL, 5)
+                elif ec:
+                    wx.MessageBox('fdisk command exited with error %d'%ec,"Error", wx.OK|wx.ICON_ERROR)
+                    
+            #7. Filesystem info
+            d.clear()
+            (ec, res, s, c) = system('df -h')
+            _os = res
+            if not ec:                
+                if 1:
+                    dflines = ''.join(res).split('\n')
+                    i=0
+                    for l in dflines:
+                        l.strip()
+                        if l:
+                            if i==0: # first line is the header
+                                temp = l.split() #Filesystem      Size  Used Avail Use% Mounted on
+                                headers = temp[:len(temp)-2]                                
+                                headers.append(' '.join(temp[-2:]))
+                            else:
+                                ll = l.split() #tmpfs           1,6G  2,1M  1,6G   1% /run                                
+                                d[ll[0]] = ll[1:]
+                        i+=1
+                    fsInfoBox = wx.StaticBox(self, -1, "Filesystem Info")
+                    fsInfoListCtrl = ListCtrlPanel(fsInfoBox, headers,d)
+                    fsInfoSizer = wx.BoxSizer(wx.VERTICAL)
+                    fsInfoSizer.Add(fsInfoListCtrl, 1, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT)
+                    fsInfoBox.SetSizer(fsInfoSizer)
+                    border.Add(fsInfoBox, 2, wx.EXPAND|wx.ALL, 5)
+            
+            #8. Network info
+            d.clear()
+            ec2 = -1 # Unknown error
+            if _os == 'SunOS':
+                (ec, res, s, c) = system('ifconfig -a')
+            else:
+                 (ec, res, s, c) = system('ifconfig')
+            if ec == 127:
+               (ec2, res, s, c) = system('ip a')
+               if ec2:
+                   wx.MessageBox('ip command exited with error %d'%ec2,"Error", wx.OK|wx.ICON_ERROR)
+            if ec==0 or ec2 ==0:
+                networkInfoBox = wx.StaticBox(self, -1, "Network Info")
+                networkInfoText = wx.StaticText(networkInfoBox,-1,''.join(res))
+                networkInfoSizer = wx.BoxSizer(wx.VERTICAL)
+                networkInfoSizer.Add(networkInfoText, 1, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT)
+                networkInfoBox.SetSizer(networkInfoSizer)
+                border.Add(networkInfoBox, 2, wx.EXPAND|wx.ALL, 5)
+            elif ec:
+                wx.MessageBox('ifconfig command exited with error %d'%ec,"Error", wx.OK|wx.ICON_ERROR)   
+                
+            #9. Blade info
+            d.clear()
+            bladeInfoPath = _asp_dir+'/bin/bladeinfo'
+            if os.path.exists(bladeInfoPath):
+                (ec, res, s, c) = system(bladeInfoPath+' -c')
+                if not ec:
+                    (ec, res, s, c) = system(bladeInfoPath+' -a')
+                    bladeInfoBox = wx.StaticBox(self, -1, "Blade Info")
+                    bladeInfoText = wx.StaticText(bladeInfoBox,-1,''.join(res))
+                    bladeInfoSizer = wx.BoxSizer(wx.VERTICAL)
+                    bladeInfoSizer.Add(bladeInfoText, 1, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT)
+                    bladeInfoBox.SetSizer(bladeInfoSizer)
+                    border.Add(bladeInfoBox, 1, wx.EXPAND|wx.ALL, 5)
+                else:
+                    wx.MessageBox('Note: no IPMI driver, so we cannot gather blade info',"Error", wx.OK|wx.ICON_ERROR)
+            else:
+                wx.MessageBox('Note: cannot find bladeinfo script, so cannot extract blade info',"Error", wx.OK|wx.ICON_ERROR)
+                
+            self.SetSizer(border)
+            self.SetAutoLayout(True)            
+            #self.SetupScrolling()
+            self.SetVirtualSize(self.GetBestSize())
+            self.SetScrollRate(10,10)
+
+    class MainFrame(wx.Frame):
+        def __init__(self, *args, **kwargs):
+            wx.Frame.__init__(self, *args, **kwargs)
+
+            #Adding the SplitterWindow
+            splitter = wx.SplitterWindow(self, style=wx.SP_LIVE_UPDATE|wx.SP_3D, size = (1000,600))
+            rightPane = wx.Panel(splitter)
+            # add the left Panel
+            cmdsTreePanel = TreeCtrlPanel(splitter, rightPane)
+
+            # set up the Splitter
+            sash_Position = 300
+            splitter.SplitVertically(cmdsTreePanel, rightPane, sash_Position)
+            min_Pan_size = 40
+            splitter.SetMinimumPaneSize(min_Pan_size)
+
+            self.Fit()
+
+    class MainApp(wx.App):
+        def OnInit(self):
+            frame = MainFrame(None, title='Safplus commands')
+            frame.Show(True)
+            self.SetTopWindow(frame)
+            return True
+
+#app = MyApp(0)
+#app.MainLoop()
 ##
 ## main function
 ##
 def main(argv):
-    global _interactive_shell
+    global _interactive_shell, wxInstalled, windowed
     extend_path()
     
     cli = Cli(HISTORY_FILE)
@@ -2262,7 +2673,7 @@ def main(argv):
 
     import getopt
     try:
-        opts, args = getopt.getopt(argv[1:],'hvc',['help', 'verbose', 'no-colors'])
+        opts, args = getopt.getopt(argv[1:],'hvc',['help', 'verbose', 'no-colors','ui'])
     except getopt.GetoptError:
         usage(1)
     
@@ -2275,20 +2686,28 @@ def main(argv):
         if o in ("-c", "--no-colors"):
             global _do_colors
             _do_colors = False
-            
-    if len(args):
-        t = ' '.join(args)
-        cmds = t.split(",")
-        for c in cmds:
-          cli.onecmd(c)
-        sys.exit(_exit_code)
+        if o in ('-u', '--ui'):
+            if not wxInstalled:
+                print ('wxPython(Phoenix) is not installed. Please install it to run safplus_info in the UI mode')
+            else:
+                windowed = True
+    if not windowed:
+        if len(args):
+            t = ' '.join(args)
+            cmds = t.split(",")
+            for c in cmds:
+                cli.onecmd(c)
+            sys.exit(_exit_code)
+        else:
+            _interactive_shell = True
+            try:
+                cli.cmdloop("Starting interactive prompt (type 'help' for help)")
+            except KeyboardInterrupt:
+                print('Exiting on Ctrl-C')
+        sys.exit(0)
     else:
-        _interactive_shell = True
-        try:
-            cli.cmdloop("Starting interactive prompt (type 'help' for help)")
-        except KeyboardInterrupt:
-            print('Exiting on Ctrl-C')
-    sys.exit(0)
+        app = MainApp(0)
+        app.MainLoop()
 
 asp_run_env = load_asp_run_env()
 sys_asp = init_sys_asp()
