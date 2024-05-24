@@ -2260,6 +2260,7 @@ if wxInstalled:
     import wx
     import wx.lib.mixins.listctrl as listmix
     import wx.lib.scrolledpanel as scrolled
+    import wx.richtext as rt
 
     def get_setup():
         """Show various information on this SAFplus installation (does not need SAFplus running)"""
@@ -2303,6 +2304,287 @@ if wxInstalled:
         if t1 < t2: return -1
         if t1 == t2: return 0
         return 1
+
+    class ForestCmdPanel(wx.Panel):
+        def __init__(self, parent):
+            super().__init__(parent, wx.ID_ANY, style=wx.WANTS_CHARS)
+            self.box = wx.BoxSizer(wx.VERTICAL)
+            self.forest = ForestScrolledPanel(self)
+
+            self.LoadDb()
+
+            sgNames = [sg.value for sg in self.amfDb.ams[0].entities[0].sgs[0].sg]
+            for sgName in sgNames:
+                self.forest.AddSg(sgName, self.amfDb)
+
+            self.box.Add(self.forest, 1, wx.ALL | wx.EXPAND, 0)
+            self.SetSizer(self.box)
+
+        def LoadDb(self):
+            try:
+                self.amfDb = load_amf_db()
+            except DebugCliError as e:
+                wx.MessageBox(str(e), "Error in debug cli", wx.OK, self)
+                return
+            global _amf_db
+            _amf_db = None  # we don't really need the cache here
+
+    class TreeCmdPanel(wx.Panel):
+        def __init__(self, parent):
+            super().__init__(parent, wx.ID_ANY, style=wx.WANTS_CHARS)
+            self.box = wx.BoxSizer(wx.VERTICAL)
+            self.forest = ForestScrolledPanel(self)
+            self.currentSg = None
+
+            self.LoadDb()
+
+            sgNames = [sg.value for sg in self.amfDb.ams[0].entities[0].sgs[0].sg]
+            self.sgChoice = wx.Choice(self, wx.ID_ANY, size = (300, 40),  choices = sgNames)
+            self.sgText = wx.StaticText(self, wx.ID_ANY)
+            self.sgText.SetLabel("Tree view for service group: ")
+
+            self.sgBox = wx.BoxSizer(wx.HORIZONTAL)
+            self.sgBox.Add(self.sgText, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 10)
+            self.sgBox.Add(self.sgChoice, 0, wx.TOP | wx.BOTTOM | wx.EXPAND, 10)
+
+            self.box.Add(self.sgBox, 0, wx.ALL | wx.EXPAND, 0)
+            self.box.Add(self.forest, 1, wx.ALL | wx.EXPAND, 0)
+
+            self.SetSizer(self.box)
+            self.Bind(wx.EVT_CHOICE, self.OnChoose)
+
+        def LoadDb(self):
+            try:
+                self.amfDb = load_amf_db()
+            except DebugCliError as e:
+                wx.MessageBox(str(e), "Error in debug cli", wx.OK, self)
+                return
+            global _amf_db
+            _amf_db = None  # we don't really need the cache here
+
+        def OnChoose(self, event):
+            chosenSg = event.GetString()
+            if chosenSg != self.currentSg:
+                self.currentSg = chosenSg
+                self.LoadDb()
+                self.forest.DestroyChildren()
+                self.forest.AddSg(chosenSg, self.amfDb)
+                self.forest.RefreshDisplay()
+
+    class ForestScrolledPanel(scrolled.ScrolledPanel):
+        def __init__(self, parent):
+            super().__init__(parent, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize)
+            self.vBox = wx.BoxSizer(wx.VERTICAL)    # To manage the size of each tree's children's richTextCtrl widgets
+            self.SetSizer(self.vBox)
+            self.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_DESKTOP))
+
+            self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseScroll)
+            self.SetupScrolling()
+
+        def AddSg(self, sgName, amfDb):
+            sgEnt = self.NameToEntity(sgName, amfDb.ams[0].entities[0].sgs[0].sg)
+
+            sgTc = self.SgTextCtrl(parentWidget = self,
+                                sgName = sgEnt.value,
+                                redundancy = sgEnt.config[0].redundancy_model[0],
+                                adminState = sgEnt.config[0].admin_state[0],
+                                computedAdminState = sgEnt.config[0].computed_admin_state[0])
+
+            sgStatus = sgEnt.status[0]
+            suTypes = ["instantiable_sus", "instantiated_sus", "inservice_spare_sus", "assigned_sus"]
+            allSus = []
+            for suType in suTypes:
+                sgSuStatus = getattr(sgStatus, suType)
+                allSus += sgSuStatus[0].su if sgSuStatus[0] != "0" else []
+
+            nodeSuLut = {}  # nodeName - su entity dict
+            for su in amfDb.ams[0].entities[0].sus[0].su:
+                if su.value in allSus:
+                    nodeName = su.config[0].member_of_node[0]
+                    suList = nodeSuLut.get(nodeName)
+                    if suList:
+                        suList.append(su)
+                    else:
+                        nodeSuLut[nodeName] = [su]
+
+            clusterInfo = get_cluster_info()
+            nodeAddrs = dict([(entry.nodename, entry.nodeaddr) for entry in clusterInfo])
+
+            for node, suList in nodeSuLut.items():
+                nodeTc = self.NodeTextCtrl(parentWidget = self, nodeName = node)
+
+                try:
+                    cpmCompList = get_comps_info(nodeAddrs[node], do_ps=False)
+                except AspError as e:
+                    error = """Command is not available while SAFplus is down (run "status"),
+                    or if another safplus_console is running."""
+                    wx.MessageBox(error, "Error", wx.OK, self)
+                    return
+                except KeyError as e:
+                    continue
+
+                pids = dict([(entry.compname, entry.pid) for entry in cpmCompList])
+
+                for suEnt in suList:
+                    suTc = self.SuTextCtrl(parentWidget = self,
+                                        suName = suEnt.value,
+                                        adminState = suEnt.config[0].admin_state[0],
+                                        computedAdminState = suEnt.config[0].computed_admin_state[0])
+
+                    assignedSis = []
+                    suSisStatus = suEnt.status[0].sis[0]
+                    if suSisStatus != "0":
+                        assignedSis += suSisStatus.si
+
+                    for si in assignedSis:
+                        siTc = self.SiTextCtrl(parentWidget = self,
+                                            siName = si.value,
+                                            haState = si.ha_state[0])
+
+                    compNameList = []
+                    compConfig = suEnt.config[0].components[0]
+                    if compConfig.value != "0":
+                        compNameList += compConfig.comp
+
+                    for compName in compNameList:
+                        compEnt = self.NameToEntity(compName, amfDb.ams[0].entities[0].comps[0].comp)
+                        compTc = self.CompTextCtrl(parentWidget = self,
+                                                compName = compName,
+                                                presenceState = compEnt.status[0].presence_state[0],
+                                                operState = compEnt.status[0].operational_state[0],
+                                                readinessState = compEnt.status[0].readiness_state[0],
+                                                pid = pids[compName])
+
+                        assignedCsi = []
+                        compCsiStatus = compEnt.status[0].csis[0]
+                        if compCsiStatus != "0":
+                            assignedCsi += compCsiStatus.csi
+
+                        for csi in assignedCsi:
+                            csiTc = self.CsiTextCtrl(parentWidget = self,
+                                                    csiName = csi.value,
+                                                    haState = csi.ha_state[0])
+
+        def NameToEntity(self, name, entities):
+            for ent in entities:
+                if ent.value == name:
+                    return ent
+            return None
+
+        def RefreshDisplay(self):
+            self.vBox.Layout()   # force the sizer to reposition children
+            self.SetupScrolling()   # refresh scroll bar
+
+        def OnMouseScroll(self, event):
+            rotation = event.GetWheelRotation()
+            direction = - int(rotation / abs(rotation))
+            self.ScrollLines(direction)
+
+        ##
+        ##  Inner classes
+        ##
+
+        class GenericForestTc(rt.RichTextCtrl):
+            RED = (255, 0, 0)
+            BLUE = (0, 0, 255)
+            FOREST_GREEN = (34, 139, 34)
+
+            def __init__(self, parentWidget, indentLevel):
+                self.parent = parentWidget
+                super().__init__(parentWidget, wx.ID_ANY, size = (1000, 30), style = wx.NO_BORDER)
+
+                parentWidget.vBox.Add(self, 0, wx.LEFT | wx.EXPAND, 50 * indentLevel) # vBox of ForestScrolledPanel
+                self.SetBackgroundColour(wx.Colour(0, 0, 0, 0)) # transparent textCtrl background
+                self.EnableVerticalScrollbar(False)
+                self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseScroll) # redirect event to the ForestScrolledPanel
+
+            def OnMouseScroll(self, event):
+                self.parent.OnMouseScroll(event)
+
+            def WriteAdminState(self, adminState, computedAdminState):
+                self.WriteText("state: ")
+                self.BeginTextColour(self.RED)
+                self.WriteText("{0}/{1}".format(_state_map[adminState], _state_map[computedAdminState]))
+                self.EndTextColour()
+
+            def WriteHaState(self, haState):
+                self.WriteText("state: ")
+                colour = self.RED if haState == "active" else self.BLUE
+                self.BeginTextColour(colour)
+                self.WriteText(haState)
+                self.EndTextColour()
+
+            def WritePid(self, pid):
+                pid = str(pid)
+                self.WriteText("PID: ")
+                self.BeginTextColour(self.FOREST_GREEN)
+                self.WriteText(pid)
+                self.EndTextColour()
+
+            def WriteBold(self, text):
+                self.BeginBold()
+                self.WriteText(text)
+                self.EndBold()
+
+            def WriteItalic(self, text):
+                self.BeginItalic()
+                self.WriteText(text)
+                self.EndItalic()
+
+        class SgTextCtrl(GenericForestTc):
+            def __init__(self, parentWidget, sgName, redundancy, adminState, computedAdminState):
+                super().__init__(parentWidget, indentLevel = 0)
+                try: outRedundancy = _redundancy_map[redundancy]
+                except KeyError: outRedundancy = redundancy
+                self.WriteText("SG ")
+                self.WriteBold(sgName)
+                self.WriteText("(redundancy: {0}, ".format(outRedundancy))
+                self.WriteAdminState(adminState, computedAdminState)
+                self.WriteText(")")
+
+        class NodeTextCtrl(GenericForestTc):
+            def __init__(self, parentWidget, nodeName):
+                super().__init__(parentWidget, indentLevel = 1)
+                self.WriteText("Node ")
+                self.WriteBold(nodeName)
+
+        class SuTextCtrl(GenericForestTc):
+            def __init__(self, parentWidget, suName, adminState, computedAdminState):
+                super().__init__(parentWidget, indentLevel = 2)
+                self.WriteText("SU ")
+                self.WriteBold(suName)
+                self.WriteText(" (")
+                self.WriteAdminState(adminState, computedAdminState)
+                self.WriteText(")")
+
+        class SiTextCtrl(GenericForestTc):
+            def __init__(self, parentWidget, siName, haState):
+                super().__init__(parentWidget, indentLevel = 3)
+                self.WriteText("SI {0}(".format(siName))
+                self.WriteHaState(haState)
+                self.WriteText(")")
+
+        class CompTextCtrl(GenericForestTc):
+            def __init__(self, parentWidget, compName, presenceState, operState, readinessState, pid):
+                super().__init__(parentWidget, indentLevel = 3)
+                self.WriteText("Comp ")
+                self.WriteBold(compName)
+                self.WriteText(" (PS: ")
+                self.WriteItalic(presenceState)
+                self.WriteText(", OS: ")
+                self.WriteItalic(operState)
+                self.WriteText(", RS: ")
+                self.WriteItalic(_readiness_map[readinessState])
+                self.WriteText(", ")
+                self.WritePid(pid)
+                self.WriteText(")")
+
+        class CsiTextCtrl(GenericForestTc):
+            def __init__(self, parentWidget, csiName, haState):
+                super().__init__(parentWidget, indentLevel = 4)
+                self.WriteText("CSI {0}(".format(csiName))
+                self.WriteHaState(haState)
+                self.WriteText(")")
 
     class TreeCtrlPanel(wx.Panel):
         def __init__(self, parent, rightPane):
@@ -2366,6 +2648,10 @@ if wxInstalled:
                     p = ListCtrlPanel(self.splitter, headers, data)                    
                 elif self.tree.GetItemText(item)=='host':
                     p = HostPanel(self.splitter)                    
+                elif self.tree.GetItemText(item)=='forest':
+                    p = ForestCmdPanel(self.splitter)
+                elif self.tree.GetItemText(item)=='tree':
+                    p = TreeCmdPanel(self.splitter)
                 if p:
                     self.splitter.ReplaceWindow(self.rightPane, p)
                     self.rightPane.Destroy()
