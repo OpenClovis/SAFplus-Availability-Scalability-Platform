@@ -59,6 +59,7 @@ from functools import cmp_to_key
 
 windowed = False
 wxInstalled = False
+cli = None
 
 try:
     from lxml import etree as et
@@ -2291,7 +2292,18 @@ if wxInstalled:
         d['gms multicast port']=info['mport']
         return d
 
+    from io import StringIO 
+    import sys
 
+    class Capturing(list):
+        def __enter__(self):
+            self._stdout = sys.stdout
+            sys.stdout = self._stringio = StringIO()
+            return self
+        def __exit__(self, *args):
+            self.extend(self._stringio.getvalue().splitlines())
+            del self._stringio    # free up some memory
+            sys.stdout = self._stdout
 
     class MyTreeCtrl(wx.TreeCtrl):
         def __init__(self, parent, id, pos, size, style):
@@ -2622,7 +2634,7 @@ if wxInstalled:
             self.tree.SetItemImage(self.root, fldridx, wx.TreeItemIcon_Normal)
             self.tree.SetItemImage(self.root, fldropenidx, wx.TreeItemIcon_Expanded)
 
-            cmds = ['status','nodes','cluster','forest','role','sg','sgs','su','sus','tree','safplus','components','lock_i','lock_a','unlock','host','network','setup','uptime']
+            cmds = ['status','nodes','cluster','forest','role','sg','sgs','su','sus','tree','safplus','components','lock_i','lock_a','unlock','host','setup','uptime']
             for c in cmds:
                 child = self.tree.AppendItem(self.root, c)
                 self.tree.SetItemData(child, None)
@@ -2641,16 +2653,25 @@ if wxInstalled:
             pt = event.GetPosition();
             item, flags = self.tree.HitTest(pt)
             if item:
+                itemText = self.tree.GetItemText(item)
                 p = None
-                if self.tree.GetItemText(item)=='setup':
+                if itemText == 'setup':
                     data = get_setup()
                     headers = ['Name','Value']
                     p = ListCtrlPanel(self.splitter, headers, data)                    
-                elif self.tree.GetItemText(item)=='host':
-                    p = HostPanel(self.splitter)                    
-                elif self.tree.GetItemText(item)=='forest':
+                elif itemText=='host':
+                    p = HostPanel(self.splitter)
+                elif itemText=='uptime':
+                    try:
+                        uptime = get_uptime()
+                        wx.MessageBox(uptime,"Uptime", wx.OK|wx.ICON_INFORMATION)
+                    except AspError as e:
+                        wx.MessageBox('Error getting uptime: %s'%str(e),"Error", wx.OK|wx.ICON_ERROR)
+                elif itemText in ['lock_a','lock_i','unlock']:  
+                    p = AdminCmdsPanel(self.splitter, itemText)
+                elif itemText=='forest':
                     p = ForestCmdPanel(self.splitter)
-                elif self.tree.GetItemText(item)=='tree':
+                elif itemText=='tree':
                     p = TreeCmdPanel(self.splitter)
                 if p:
                     self.splitter.ReplaceWindow(self.rightPane, p)
@@ -2916,6 +2937,77 @@ if wxInstalled:
             self.SetVirtualSize(self.GetBestSize())
             self.SetScrollRate(10,10)
 
+    class AdminCmdsPanel(scrolled.ScrolledPanel):
+        def __init__(self, parent, panelName):
+            scrolled.ScrolledPanel.__init__(self, parent,-1,
+                                 style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER, name=panelName)
+            border = wx.BoxSizer(wx.VERTICAL)
+            entTypeSizer = wx.BoxSizer(wx.HORIZONTAL)
+            entTypeText = wx.StaticText(self,-1,'Entity type')
+            print(self.Name)
+            if self.Name == 'lock_a' or self.Name == 'unlock':
+                entTypeList = ['sg', 'su', 'node', 'si']
+            else: #lock_i
+                entTypeList = ['sg', 'su', 'node']                            
+            self.entTypesCb = wx.ComboBox(self, choices=entTypeList, style=wx.CB_DROPDOWN|wx.CB_READONLY)
+            entNameSizer = wx.BoxSizer(wx.HORIZONTAL)
+            entNameText = wx.StaticText(self,-1,'Entity name')
+            self.entNamesCb = wx.ComboBox(self,style=wx.CB_DROPDOWN|wx.CB_READONLY)
+            self.btnOK = wx.Button(self,label='OK')
+            entTypeSizer.Add(entTypeText, 1, wx.EXPAND|wx.ALL, 5)
+            entTypeSizer.Add(self.entTypesCb, 3, wx.EXPAND|wx.ALL, 5)
+            entNameSizer.Add(entNameText, 1, wx.EXPAND|wx.ALL, 5)
+            entNameSizer.Add(self.entNamesCb, 3, wx.EXPAND|wx.ALL, 5)
+                        
+            self.Bind(wx.EVT_COMBOBOX, self.evtComboBox, self.entTypesCb)
+            self.Bind(wx.EVT_BUTTON, self.OnClick, self.btnOK)
+            
+            border.Add(entTypeSizer, 0, wx.EXPAND|wx.ALL, 5)
+            border.Add(entNameSizer, 0, wx.EXPAND|wx.ALL, 5)
+            border.AddStretchSpacer()
+            border.Add(self.btnOK, 0, wx.RIGHT|wx.ALIGN_RIGHT, 10)
+            border.AddSpacer(10)
+            
+            self.SetSizer(border)
+            self.SetAutoLayout(True)            
+            self.SetVirtualSize(self.GetBestSize())
+            self.SetScrollRate(10,10)
+        
+        def fillEntNames(self,ents):
+            self.entNamesCb.Clear()
+            for e in ents:
+                self.entNamesCb.Append(e)
+                
+        def evtComboBox(self, evt):
+            #cb = evt.GetEventObject()
+            #data = cb.GetClientData(evt.GetSelection())
+            #self.log.WriteText('EvtComboBox: %s\nClientData: %s\n' % (evt.GetString(), data))
+            if evt.GetString() == 'sg':
+                ents = get_sg_names()                
+            elif evt.GetString() == 'node':
+                ents = get_node_names()                
+            elif evt.GetString() == 'su':
+                ents = get_su_names()
+            elif evt.GetString() == 'si':
+                ents = get_si_names()
+            else:
+                ents = []
+            self.fillEntNames(ents)
+                
+                
+        def OnClick(self, event):
+            global cli, _exit_code
+            entName = self.entNamesCb.GetStringSelection()
+            if entName and cli:                
+                funcName = 'do_%s'%self.Name
+                args = self.entTypesCb.GetStringSelection()+' '+entName
+                with Capturing() as output:
+                    getattr(cli,funcName)(args)
+                msgIcon = wx.ICON_INFORMATION
+                if _exit_code!=0:
+                    msgIcon = wx.ICON_ERROR
+                wx.MessageBox(''.join(output),self.Name, wx.OK|msgIcon)
+
     class MainFrame(wx.Frame):
         def __init__(self, *args, **kwargs):
             wx.Frame.__init__(self, *args, **kwargs)
@@ -2947,7 +3039,7 @@ if wxInstalled:
 ## main function
 ##
 def main(argv):
-    global _interactive_shell, wxInstalled, windowed
+    global _interactive_shell, wxInstalled, windowed, cli
     extend_path()
     
     cli = Cli(HISTORY_FILE)
