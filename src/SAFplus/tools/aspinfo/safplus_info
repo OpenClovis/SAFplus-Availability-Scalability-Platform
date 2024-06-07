@@ -916,7 +916,7 @@ def get_comps_info(nodeaddr, do_ps=True):
             if not pid:
               c.pid = '-'
             assert len(cells)>=11, 'Expected >=11 fields for running component, got: %s' % str(cells)
-            c.healthy = (cells[10] == 'ALIVE' and 'Y' or 'N')
+            c.healthy = (cells[9] == 'ALIVE' and 'Y' or 'N')
 
             # get extra process information if on local node
             if pid > 0 and do_ps and nodeaddr == get_status_info().nodeaddr:
@@ -2634,7 +2634,7 @@ if wxInstalled:
             self.tree.SetItemImage(self.root, fldridx, wx.TreeItemIcon_Normal)
             self.tree.SetItemImage(self.root, fldropenidx, wx.TreeItemIcon_Expanded)
 
-            cmds = ['status','nodes','cluster','forest','role','sg','sgs','su','sus','tree','safplus','components','lock_i','lock_a','unlock','host','setup','uptime']
+            cmds = ['status','nodes','cluster','forest','role','sg','sgs','su','sus','tree','safplus','components','lock_i','lock_a','unlock','host','setup','uptime','shell']
             for c in cmds:
                 child = self.tree.AppendItem(self.root, c)
                 self.tree.SetItemData(child, None)
@@ -2673,6 +2673,10 @@ if wxInstalled:
                     p = ForestCmdPanel(self.splitter)
                 elif itemText=='tree':
                     p = TreeCmdPanel(self.splitter)
+                elif itemText in ['components','safplus']:  
+                    p = ComponentsPanel(self.splitter, itemText)
+                elif itemText =='shell':  
+                    p = ShellPanel(self.splitter)
                 if p:
                     self.splitter.ReplaceWindow(self.rightPane, p)
                     self.rightPane.Destroy()
@@ -2724,11 +2728,12 @@ if wxInstalled:
             i=0
             for col in self.headers:
                 self.list.InsertColumn(i, col)
-                i+=1
-                #self.list.InsertColumn(1, e", wx.LIST_FORMAT_LEFT)
-                #self.list.InsertColumn(2, "Genre")
-
-            items = self.data.items()
+                i+=1                
+            dictKeys = list(self.data.keys())
+            dictKeys.sort()
+            sorted_data = {i: self.data[i] for i in dictKeys}
+ 
+            items = sorted_data.items()
             for key, data in items:
                 index = self.list.InsertItem(self.list.GetItemCount(), key)
                 if isinstance(data,list):
@@ -2742,8 +2747,7 @@ if wxInstalled:
                     self.list.SetItemBackgroundColour(index,wx.LIGHT_GREY)
                                   
             for j in range(0,i):
-                self.list.SetColumnWidth(j, wx.LIST_AUTOSIZE)        
-        
+                self.list.SetColumnWidth(j, wx.LIST_AUTOSIZE)
         
     class HostPanel(scrolled.ScrolledPanel):
         def __init__(self, parent):
@@ -2982,15 +2986,17 @@ if wxInstalled:
             #cb = evt.GetEventObject()
             #data = cb.GetClientData(evt.GetSelection())
             #self.log.WriteText('EvtComboBox: %s\nClientData: %s\n' % (evt.GetString(), data))
-            if evt.GetString() == 'sg':
-                ents = get_sg_names()                
-            elif evt.GetString() == 'node':
-                ents = get_node_names()                
-            elif evt.GetString() == 'su':
-                ents = get_su_names()
-            elif evt.GetString() == 'si':
-                ents = get_si_names()
-            else:
+            try:
+                if evt.GetString() == 'sg':
+                    ents = get_sg_names()                
+                elif evt.GetString() == 'node':
+                    ents = get_node_names()                
+                elif evt.GetString() == 'su':                
+                    ents = get_su_names()
+                elif evt.GetString() == 'si':
+                    ents = get_si_names()                   
+            except DebugCliError as ex:
+                wx.MessageBox(str(ex),self.Name, wx.OK|wx.ICON_ERROR)
                 ents = []
             self.fillEntNames(ents)
                 
@@ -3007,6 +3013,91 @@ if wxInstalled:
                 if _exit_code!=0:
                     msgIcon = wx.ICON_ERROR
                 wx.MessageBox(''.join(output),self.Name, wx.OK|msgIcon)
+ 
+    class ComponentsPanel(scrolled.ScrolledPanel):
+        def __init__(self, parent, panelName):
+            scrolled.ScrolledPanel.__init__(self, parent,-1,
+                                 style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER, name=panelName)
+            sizer = wx.BoxSizer(wx.VERTICAL)
+            headers = ['COMPNAME','RUNNING','PID','HEALTHY','COMMAND','%CPU','THREADS','RSS','VSZ']            
+            try:
+                comps = get_comps_info(get_status_info().nodeaddr)
+            except AspError as e:
+                wx.MessageBox('Command is not available while SAFplus is down (run "status")\n or if another safplus_console is running', 'Error', wx.OK|wx.ICON_ERROR)
+                return
+            asp_comps = ['corServer', 'faultServer', 'eventServer',
+                     'nameServer', 'txnServer', 'gmsServer',
+                     'alarmServer', 'logServer', 'ckptServer',
+                     'cmServer', 'msgServer']
+            node_name = load_asp_conf().NODENAME
+            asp_comps = ['_'.join([e, node_name]) for e in asp_comps]
+            if self.Name == 'safplus':
+                comps = [c for c in comps if c.compname in asp_comps]
+            else:
+                comps = [c for c in comps if not c.compname in asp_comps]
+            d={}
+            for c in comps:
+                d[c.compname]=[c.running,c.pid,c.healthy,c.command,c.cpu,c.threads,c.rss,c.vsz]
+            compsInfoListCtrl = ListCtrlPanel(self, headers,d)
+            self.formatListCtrl(compsInfoListCtrl.list)
+            sizer.Add(compsInfoListCtrl, 5, wx.EXPAND|wx.ALL, 5)
+            self.SetSizer(sizer)
+            self.SetAutoLayout(True)            
+            self.SetVirtualSize(self.GetBestSize())
+            self.SetScrollRate(10,10)        
+        
+        def formatListCtrl(self, listCtrl):
+            #print('DBG: items count:%d, col count:%d'%(listCtrl.GetItemCount(), listCtrl.GetColumnCount()))
+            #font_bold = wx.Font(wx.FontInfo(12).Bold())
+            #head_txt_colr = wx.Colour('BLACK')
+            #head_bac_colr = wx.Colour('DARK GREY')
+   
+            # Currently it is implemented only for wxMSW and
+            # does nothing in the other ports       
+            #listCtrl.SetHeaderAttr(wx.ItemAttr(head_txt_colr,
+            #                                   head_bac_colr,
+            #                                   font_bold))
+            #hdrAttr = wx.ItemAttr()
+            #hdrAttr.SetFont(wx.Font(wx.FontInfo(12).Bold()))
+            #listCtrl.SetHeaderAttr(hdrAttr)
+            for i in range(0, listCtrl.GetColumnCount()):
+                if i==0 or i==4:
+                    listCtrl.SetColumnWidth(i, 250)
+                else:
+                    listCtrl.SetColumnWidth(i, 100)                            
+            for i in range(0,listCtrl.GetItemCount()):
+                listItem = listCtrl.GetItem(i)
+                #print(listCtrl.GetItem(i,1).GetText())
+                if listCtrl.GetItem(i,1).GetText()=='Y':
+                    #print('comp is running')
+                    #font = listItem.GetFont()
+                    #listItem.SetFont(font.Bold)
+                    listCtrl.SetItemFont(i, wx.Font(wx.FontInfo(12).Bold()))
+                    listCtrl.SetItemTextColour(i, wx.RED)
+
+    class ShellPanel(wx.Panel):
+        def __init__(self, parent):
+            wx.Panel.__init__(self, parent, -1, style=wx.WANTS_CHARS)
+            sizer = wx.BoxSizer(wx.VERTICAL)
+            #prompt = ''
+            self.shellText = wx.TextCtrl(self,-1,style=wx.TE_MULTILINE|wx.TE_PROCESS_ENTER)
+            self.Bind(wx.EVT_TEXT_ENTER, self.EvtTextEnter, self.shellText)
+            sizer.Add(self.shellText, 5, wx.EXPAND|wx.ALL, 5)
+            self.fromSel = 0# len(prompt)
+            self.toSel = 0
+            self.SetSizer(sizer)
+            
+        def EvtTextEnter(self, event):            
+            global cli
+            self.toSel = self.shellText.GetLastPosition()            
+            funcName = 'do_shell'
+            args = self.shellText.GetRange(self.fromSel,self.toSel)
+            with Capturing() as output:
+                getattr(cli,funcName)(args)           
+            self.shellText.AppendText('\n'+'\n'.join(output))
+            self.fromSel = self.shellText.GetLastPosition()
+            event.Skip()
+    
 
     class MainFrame(wx.Frame):
         def __init__(self, *args, **kwargs):
