@@ -3040,9 +3040,10 @@ if wxInstalled:
 
 
     class ListCtrlPanel(wx.Panel, listmix.ColumnSorterMixin):
-        def __init__(self, parent, headers=[], data={}, noAutoColSize=False):
+        def __init__(self, parent, headers=[], data={}, noAutoColSize=False, noSort=True):
             wx.Panel.__init__(self, parent, -1, style=wx.WANTS_CHARS)
             self.noAutoColSize = noAutoColSize
+            self.noSort = noSort
             #scrolled.ScrolledPanel.__init__(self, parent, -1)
             tID = wx.NewIdRef()
 
@@ -3085,10 +3086,11 @@ if wxInstalled:
 
         def PopulateList(self):           
             dictKeys = list(self.data.keys())
-            dictKeys.sort()
-            sorted_data = {i: self.data[i] for i in dictKeys}
+            if not self.noSort:
+                dictKeys.sort()
+            _data = {i: self.data[i] for i in dictKeys}
  
-            items = sorted_data.items()
+            items = _data.items()
             for key, data in items:
                 index = self.list.InsertItem(self.list.GetItemCount(), key)
                 if isinstance(data,list):
@@ -3390,7 +3392,7 @@ if wxInstalled:
             d={}
             for c in comps:
                 d[c.compname]=[c.running,c.pid,c.healthy,c.command,c.cpu,c.threads,c.rss,c.vsz]
-            compsInfoListCtrl = ListCtrlPanel(self, headers,d,True)
+            compsInfoListCtrl = ListCtrlPanel(self, headers,d,True,False)
             self.formatListCtrl(compsInfoListCtrl.list)
             sizer.Add(compsInfoListCtrl, 5, wx.EXPAND|wx.ALL, 5)
             self.SetSizer(sizer)
@@ -3438,10 +3440,10 @@ if wxInstalled:
             nodeSizer.Add(self.nodesCb, 3, wx.EXPAND|wx.ALL, 5)
             sizer.Add(nodeSizer, 0, wx.EXPAND|wx.ALL, 5)
             self.fillNodes()
-            self.Bind(wx.EVT_COMBOBOX, self.evtComboBox, self.nodesCb)
+            self.nodesCb.Bind(wx.EVT_COMBOBOX, self.evtComboBox)
             
             headers = ['SU NAME','MEMBER OF SG','ON NODE','ADMIN STATE','COMPUTED ADMIN STATE','PRESENCE STATE','OPERATIONAL STATE','READINESS STATE','# OF INSTANTIATED COMP','ASSIGNED SIS']
-            self.susListCtrl = ListCtrlPanel(self, headers,{},True)
+            self.susListCtrl = ListCtrlPanel(self, headers,{},True,False)
             self.formatListCtrl(self.susListCtrl.list, False)
             sizer.Add(self.susListCtrl, 3, wx.EXPAND|wx.ALL, 5)
             self.SetSizer(sizer)
@@ -3454,13 +3456,16 @@ if wxInstalled:
                 wx.MessageBox(str(ex),self.Name, wx.OK|wx.ICON_ERROR)
                 ents = []
             for e in ents:
-                self.nodesCb.Append(e)            
+                self.nodesCb.Append(e)
+            idx = self.nodesCb.FindString(get_node_info_from_cpm().nodename)
+            if idx != wx.NOT_FOUND:
+                self.nodesCb.Selection = idx
+                wx.PostEvent(self.nodesCb, wx.CommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED)) 
                 
         def evtComboBox(self, evt):
-            if evt.GetString() == 'all':
+            nodeName = self.nodesCb.GetStringSelection()
+            if nodeName == 'all':
                 nodeName = None
-            else:
-                nodeName = evt.GetString()
             try:
                 sus = get_sus_info(nodename=nodeName)
             except AspError as e:
