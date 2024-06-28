@@ -2264,6 +2264,7 @@ if wxInstalled:
     import wx.richtext as rt
     import wx.lib.agw.pygauge as pg
     import threading
+    import math
 
     kSplitterId = -1
 
@@ -2300,7 +2301,7 @@ if wxInstalled:
         try:
             info = get_status_info()
         except AspError as e:
-            wx.MessageBox(str(e), "Error when getting SAFplus info", wx.OK)
+            wx.MessageBox(str(e), "Error when getting SAFplus info", wx.OK | wx.ICON_ERROR)
             return {}
         nodeStatus = {}
         nodeStatus["SAFplus run status"] = info.status
@@ -2308,7 +2309,7 @@ if wxInstalled:
         nodeStatus["actual node address"] = info.nodeaddr
         try: tipc = get_tipc_live_node_info()
         except AspError as e:
-            wx.MessageBox(str(e), "Error when getting tipc info", wx.OK)
+            wx.MessageBox(str(e), "Error when getting tipc info", wx.OK | wx.ICON_ERROR)
             return nodeStatus
         nodeStatus["tipc kernel module"] = tipc["module"]
         nodeStatus["tipc network id"] = tipc["netid"]
@@ -2367,10 +2368,10 @@ if wxInstalled:
             self.box = wx.BoxSizer(wx.HORIZONTAL)
             data = get_status()
             headers = ["Status", "Value"]
-            self.listStatus = ListCtrlPanel(self, headers, data)
-            self.listStatus.list.SetItemTextColour(0, wx.RED)
+            self.StatusInfo = ListCtrlPanel(self, headers, data)
+            self.StatusInfo.list.SetItemTextColour(0, wx.RED)
 
-            self.box.Add(self.listStatus, 1, wx.ALL | wx.EXPAND, 0)
+            self.box.Add(self.StatusInfo, 1, wx.ALL | wx.EXPAND, 0)
             self.SetSizer(self.box)
 
     class NodesCmdPanel(wx.Panel):
@@ -2379,32 +2380,36 @@ if wxInstalled:
             self.box = wx.BoxSizer(wx.HORIZONTAL)
             data = self.getNodesData()
             headers = ["NODE", "CLASS", "AS", "CAS", "PS", "OS", "INSTANTIABLE", "CLUSTER-MEMBER", "ISU", "ASU"]
-            self.listStatus = ListCtrlPanel(self, headers, data)
+            self.nodeList = ListCtrlPanel(self, headers, data, True, False)
 
             for column in range(0, len(headers)):
-                self.listStatus.list.SetColumnWidth(column, wx.LIST_AUTOSIZE_USEHEADER)
+                self.nodeList.list.SetColumnWidth(column, wx.LIST_AUTOSIZE_USEHEADER)
 
-            for rowIdx, nodeName in enumerate(data):
-                CAS_IDX = 2
-                NEMBER_IDX = 6
-                nodeData = data[nodeName]
-                if nodeData[NEMBER_IDX] != 'Y':
+            for rowIdx in range(0, len(data)):
+                CAS_IDX = 3
+                NEMBER_IDX = 7
+                isMember = self.nodeList.list.GetItem(rowIdx, NEMBER_IDX).GetText()
+                computedAdminState = self.nodeList.list.GetItem(rowIdx, CAS_IDX).GetText()
+                if isMember != 'Y':
                     continue
                 else:
-                    if nodeData[CAS_IDX] == 'UL':
-                        self.listStatus.list.SetItemTextColour(rowIdx, wx.RED)
-                    elif nodeData[CAS_IDX] == 'LA':
-                        self.listStatus.list.SetItemTextColour(rowIdx, wx.YELLOW)
+                    if computedAdminState == 'UL':
+                        self.nodeList.list.SetItemTextColour(rowIdx, wx.RED)
+                    elif computedAdminState == 'LA':
+                        self.nodeList.list.SetItemTextColour(rowIdx, wx.YELLOW)
 
-            self.box.Add(self.listStatus, 1, wx.ALL | wx.EXPAND, 0)
+            self.box.Add(self.nodeList, 1, wx.ALL | wx.EXPAND, 0)
             self.SetSizer(self.box)
 
         def getNodesData(self):
             # Turn node info dot obj into a dict suitable for ListCtrlPanel
-            nodeInfo = get_nodes_info()
-            clear_db_cache()
-            nodeInfo.sort(key=cmp_to_key(lambda x,y: cmp(x.nodename, y.nodename)))
             result = {}
+            try:
+                nodeInfo = get_nodes_info()
+            except DebugCliError as e:
+                wx.MessageBox(str(e), "Error in debug cli", wx.OK | wx.ICON_ERROR, self)
+                return result
+            clear_db_cache()
             for node in nodeInfo:
                 result[node.nodename] = [value for attrib, value in node.items() if attrib != "nodename"]
             return result
@@ -2415,26 +2420,29 @@ if wxInstalled:
             self.box = wx.BoxSizer(wx.HORIZONTAL)
             data = self.getClusterData()
             headers = ["NODE-NAME", "NODE-ADDR", "NODE-TYPE", "HA-STATE", "NOTE"]
-            self.listStatus = ListCtrlPanel(self, headers, data)
+            self.clusterInfo = ListCtrlPanel(self, headers, data, True, False)
 
             for column in range(0, len(headers)):
-                self.listStatus.list.SetColumnWidth(column, wx.LIST_AUTOSIZE_USEHEADER)
+                self.clusterInfo.list.SetColumnWidth(column, wx.LIST_AUTOSIZE_USEHEADER)
 
-            for rowIdx, nodeName in enumerate(data):
-                HA_STATE_IDX = 2
-                nodeData = data[nodeName]
-                if nodeData[HA_STATE_IDX] == "active":
-                    self.listStatus.list.SetItemTextColour(rowIdx, wx.RED)
+            for rowIdx in range(0, len(data)):
+                HA_STATE_IDX = 3
+                haState = self.clusterInfo.list.GetItem(rowIdx, HA_STATE_IDX).GetText()
+                if haState == "active":
+                    self.clusterInfo.list.SetItemTextColour(rowIdx, wx.RED)
 
-            self.box.Add(self.listStatus, 1, wx.ALL | wx.EXPAND, 0)
+            self.box.Add(self.clusterInfo, 1, wx.ALL | wx.EXPAND, 0)
             self.SetSizer(self.box)
 
         def getClusterData(self):
             # Turn cluster info dot obj into a dict suitable for ListCtrlPanel
-            clusterInfo = get_cluster_info()
-            clear_db_cache()
-            clusterInfo.sort(key=cmp_to_key(lambda x,y: cmp(int(x.nodeaddr), int(y.nodeaddr))))
             result = {}
+            try:
+                clusterInfo = get_cluster_info()
+            except DebugCliError as e:
+                wx.MessageBox(str(e), "Error in debug cli", wx.OK | wx.ICON_ERROR, self)
+                return result
+            clear_db_cache()
             for node in clusterInfo:
                 nodeData = [value for attrib, value in node.items() if attrib != "nodename"]
                 if node.nodename == get_node_info_from_cpm().nodename:
@@ -2447,8 +2455,11 @@ if wxInstalled:
             super().__init__(parent, wx.ID_ANY, style=wx.WANTS_CHARS)
             self.box = wx.BoxSizer(wx.VERTICAL)
             self.forest = ForestScrolledPanel(self)
+            self.amfDb = None
 
             self.LoadDb()
+            if not self.amfDb:
+                return
 
             sgNames = [sg.value for sg in self.amfDb.ams[0].entities[0].sgs[0].sg]
             self.forest.LoadManySgAsync(sgNames, self.amfDb)
@@ -2460,7 +2471,7 @@ if wxInstalled:
             try:
                 self.amfDb = load_amf_db()
             except DebugCliError as e:
-                wx.MessageBox(str(e), "Error in debug cli", wx.OK, self)
+                wx.MessageBox(str(e), "Error in debug cli", wx.OK | wx.ICON_ERROR, self)
                 return
             clear_db_cache()
 
@@ -2470,8 +2481,11 @@ if wxInstalled:
             self.box = wx.BoxSizer(wx.VERTICAL)
             self.forest = ForestScrolledPanel(self)
             self.currentSg = None
+            self.amfDb = None
 
             self.LoadDb()
+            if not self.amfDb:
+                return
 
             sgNames = [sg.value for sg in self.amfDb.ams[0].entities[0].sgs[0].sg]
             self.sgChoice = wx.Choice(self, wx.ID_ANY, size = (300, 40),  choices = sgNames)
@@ -2492,7 +2506,7 @@ if wxInstalled:
             try:
                 self.amfDb = load_amf_db()
             except DebugCliError as e:
-                wx.MessageBox(str(e), "Error in debug cli", wx.OK, self)
+                wx.MessageBox(str(e), "Error in debug cli", wx.OK | wx.ICON_ERROR, self)
                 return
             clear_db_cache()
 
@@ -2764,7 +2778,7 @@ if wxInstalled:
             except AspError as e:
                 error = """Command is not available while SAFplus is down (run "status"),
                 or if another safplus_console is running."""
-                wx.CallAfter(wx.MessageBox, error, "Error", wx.OK, self)
+                wx.CallAfter(wx.MessageBox, error, "Error", wx.OK | wx.ICON_ERROR, self)
                 raise self.AbortException
             except KeyError as e:
                 return None
@@ -2939,6 +2953,198 @@ if wxInstalled:
                 self.WriteHaState(haState)
                 self.WriteText(")")
 
+    class RoleCmdPanel(wx.Panel):
+        def __init__(self, parent):
+            super().__init__(parent, wx.ID_ANY, style=wx.WANTS_CHARS)
+            self.box = wx.BoxSizer(wx.HORIZONTAL)
+            data = self.GetMyRole()
+            headers = ["Status", "Value"]
+            self.myStatus = ListCtrlPanel(self, headers, data, False)
+            haState = data["controller ha state"]
+            if haState == "active":
+                self.myStatus.list.SetItemTextColour(0, wx.RED)
+            elif haState == "standby":
+                self.myStatus.list.SetItemTextColour(0, wx.YELLOW)
+
+            self.box.Add(self.myStatus, 1, wx.ALL | wx.EXPAND, 0)
+            self.SetSizer(self.box)
+
+        def GetMyRole(self):
+            result = {}
+            try:
+                info = get_status_info()
+            except AspError as e:
+                error(str(e))
+                return 0
+
+            nodetype = get_node_info_from_cpm().nodetype
+            haState = "n/a"
+
+            if nodetype == 'controller' and info.status == 'up':
+                amf_db = load_amf_db()
+                clear_db_cache()
+                thisNode = None
+                for node in amf_db.cpm[0].node:
+                    if node.value == info.nodename:
+                        thisNode = node
+                if not thisNode:
+                    wx.MessageBox("could not find own name [{0}] in amf xml dump file".format(info.nodename), "Error", wx.OK | wx.ICON_ERROR, self)
+                    return result
+                haState = node.ha_state[0]
+
+            result["node instance name"] = info.nodename
+            result["node type"] = nodetype
+            result["controller ha state"] = haState
+            return result
+
+    class SgsCmdPanel(wx.Panel):
+        def __init__(self, parent):
+            super().__init__(parent, wx.ID_ANY, style=wx.WANTS_CHARS)
+            self.box = wx.BoxSizer(wx.HORIZONTAL)
+            data = self.getSgsData()
+            headers = ["SG-NAME", "REDUND", "AS", "CAS", "A-SUS", "S-SUS", "STARTED"]
+            self.sgList = ListCtrlPanel(self, headers, data, True, False)
+
+            self.sgList.list.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+            for column in range(1, len(headers)):
+                self.sgList.list.SetColumnWidth(column, wx.LIST_AUTOSIZE_USEHEADER)
+
+            for rowIdx in range(0, len(data)):
+                CAS_IDX = 3
+                computedAdminState = self.sgList.list.GetItem(rowIdx, CAS_IDX).GetText()
+                if computedAdminState == 'UL':
+                    self.sgList.list.SetItemTextColour(rowIdx, wx.RED)
+                elif computedAdminState == 'LA':
+                    self.sgList.list.SetItemTextColour(rowIdx, wx.YELLOW)
+
+            self.box.Add(self.sgList, 1, wx.ALL | wx.EXPAND, 0)
+            self.SetSizer(self.box)
+
+        def getSgsData(self):
+            result = {}
+            try:
+                sgs = get_sgs_info()
+            except DebugCliError as e:
+                wx.MessageBox(str(e), "Error in debug cli", wx.OK | wx.ICON_ERROR, self)
+                return result
+            except AspError as e:
+                wx.MessageBox("Command is not available while SAFplus is down (run 'status'), or if another safplus_console is running", "Error", wx.OK | wx.ICON_ERROR, self)
+                return result
+            clear_db_cache()
+            for sg in sgs:
+                result[sg.sgname] = [value for attrib, value in sg.items() if attrib != "sgname"]
+            return result
+
+    class SgCmdPanel(wx.Panel):
+        def __init__(self, parent):
+            super().__init__(parent, wx.ID_ANY, style=wx.WANTS_CHARS)
+            self.amfDb = None
+            self.LoadDb()
+
+            self.box = wx.BoxSizer(wx.VERTICAL)
+            headers = ["Status", "Value"]
+            self.sgInfo = ListCtrlPanel(self, headers, {})
+            self.currentSg = None
+
+            sgNames = [sg.value for sg in self.amfDb.ams[0].entities[0].sgs[0].sg] if self.amfDb else []
+            self.sgChoice = wx.Choice(self, wx.ID_ANY, size = (300, 40),  choices = sgNames)
+            self.sgText = wx.StaticText(self, wx.ID_ANY)
+            self.sgText.SetLabel("Details for service group: ")
+
+            self.sgBox = wx.BoxSizer(wx.HORIZONTAL)
+            self.sgBox.Add(self.sgText, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 10)
+            self.sgBox.Add(self.sgChoice, 0, wx.TOP | wx.BOTTOM | wx.EXPAND, 10)
+
+            self.box.Add(self.sgBox, 0, wx.ALL | wx.EXPAND, 0)
+            self.box.Add(self.sgInfo, 1, wx.ALL | wx.EXPAND, 0)
+
+            self.SetSizer(self.box)
+            self.Bind(wx.EVT_CHOICE, self.OnChoose)
+
+        def LoadDb(self):
+            try:
+                self.amfDb = load_amf_db()
+            except DebugCliError as e:
+                wx.MessageBox(str(e), "Error in debug cli", wx.OK | wx.ICON_ERROR, self)
+                return
+            clear_db_cache()
+
+        def GetSgEntity(self, sgName):
+            for sg in self.amfDb.ams[0].entities[0].sgs[0].sg:
+                if sgName == sg.value:
+                    return sg
+            return None
+
+        def GetSgInfo(self, sgName):
+            self.LoadDb()
+            sg = self.GetSgEntity(sgName)
+            if not sg:
+                wx.MessageBox(str(e), "Error", wx.OK | wx.ICON_ERROR, self)
+                return
+
+            data = {
+                "sg name" : sg.value,
+                "admin state" : sg.config[0].admin_state[0],
+                "computed admin state" : sg.config[0].computed_admin_state[0],
+                "redundancy model" : sg.config[0].redundancy_model[0],
+                "failback option" : sg.config[0].failback_option[0],
+                "autorepair" : sg.config[0].autorepair[0],
+                "preferred active SUs" : sg.config[0].preferred_active_sus[0],
+                "preferred standby SUs" : sg.config[0].preferred_standby_sus[0],
+                "preferred inservice SUs" : sg.config[0].preferred_inservice_sus[0],
+                "preferred assigned SUs" : sg.config[0].preferred_assigned_sus[0],
+                "collocation allowed" : sg.config[0].collocation_allowed[0],
+                "started" : sg.status[0].is_started[0]
+            }
+
+            suLut = [
+                ("instantiable SUs", sg.status[0].instantiable_sus[0]),
+                ("instantiated SUs", sg.status[0].instantiated_sus[0]),
+                ("inservice spare SUs", sg.status[0].inservice_spare_sus[0]),
+                ("assigned SUs", sg.status[0].assigned_sus[0])
+            ]
+
+            for entry in suLut:
+                (suType, suList) = entry
+                if suList != "0":
+                    data[suType] = suList.su[0]
+                    for otherSu in suList.su[1:]:
+                        data[""] = otherSu  # put other sus in diffrent rows
+                else:
+                    data[suType] = "-"
+
+            data["current active SUs"] = sg.status[0].current_active_sus[0]
+            data["current standby SUs"] = sg.status[0].current_standby_sus[0]
+            return data
+
+        def DisplaySgInfo(self, sgData):
+            self.sgInfo.data.clear()
+            self.sgInfo.list.DeleteAllItems()
+            self.sgInfo.data = sgData
+            self.sgInfo.PopulateList()
+
+            for rowIdx in range(0, len(sgData)):
+                attrib = self.sgInfo.list.GetItem(rowIdx, 0).GetText()
+                if "admin state" in attrib:
+                    self.sgInfo.list.SetItemTextColour(rowIdx, wx.RED)
+                elif attrib == "sg name":
+                    self.sgInfo.list.SetItemFont(rowIdx, wx.Font(wx.FontInfo(12).Bold()))
+                elif attrib == "started":
+                    value = self.sgInfo.list.GetItem(rowIdx, 1).GetText()
+                    if value == "True":
+                        self.sgInfo.list.SetItemTextColour(rowIdx, wx.RED)
+
+            valColWidth = self.sgInfo.list.GetColumnWidth(1)
+            self.sgInfo.list.SetColumnWidth(1, math.ceil(valColWidth + valColWidth * 0.3))
+            self.sgInfo.list.Update()
+
+        def OnChoose(self, event):
+            chosenSg = event.GetString()
+            if chosenSg != self.currentSg:
+                self.currentSg = chosenSg
+                data = self.GetSgInfo(chosenSg)
+                self.DisplaySgInfo(data)
+
     class TreeCtrlPanel(wx.Panel):
         def __init__(self, parent, rightPane):
             # Use the WANTS_CHARS style so the panel doesn't eat the Return key.
@@ -3026,6 +3232,12 @@ if wxInstalled:
                     p = NodesCmdPanel(self.splitter)
                 elif itemText =='cluster':
                     p = ClusterCmdPanel(self.splitter)
+                elif itemText =='role':
+                    p = RoleCmdPanel(self.splitter)
+                elif itemText =='sgs':
+                    p = SgsCmdPanel(self.splitter)
+                elif itemText =='sg':
+                    p = SgCmdPanel(self.splitter)
                 if p:
                     self.splitter.ReplaceWindow(self.rightPane, p)
                     self.rightPane.Destroy()
