@@ -572,7 +572,7 @@ def asp_console_execute(cmds, use_file=False):
         if output.find('instance is already running') >= 0:
             raise DebugCliError('Another safplus_console is already running on this node')
         else:
-            raise DebugCliError('Could run safplus_console: %s' % output)
+            raise DebugCliError('Could not run safplus_console: %s' % output)
     
     if use_file:
         f = open(out_file, 'r')
@@ -3016,9 +3016,18 @@ if wxInstalled:
                     self.sgList.list.SetItemTextColour(rowIdx, wx.RED)
                 elif computedAdminState == 'LA':
                     self.sgList.list.SetItemTextColour(rowIdx, wx.YELLOW)
-
+            self.sgList.list.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onItemClicked)
             self.box.Add(self.sgList, 1, wx.ALL | wx.EXPAND, 0)
             self.SetSizer(self.box)
+            
+        def onItemClicked(self, event):
+            treePanel = self.Parent.GetWindow1()
+            itemToSelect = treePanel.getItemByLabel('sg')
+            if itemToSelect:
+                tree = self.Parent.GetWindow1().tree
+                treePanel.sgToSelect = event.GetText()
+                wx.PostEvent(tree, wx.TreeEvent(wx.wxEVT_TREE_ITEM_ACTIVATED, tree, itemToSelect))
+
 
         def getSgsData(self):
             result = {}
@@ -3036,7 +3045,7 @@ if wxInstalled:
             return result
 
     class SgCmdPanel(wx.Panel):
-        def __init__(self, parent):
+        def __init__(self, parent, itemToSelect=None):
             super().__init__(parent, wx.ID_ANY, style=wx.WANTS_CHARS)
             self.amfDb = None
             self.LoadDb()
@@ -3059,7 +3068,14 @@ if wxInstalled:
             self.box.Add(self.sgInfo, 1, wx.ALL | wx.EXPAND, 0)
 
             self.SetSizer(self.box)
-            self.Bind(wx.EVT_CHOICE, self.OnChoose)
+            #self.Bind(wx.EVT_COMBOBOX, self.OnChoose)
+            self.sgChoice.Bind(wx.EVT_CHOICE, self.OnChoose)
+
+            if itemToSelect:
+                idx = self.sgChoice.FindString(itemToSelect)
+                if idx != wx.NOT_FOUND:
+                    self.sgChoice.Selection = idx
+                    wx.PostEvent(self.sgChoice, wx.CommandEvent(wx.wxEVT_CHOICE))
 
         def LoadDb(self):
             try:
@@ -3079,7 +3095,7 @@ if wxInstalled:
             self.LoadDb()
             sg = self.GetSgEntity(sgName)
             if not sg:
-                wx.MessageBox(str(e), "Error", wx.OK | wx.ICON_ERROR, self)
+                wx.MessageBox("Entity: %s not found"%sgName, "Error", wx.OK | wx.ICON_ERROR, self)
                 return
 
             data = {
@@ -3139,7 +3155,7 @@ if wxInstalled:
             self.sgInfo.list.Update()
 
         def OnChoose(self, event):
-            chosenSg = event.GetString()
+            chosenSg = self.sgChoice.GetStringSelection()
             if chosenSg != self.currentSg:
                 self.currentSg = chosenSg
                 data = self.GetSgInfo(chosenSg)
@@ -3190,15 +3206,26 @@ if wxInstalled:
 
             self.tree.Expand(self.root)
 
-            self.tree.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
+            #self.tree.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
+            self.tree.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnLeftDClick)
+            self.sgToSelect = None
+
+        def getItemByLabel(self, label):
+            item,cookie = self.tree.GetFirstChild(self.root)
+            while item.IsOk():
+                if self.tree.GetItemText(item) == label:
+                    return item
+                item,cookie = self.tree.GetNextChild(self.root, cookie)
+            return None
 
         def OnSize(self, event):
             w,h = self.GetClientSize()
             self.tree.SetSize(0, 0, w, h)
 
         def OnLeftDClick(self, event):
-            pt = event.GetPosition();
-            item, flags = self.tree.HitTest(pt)
+            #pt = event.GetPosition();
+            #item, flags = self.tree.HitTest(pt)
+            item = event.GetItem()
             if item:
                 itemText = self.tree.GetItemText(item)
                 p = None
@@ -3237,7 +3264,8 @@ if wxInstalled:
                 elif itemText =='sgs':
                     p = SgsCmdPanel(self.splitter)
                 elif itemText =='sg':
-                    p = SgCmdPanel(self.splitter)
+                    p = SgCmdPanel(self.splitter, self.sgToSelect)
+                    self.sgToSelect = None
                 if p:
                     self.splitter.ReplaceWindow(self.rightPane, p)
                     self.rightPane.Destroy()
