@@ -2260,6 +2260,7 @@ echo_cmd = '/bin/echo'
 if wxInstalled:
     import wx
     import wx.lib.mixins.listctrl as listmix
+    import wx.lib.agw.ultimatelistctrl as ULC
     import wx.lib.scrolledpanel as scrolled
     import wx.richtext as rt
     import wx.lib.agw.pygauge as pg
@@ -3097,6 +3098,26 @@ if wxInstalled:
             if not sg:
                 wx.MessageBox("Entity: %s not found"%sgName, "Error", wx.OK | wx.ICON_ERROR, self)
                 return
+                
+            sus = sg.status[0].instantiable_sus[0]
+            if sus == '0':  sus = ['-']
+            else:           sus = sus.su
+            instantiableSUs ='\n'.join(sus)
+            
+            sus = sg.status[0].instantiated_sus[0]
+            if sus == '0':  sus = ['-']
+            else:           sus = sus.su
+            instantiatedSUs = '\n'.join(sus)
+            
+            sus = sg.status[0].inservice_spare_sus[0]
+            if sus == '0':  sus = ['-']
+            else:           sus = sus.su
+            inserviceSpareSUs ='\n'.join(sus)
+            
+            sus = sg.status[0].assigned_sus[0]
+            if sus == '0':  sus = ['-']
+            else:           sus = sus.su
+            assignedSUs ='\n'.join(sus)
 
             data = {
                 "sg name" : sg.value,
@@ -3110,24 +3131,28 @@ if wxInstalled:
                 "preferred inservice SUs" : sg.config[0].preferred_inservice_sus[0],
                 "preferred assigned SUs" : sg.config[0].preferred_assigned_sus[0],
                 "collocation allowed" : sg.config[0].collocation_allowed[0],
-                "started" : sg.status[0].is_started[0]
+                "started" : sg.status[0].is_started[0],
+                "instantiable SUs":instantiableSUs,
+                "instantiated SUs":instantiatedSUs,
+                "inservice spare SUs":inserviceSpareSUs,
+                "assigned SUs":assignedSUs
             }
 
-            suLut = [
-                ("instantiable SUs", sg.status[0].instantiable_sus[0]),
-                ("instantiated SUs", sg.status[0].instantiated_sus[0]),
-                ("inservice spare SUs", sg.status[0].inservice_spare_sus[0]),
-                ("assigned SUs", sg.status[0].assigned_sus[0])
-            ]
+            #suLut = [
+            #    ("instantiable SUs", sg.status[0].instantiable_sus[0]),
+            #    ("instantiated SUs", sg.status[0].instantiated_sus[0]),
+            #    ("inservice spare SUs", sg.status[0].inservice_spare_sus[0]),
+            #    ("assigned SUs", sg.status[0].assigned_sus[0])
+            #]
 
-            for entry in suLut:
-                (suType, suList) = entry
-                if suList != "0":
-                    data[suType] = suList.su[0]
-                    for otherSu in suList.su[1:]:
-                        data[""] = otherSu  # put other sus in diffrent rows
-                else:
-                    data[suType] = "-"
+            #for entry in suLut:
+            #    (suType, suList) = entry
+            #    if suList != "0":
+            #        data[suType] = suList.su[0]
+            #        for otherSu in suList.su[1:]:
+            #            data[""] = otherSu  # put other sus in diffrent rows
+            #    else:
+            #        data[suType] = "-"
 
             data["current active SUs"] = sg.status[0].current_active_sus[0]
             data["current standby SUs"] = sg.status[0].current_standby_sus[0]
@@ -3209,6 +3234,7 @@ if wxInstalled:
             #self.tree.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
             self.tree.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnLeftDClick)
             self.sgToSelect = None
+            self.suToSelect = None          
 
         def getItemByLabel(self, label):
             item,cookie = self.tree.GetFirstChild(self.root)
@@ -3266,17 +3292,19 @@ if wxInstalled:
                 elif itemText =='sg':
                     p = SgCmdPanel(self.splitter, self.sgToSelect)
                     self.sgToSelect = None
+                elif itemText =='su':  
+                    p = SuPanel(self.splitter, itemText, self.suToSelect)
+                    self.suToSelect = None
                 if p:
                     self.splitter.ReplaceWindow(self.rightPane, p)
                     self.rightPane.Destroy()
                     self.rightPane = p
             event.Skip()
 
-    class MyListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
-        def __init__(self, parent, ID, pos=wx.DefaultPosition,
-                 size=wx.DefaultSize, style=0):
-            wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
-            listmix.ListCtrlAutoWidthMixin.__init__(self)
+    #class MyListCtrl(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin):
+    #    def __init__(self, parent, ID, agwStyle=0):
+    #        super().__init__(self, parent, ID, agwStyle)
+    #        listmix.ListCtrlAutoWidthMixin.__init__(self)
 
 
     class ListCtrlPanel(wx.Panel, listmix.ColumnSorterMixin):
@@ -3285,21 +3313,22 @@ if wxInstalled:
             self.noAutoColSize = noAutoColSize
             self.noSort = noSort
             #scrolled.ScrolledPanel.__init__(self, parent, -1)
-            tID = wx.NewIdRef()
+            #tID = wx.NewIdRef()
 
             sizer = wx.BoxSizer(wx.VERTICAL)
 
-            self.list = MyListCtrl(self, tID,
-                                 style=wx.LC_REPORT
+            #self.list = MyListCtrl(self, tID,
+            #                     agwStyle=ULC.ULC_REPORT | ULC.ULC_VRULES | ULC.ULC_HRULES | ULC.ULC_SINGLE_SEL | ULC.ULC_HAS_VARIABLE_ROW_HEIGHT
                                  #| wx.BORDER_SUNKEN
-                                 | wx.BORDER_NONE
+                                 #| ULC.ULC_BORDER_NONE
                                  #| wx.LC_EDIT_LABELS
                                  #| wx.LC_SORT_ASCENDING    # disabling initial auto sort gives a
                                  #| wx.LC_NO_HEADER         # better illustration of col-click sorting
                                  #| wx.LC_VRULES
                                  #| wx.LC_HRULES
                                  #| wx.LC_SINGLE_SEL
-                                 )
+            #                     )
+            self.list = ULC.UltimateListCtrl(self, wx.ID_ANY, agwStyle=ULC.ULC_REPORT | ULC.ULC_VRULES | ULC.ULC_HRULES | ULC.ULC_SINGLE_SEL | ULC.ULC_HAS_VARIABLE_ROW_HEIGHT)
             self.headers = headers
             self.data = data
             sizer.Add(self.list, 1, wx.EXPAND)
@@ -3332,14 +3361,14 @@ if wxInstalled:
  
             items = _data.items()
             for key, data in items:
-                index = self.list.InsertItem(self.list.GetItemCount(), key)
+                index = self.list.InsertStringItem(sys.maxsize, key)
                 if isinstance(data,list):
                     i=1
                     for item in data:
-                        self.list.SetItem(index, i, item)
+                        self.list.SetStringItem(index, i, item)
                         i+=1
                 else:
-                    self.list.SetItem(index, 1, data)
+                    self.list.SetStringItem(index, 1, data)
                 if index%2:
                     self.list.SetItemBackgroundColour(index,wx.LIGHT_GREY)
             if not self.noAutoColSize:
@@ -3685,8 +3714,17 @@ if wxInstalled:
             headers = ['SU NAME','MEMBER OF SG','ON NODE','ADMIN STATE','COMPUTED ADMIN STATE','PRESENCE STATE','OPERATIONAL STATE','READINESS STATE','# OF INSTANTIATED COMP','ASSIGNED SIS']
             self.susListCtrl = ListCtrlPanel(self, headers,{},True,False)
             self.formatListCtrl(self.susListCtrl.list, False)
+            self.susListCtrl.list.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onItemClicked)
             sizer.Add(self.susListCtrl, 3, wx.EXPAND|wx.ALL, 5)
             self.SetSizer(sizer)
+            
+        def onItemClicked(self, event):
+            treePanel = self.Parent.GetWindow1()
+            itemToSelect = treePanel.getItemByLabel('su')
+            if itemToSelect:
+                tree = self.Parent.GetWindow1().tree
+                treePanel.suToSelect = event.GetText()
+                wx.PostEvent(tree, wx.TreeEvent(wx.wxEVT_TREE_ITEM_ACTIVATED, tree, itemToSelect))
             
         def fillNodes(self):
             try:
@@ -3738,6 +3776,95 @@ if wxInstalled:
                     elif listCtrl.GetItem(i,4).GetText()=='LA':
                         listCtrl.SetItemFont(i, wx.Font(wx.FontInfo(12).Bold()))
                         listCtrl.SetItemTextColour(i, wx.YELLOW)
+
+    class SuPanel(wx.Panel):
+        def __init__(self, parent, panelName, itemToSelect=None):
+            wx.Panel.__init__(self, parent, -1, style=wx.WANTS_CHARS, name=panelName)
+            sizer = wx.BoxSizer(wx.VERTICAL)
+            suSizer = wx.BoxSizer(wx.HORIZONTAL)
+            suText = wx.StaticText(self,-1,'Su')
+            self.susCb = wx.ComboBox(self, style=wx.CB_DROPDOWN|wx.CB_READONLY)
+            suSizer.Add(suText, 1, wx.EXPAND|wx.ALL, 5)
+            suSizer.Add(self.susCb, 3, wx.EXPAND|wx.ALL, 5)
+            sizer.Add(suSizer, 0, wx.EXPAND|wx.ALL, 5)
+            self.fillSus()
+            self.susCb.Bind(wx.EVT_COMBOBOX, self.evtComboBox)
+            
+            headers = ['Name','Value']
+            self.susListCtrl = ListCtrlPanel(self, headers,{},False,True)
+            self.formatListCtrl(self.susListCtrl.list, False)
+            sizer.Add(self.susListCtrl, 3, wx.EXPAND|wx.ALL, 5)
+            self.SetSizer(sizer)
+            
+            if itemToSelect:
+                idx = self.susCb.FindString(itemToSelect)
+                if idx != wx.NOT_FOUND:
+                    self.susCb.Selection = idx
+                    wx.PostEvent(self.susCb, wx.CommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED))
+            
+        def fillSus(self):
+            try:
+                ents = get_su_names().copy()                
+            except DebugCliError as ex:
+                wx.MessageBox(str(ex),self.Name, wx.OK|wx.ICON_ERROR)
+                ents = []
+            for e in ents:
+                self.susCb.Append(e)
+            #idx = self.susCb.FindString(get_node_info_from_cpm().nodename)
+            #if idx != wx.NOT_FOUND:
+            #    self.nodesCb.Selection = idx
+            #    wx.PostEvent(self.nodesCb, wx.CommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED)) 
+                
+        def evtComboBox(self, evt):
+            suName = self.susCb.GetStringSelection()
+            try:
+                su = get_su_info(suName)
+            except  AspError as e:
+                wx.MessageBox('Command is not available while SAFplus is down (run "status"),\nor if another safplus_console is running', self.Name, wx.OK|wx.ICON_ERROR)
+                return        
+            if not su:
+                wx.MessageBox('Could not find SU [%s] in AMF database' % suName, self.Name, wx.OK|wx.ICON_ERROR)
+                return       
+        
+            comps = su.config[0].components[0]
+            if comps == '0': comps = ['-']
+            else:            comps = comps.comp
+            
+            self.susListCtrl.data.clear()
+            self.susListCtrl.data={'su name':su.value,
+                                   'admin state':su.config[0].admin_state[0],
+                                   'computed admin state':su.config[0].computed_admin_state[0],
+                                   'member of sg':su.config[0].member_of_sg[0],
+                                   'member of node':su.config[0].member_of_node[0],
+                                   'restartable':su.config[0].is_restartable[0],
+                                   'presence state':su.status[0].presence_state[0],
+                                   'readiness state':su.status[0].readiness_state[0],
+                                   'operational state':su.status[0].operational_state[0],
+                                   'number of active SIs':su.status[0].num_active_sis[0],
+                                   'number of standby SIs':su.status[0].num_standby_sis[0],
+                                   'number of quiesced SIs':su.status[0].num_quiesced_sis[0], 
+                                   'SU restart count':su.status[0].su_restart_count[0],
+                                   'component restart count':su.status[0].comp_restart_count[0],
+                                   'component list':'\n'.join(comps)
+                                  }
+            self.susListCtrl.list.DeleteAllItems()
+            self.susListCtrl.PopulateList()
+            self.formatListCtrl(self.susListCtrl.list, True)
+
+        def formatListCtrl(self, listCtrl, colorOnly):
+            if not colorOnly:
+                for i in range(0, listCtrl.GetColumnCount()):
+                    if i in [0,1,2]:
+                        listCtrl.SetColumnWidth(i, 250)
+                    else:
+                        listCtrl.SetColumnWidth(i, 150)
+            if colorOnly:
+                for i in range(0,listCtrl.GetItemCount()):
+                    listItem = listCtrl.GetItem(i)                    
+                    if listCtrl.GetItem(i,0).GetText()=='admin state' or listCtrl.GetItem(i,0).GetText()=='computed admin state':
+                        #listCtrl.SetItemFont(i, wx.Font(wx.FontInfo(12).Bold()))
+                        listCtrl.SetItemTextColour(i, wx.RED)
+                    
 
     class ShellPanel(wx.Panel):
         def __init__(self, parent):
