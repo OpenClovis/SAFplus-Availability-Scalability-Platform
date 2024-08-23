@@ -71,7 +71,7 @@ def file_list(dir_name, pattern='*'):
 def fail_and_exit(errmsg):
     """ log the error message and exit from the script.
     """
-    log.info("{}".format(errmsg))
+    log.error("{}".format(errmsg))
     sys.exit(-1)
 
 
@@ -263,8 +263,10 @@ def package(base_dir, tar_name, prefix_dir, machine=None, pre_build_dir=None,exe
         #if check_dir_exists(image_backup_dir):
         #    shutil.rmtree(image_backup_dir)
         #shutil.move(image_dir, image_backup_dir)
-
-    os.makedirs(image_stage_dir)
+    if not os.access(image_stage_dir, os.F_OK):
+        os.makedirs(image_stage_dir)
+   
+        
 
     # If the user does not supply the crossbuild into, assume the local machine -- so get the local machine's data
     if not machine:
@@ -289,7 +291,8 @@ def package(base_dir, tar_name, prefix_dir, machine=None, pre_build_dir=None,exe
         else:
             fail_and_exit("Specified {} does not exists".format(target_dir))
     
-    target_dir = "{0}/target/bin".format(image_dir_path + "/..")
+    #target_dir = "{0}/target/bin".format(image_dir_path + "/..")
+    target_dir = "{0}/bin".format(target_dir)
     if check_dir_exists(target_dir):
         log.info("Components' binaries presented in {}".format(target_dir))
         package_dirs(target_dir, image_stage_dir, yum_package, debain_package)

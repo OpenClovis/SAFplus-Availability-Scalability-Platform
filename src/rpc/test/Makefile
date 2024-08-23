@@ -29,6 +29,8 @@ SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIB
 
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
+IMAGE_FILE ?= rpcUnitTest.zip
+
 Release all: $(TEST_DIR)/rpcReflector $(TEST_DIR)/testRpcPerf 
 
 # $(TEST_DIR)/TestRpcClient $(TEST_DIR)/TestRpcServer $(TEST_DIR)/TestRpcCombined

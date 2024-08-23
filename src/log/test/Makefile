@@ -12,6 +12,8 @@ SAFPLUS_LIBS := clRpc clName clMgt clGroup clCkpt clMsg clFault clTimer clDbal c
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
+IMAGE_FILE ?= logUnitTest.zip
+
 all: $(TEST_DIR)/testLog
 
 $(TEST_DIR)/testLog: $(CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)
@@ -19,6 +21,12 @@ $(TEST_DIR)/testLog: $(CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)
 
 $(OBJ_DIR)/%.o: %.cxx Makefile ../../mk/preface.mk $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
+
+image: $(IMAGE_FILE)
+
+$(IMAGE_FILE): $(TEST_DIR)/testLog
+	cp setup start cleanup $(SAFPLUS_TARGET)
+	$(SAFPLUS_MAKE_DIR)/safplus_packager.py  -a $(TARGET_PLATFORM) -x "(cp setup start {image_dir})" $@
 
 clean:
 	rm -f $(OBJ_DIR)/*.o $(TEST_DIR)/testLog

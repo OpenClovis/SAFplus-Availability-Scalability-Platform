@@ -22,6 +22,8 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 LINK_STD_LIBS := -L$(INSTALL_DIR)/lib $(XML2_LINK) -lstdc++ -lm $(LINK_STD_LIBS)
 
+IMAGE_FILE ?= grpUnitTest.zip
+
 # $(TEST_DIR)/testGroupServer $(TEST_DIR)/testGroup $(TEST_DIR)/testMultiGroup
 all:  $(TEST_DIR)/testGroup $(TEST_DIR)/testGroupCli
 

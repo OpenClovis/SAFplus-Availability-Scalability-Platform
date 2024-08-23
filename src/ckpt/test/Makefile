@@ -12,6 +12,7 @@ SAFPLUS_LIBS := clRpc clCkpt clGroup clName clTimer clMsg clLog clUtils clOsal c
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
+IMAGE_FILE ?= ckptUnitTest.zip
 
 all: $(TEST_DIR)/testCkpt $(TEST_DIR)/testCkptSync $(TEST_DIR)/testCkptRetention
 
@@ -30,8 +31,6 @@ clean:
 	rm -f $(CLIENT_OBJ) $(TEST_DIR)/testCkptRetention
 
 # TAE packaging stuff
-IMAGE_FILE ?= ckptTest.zip
-
 image: $(IMAGE_FILE)
 
 $(IMAGE_FILE): $(TEST_DIR)/testCkpt

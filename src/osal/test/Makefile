@@ -9,6 +9,8 @@ SAFPLUS_LIBS := clOsal clLog clUtils
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
+IMAGE_FILE ?= osalUnitTest.zip
+
 Release all: $(TEST_DIR)/testOsal $(TEST_DIR)/testGate
 
 $(TEST_DIR)/testOsal: $(OBJ_DIR)/testOsal.o $(OBJ_DIR)/testNodeStats.o

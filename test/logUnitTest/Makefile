@@ -12,7 +12,7 @@ SAFPLUS_LIBS := clMgt clName clCkpt clMsg clFault clTimer clDbal clLog clUtils c
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-IMAGE_FILE ?= testLog.zip
+IMAGE_FILE ?= logUnitTest.zip
 
 all: $(TEST_DIR)/testLog
 

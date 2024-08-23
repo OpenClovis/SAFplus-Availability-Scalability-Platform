@@ -15,6 +15,8 @@ SAFPLUS_LIBS := clAmf clRpc clName clCkpt clGroup clTimer clMsg clLog clUtils cl
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
+IMAGE_FILE ?= amfUnitTest.zip
+
 all: $(TEST_DIR)/exampleSafApp $(TEST_DIR)/exampleNonSafApp $(TEST_DIR)/embTest111.py $(TEST_DIR)/embDynTest.py $(MODELS_TGT)
 
 $(TEST_DIR)/%.xml: %.xml
@@ -36,7 +38,6 @@ clean:
 	rm -f $(CLIENT_OBJ) $(TEST_DIR)/example
 
 # TAE packaging stuff
-IMAGE_FILE ?= amfTest.zip
 
 image: $(IMAGE_FILE)
 

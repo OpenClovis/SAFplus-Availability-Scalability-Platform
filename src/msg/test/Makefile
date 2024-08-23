@@ -49,12 +49,14 @@ SAFPLUS_LIBS := clTimer clMsg clFault clLog clUtils clOsal
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-IMAGE_FILE ?= testMsg.zip
+IMAGE_FILE ?= msgUnitTest.zip
+
+MSG_TESTS = $(TEST_DIR)/testTransport  $(TEST_DIR)/testMsgServer $(TEST_DIR)/testMsgServerSegmentation $(TEST_DIR)/testMsgPerf $(TEST_DIR)/msgReflector $(TEST_DIR)/reliableClient $(TEST_DIR)/reliableServer $(TEST_DIR)/testMsgServerReliable $(TEST_DIR)/testMsgServerShaping
 
 ifdef PERF_ONLY
 all: $(TEST_DIR)/testMsgPerf $(TEST_DIR)/msgReflector
 else
-all: $(TEST_DIR)/testTransport  $(TEST_DIR)/testMsgServer $(TEST_DIR)/testMsgServerSegmentation $(TEST_DIR)/testMsgPerf $(TEST_DIR)/msgReflector $(TEST_DIR)/reliableClient $(TEST_DIR)/reliableServer $(TEST_DIR)/testMsgServerReliable $(TEST_DIR)/testMsgServerShaping
+all: $(MSG_TESTS)
 endif
 
 deps:
@@ -77,7 +79,7 @@ endif
 
 image: $(IMAGE_FILE)
 
-$(IMAGE_FILE): $(TEST_DIR)/testLog
+$(IMAGE_FILE): $(MSG_TESTS)
 	cp setup start cleanup $(SAFPLUS_TARGET)
 	$(SAFPLUS_MAKE_DIR)/safplus_packager.py  -a $(TARGET_PLATFORM) -x "(cp setup start {image_dir})" $@
 
@@ -85,6 +87,6 @@ $(IMAGE_FILE): $(TEST_DIR)/testLog
 .PRECIOUS: $(APP_OBJ_DIR)/%.o
 
 clean:
-	rm -f $(CLIENT_OBJ) $(TEST_DIR)/testTransport
+	rm -f $(CLIENT_OBJ) $(MSG_TESTS)
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk
