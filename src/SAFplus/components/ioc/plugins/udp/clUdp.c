@@ -40,6 +40,7 @@ ClInt32T gClSockType = SOCK_DGRAM;
 ClInt32T gClCmsgHdrLen;
 struct cmsghdr *gClCmsgHdr;
 static ClUint32T gClBindOffset;
+static ClUint32T gClTransportBasePort;
 
 extern ClBoolT mcastPeerAddr(ClCharT *addStr, ClUint8T status);
 
@@ -716,7 +717,16 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
     gClUdpXportId = xportId;
     gClBindOffset = gIocLocalBladeAddress;
     gClUdpUseExistingIp = clParseEnvBoolean("ASP_UDP_USE_EXISTING_IP");
-
+    gClTransportBasePort = CL_TRANSPORT_BASE_PORT;
+    ClCharT* strTransportBasePort = clParseEnvStr("ASP_TRANSPORT_BASE_PORT");
+    if (strTransportBasePort && strlen(strTransportBasePort)>0)
+    {
+        ClInt32T temp = atoi(strTransportBasePort);
+        if (temp>0)
+        {
+            gClTransportBasePort = temp;
+        }
+    }
     if (nodeRep)  // Make sure that the udp mode is consistent across the cluster
     {
         FILE* fp = fopen("udp.mode","w");
@@ -954,7 +964,7 @@ static ClRcT __xportBind(ClIocPortT port, ClInt32T *pFd)
     case PF_INET6:
         fd = socket(PF_INET6, gClSockType, gClProtocol);
         addr.ipv6_addr.sin6_addr = in6addr_any;
-        addr.ipv6_addr.sin6_port = htons(port + CL_TRANSPORT_BASE_PORT + gClBindOffset);
+        addr.ipv6_addr.sin6_port = htons(port + gClTransportBasePort + gClBindOffset);
         addr.ipv6_addr.sin6_family = AF_INET6;
         addr_len = sizeof(struct sockaddr_in6);
         break;
@@ -962,7 +972,7 @@ static ClRcT __xportBind(ClIocPortT port, ClInt32T *pFd)
     default:
         fd = socket(PF_INET, gClSockType, gClProtocol);
         addr.ipv4_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-        addr.ipv4_addr.sin_port = htons(port + CL_TRANSPORT_BASE_PORT + gClBindOffset);
+        addr.ipv4_addr.sin_port = htons(port + gClTransportBasePort + gClBindOffset);
         addr.ipv4_addr.sin_family = AF_INET;
         addr_len = sizeof(struct sockaddr_in);
         break;
@@ -1295,13 +1305,13 @@ static ClRcT iocUdpSend(ClIocUdpMapT *map, void *args)
     }
     if(map->family == PF_INET)
     {
-        map->__ipv4_addr.sin_port = htons(CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
+        map->__ipv4_addr.sin_port = htons(gClTransportBasePort + sendArgs->port + portOffset);
         destaddr = (struct sockaddr*)&map->__ipv4_addr;
         addrlen = sizeof(struct sockaddr_in);
     }
     else
     {
-        map->__ipv6_addr.sin6_port = htons(CL_TRANSPORT_BASE_PORT + sendArgs->port  + portOffset);
+        map->__ipv6_addr.sin6_port = htons(gClTransportBasePort + sendArgs->port  + portOffset);
         destaddr = (struct sockaddr*)&map->__ipv6_addr;
         addrlen = sizeof(struct sockaddr_in6);
     }
@@ -1316,14 +1326,14 @@ static ClRcT iocUdpSend(ClIocUdpMapT *map, void *args)
     {
         clLogError("UDP", "SEND", "UDP send failed with error [%s] for addr [%s], port [0x%x:%d]",
                    strerror(errno), map->addrstr, sendArgs->port, 
-                   CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
+                   gClTransportBasePort + sendArgs->port + portOffset);
         rc = CL_ERR_LIBRARY;
     }
     else
     {
         clLogTrace("UDP", "SEND", "UDP send successful for [%d] iovs, addr [%s], port [0x%x:%d]",
                    sendArgs->iovlen, map->addrstr, sendArgs->port, 
-                    CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
+                    gClTransportBasePort + sendArgs->port + portOffset);
     }
     return rc;
 }
