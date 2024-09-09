@@ -971,7 +971,7 @@ static ClRcT __xportBind(ClIocPortT port, ClInt32T *pFd)
     case PF_INET:
     default:
         fd = socket(PF_INET, gClSockType, gClProtocol);
-        addr.ipv4_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+        addr.ipv4_addr.sin_addr.s_addr = inet_addr(gVirtualIp.ip);
         addr.ipv4_addr.sin_port = htons(port + gClTransportBasePort + gClBindOffset);
         addr.ipv4_addr.sin_family = AF_INET;
         addr_len = sizeof(struct sockaddr_in);

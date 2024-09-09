@@ -833,7 +833,7 @@ static ClInt32T clUdpSubscriptionSocketCreate(void)
         addr_len = sizeof(struct sockaddr_in6);
         break;
     case PF_INET:
-        localSock.ipv4_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+        localSock.ipv4_addr.sin_addr.s_addr = inet_addr(gVirtualIp.ip);
         localSock.ipv4_addr.sin_port = htons(gClMcastNotifPort);
         localSock.ipv4_addr.sin_family = AF_INET;
         addr_len = sizeof(struct sockaddr_in);
