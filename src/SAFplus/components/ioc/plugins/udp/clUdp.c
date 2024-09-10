@@ -963,7 +963,8 @@ static ClRcT __xportBind(ClIocPortT port, ClInt32T *pFd)
     {
     case PF_INET6:
         fd = socket(PF_INET6, gClSockType, gClProtocol);
-        addr.ipv6_addr.sin6_addr = in6addr_any;
+        //addr.ipv6_addr.sin6_addr = in6addr_any;
+        inet_pton(PF_INET6, gVirtualIp.ip, &addr.ipv6_addr.sin6_addr);
         addr.ipv6_addr.sin6_port = htons(port + gClTransportBasePort + gClBindOffset);
         addr.ipv6_addr.sin6_family = AF_INET6;
         addr_len = sizeof(struct sockaddr_in6);

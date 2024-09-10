@@ -827,7 +827,8 @@ static ClInt32T clUdpSubscriptionSocketCreate(void)
     switch(gXportCtrl.family)
     {
     case PF_INET6:
-        localSock.ipv6_addr.sin6_addr = in6addr_any;
+        //localSock.ipv6_addr.sin6_addr = in6addr_any;
+        inet_pton(PF_INET6, gVirtualIp.ip, &localSock.ipv6_addr.sin6_addr);
         localSock.ipv6_addr.sin6_port = htons(gClMcastNotifPort);
         localSock.ipv6_addr.sin6_family = AF_INET6;
         addr_len = sizeof(struct sockaddr_in6);
@@ -838,7 +839,7 @@ static ClInt32T clUdpSubscriptionSocketCreate(void)
         localSock.ipv4_addr.sin_family = AF_INET;
         addr_len = sizeof(struct sockaddr_in);
         break;
-     default:
+    default:
         clLogError("UDP","NOTIF","invalid protocol family");
         return -1;
     }
