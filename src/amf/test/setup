@@ -22,6 +22,7 @@ IP=($(ifconfig "$SAFPLUS_BACKPLANE_INTERFACE" | awk '/inet addr/{print substr($2
 echo "IP: $IP"
 
 export SAFPLUS_MSG_TRANSPORT=clMsgUdp.so
+export SAFPLUS_MGT_DB_PLUGIN=libclCkptDB.so
 
 # copy app binaries to the names configured in the configuration xml file
 /bin/cp test/exampleSafApp test/test0

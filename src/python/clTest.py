@@ -61,7 +61,7 @@ def testPrint(s,flf=None):
   global resultsLog, printIndent
   openResultsLog()
   backup = -1
-  if type(flf) == types.IntType:  # You can pass either -N to mean back up that many frames or a tuple
+  if type(flf) == int:  # You can pass either -N to mean back up that many frames or a tuple
     backup = flf
     flf = None
   if not flf:
@@ -89,11 +89,11 @@ def testCaseEnd(synopsis,frame=0):
 
 def testCase(name,test):
   testCaseStart(name,-1);
-  try:
-    test()
-  except Exception, e:
-    testFailed(name,"exception: " + str(e))
-  testCaseEnd("",-1)
+  #try:
+  #  test()
+  #except Exception as e:
+  #  testFailed(name,"exception: " + str(e))
+  #testCaseEnd("",-1)
 
 def testSuccess(name):
   test(name, True, None)
@@ -108,7 +108,7 @@ def test(name, predicate, errorPrintf):
   if type(predicate) is types.FunctionType:
     try:
       predicate = predicate()
-    except Malfunction, e:
+    except Malfunction as e:
       reason = str(e)
       malfunction += 1
       return

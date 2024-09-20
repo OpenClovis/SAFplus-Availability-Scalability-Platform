@@ -78,8 +78,8 @@ class Error:
 
 def removePrefix(text, prefix):
     """Given a string or recursive list of strings, remove the string prefix (or any of a list of prefixes) if it exists.  Only chops the prefix off once per text"""
-    if type(prefix) in types.StringTypes: prefix = [prefix]
-    if type(text) is types.ListType:
+    if type(prefix) is str: prefix = [prefix]
+    if type(text) is list:
       return [ removePrefix(x,prefix) for x in text]
 
     for pfx in prefix:
@@ -143,7 +143,7 @@ def getSgEntities(sgName):
   return sg
 
 def activeStandby(si):
-  if type(si) in types.StringTypes:
+  if type(si) is str:
     six = sp.mgtGet("/" + "/".join ([AmfPfx,SiPfx,si]))
     if six: si = microdom.LoadString(six)
     else:
@@ -153,16 +153,16 @@ def activeStandby(si):
   
 
 def displaySgStatus(sg):
-  if type(sg) in types.StringTypes:
+  if type(sg) is str:
     sg = getSgEntities(sg)
 
   print ("Service Group: %s" % sg.name.data_)
   # print "Administrative State: %4s  Operational State: %10s  Service Units: Assigned: %d Idle: %d Spare: %d" % (sg.adminState.data_,"TBD",int(sg.numAssignedServiceUnits.data_),int(sg.numIdleServiceUnits.data_),int(sg.numSpareServiceUnits.data_) )
   print ("  Administrative State: %4s" % (sg.adminState.data_))
   suList = sg.su.items()
-  suList.sort()
+  suList = sorted(suList)
   siList = sg.si.items()
-  siList.sort()
+  siList = sorted(siList)
 
   indent = 1
   # Show the physical entity tree
@@ -173,7 +173,7 @@ def displaySgStatus(sg):
     indent +=1
     print ("    On Node: %s Administrative State: %4s  Presence: %s  Readiness State: %s  High Availability State: %s Readiness State: %s " % (su.node.data_, su.adminState.data_, su.presenceState.data_, su.readinessState.data_, su.haState.data_, su.haReadinessState.data_))
     compList = su.comp.items()
-    compList.sort()
+    compList = sorted(compList)
     print ("    Components: ", ", ".join([x[0] for x in compList]))
     for (name, comp) in compList:
       print ("    Comp: ", name)

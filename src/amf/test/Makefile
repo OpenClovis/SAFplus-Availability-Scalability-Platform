@@ -41,10 +41,10 @@ clean:
 
 image: $(IMAGE_FILE)
 
-$(IMAGE_FILE): $(TEST_DIR)/exampleSafApp
+$(IMAGE_FILE): $(TEST_DIR)/exampleSafApp $(TEST_DIR)/exampleNonSafApp $(TEST_DIR)/embTest111.py $(TEST_DIR)/embDynTest.py $(MODELS_TGT)
 	cp setup start cleanup $(SAFPLUS_TARGET)  
 #	cp safplusAmf.idx safplusAmf.db safplusAmf.xml $(SAFPLUS_TARGET)/test
-	cp SAFplusAmf1Node1SG1Comp.xml $(SAFPLUS_TARGET)/test
+	cp SAFplusAmf1Node1SG1CompModel.xml $(SAFPLUS_TARGET)/test
 	$(SAFPLUS_MAKE_DIR)/safplus_packager.py  -a $(TARGET_PLATFORM) -x "(cp setup start cleanup {image_dir})" $@
 
 
