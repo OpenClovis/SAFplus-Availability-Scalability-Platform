@@ -85,7 +85,7 @@ def AmfCreateApp(prefix, compList, nodes):
     # clTest.testSuccess("")
 
 def testCreateSingleApp():
-    clTest.testCase("AMF-DYN-SG.TC001: Create app",AmfCreateApp("tc001",["../test/exampleSafApp tc001"],["node0"]))
+    clTest.testCase("AMF-DYN-SGX.TC001: Create app",AmfCreateApp("tc001",["../test/exampleSafApp tc001"],["node0"]))
     time.sleep(2)
     sp.mgtSet("/safplusAmf/ServiceGroup/tc001Sg/adminState","on")
     sp.mgtSet("/safplusAmf/ServiceUnit/tc001Su0/adminState","on")
@@ -97,28 +97,28 @@ def testCreateSingleApp():
         time.sleep(2)
         ps = sp.mgt.get(compPfx + "presenceState")
         if ps == "instantiated":
-            clTest.testSuccess("AMF-DYN-SG.TC002: App is instantiated")
+            clTest.testSuccess("AMF-DYN-SGX.TC002: App is instantiated")
             procId = 0
             pstatus = "N/A"
             try: # todo check process ID
                 procId = sp.mgt.getInt(compPfx + "processId")
                 pstatus = procStatus(procId)
                 if pstatus in ["R","S","D"]:
-                    clTest.testSuccess("AMF-DYN-SG.TC003: Instantiated app is running")
+                    clTest.testSuccess("AMF-DYN-SGX.TC003: Instantiated app is running")
                 else:  # Are there other valid process states?
-                    clTest.testFailed("AMF-DYN-SG.TC003: Instantiated app is running","pid [%s] status [%s]" % (procId, pstatus))
+                    clTest.testFailed("AMF-DYN-SGX.TC003: Instantiated app is running","pid [%s] status [%s]" % (procId, pstatus))
             except Exception as e:
-                clTest.testFailed("AMF-DYN-SG.TC003: Instantiated app is running","pid [%s] status [%s]" % (procId, pstatus))
+                clTest.testFailed("AMF-DYN-SGX.TC003: Instantiated app is running","pid [%s] status [%s]" % (procId, pstatus))
             break
         elif count == 5:
-            clTest.testFailed("AMF-DYN-SG.TC002: App is instantiated","comp state is [%s]" % ps)
+            clTest.testFailed("AMF-DYN-SGX.TC002: App is instantiated","comp state is [%s]" % ps)
             raise TestFailed("app never instantiated")
 
 def testCreateNsuMcomp(prefix, numSu,numComp):
     compLst = [ "../test/exampleSafApp %s_c%d" % (prefix,x) for x in range(0,numComp)]
     nodeLst = ["node0"] * numSu
     sg = prefix + "Sg"
-    clTest.testCase("AMF-DYN-SG.TC001: Create %d su %d comps" % (numSu, numComp),AmfCreateApp(prefix,compLst,nodeLst))
+    clTest.testCase("AMF-DYN-SGX.TC001: Create %d su %d comps" % (numSu, numComp),AmfCreateApp(prefix,compLst,nodeLst))
     time.sleep(7)
     sp.mgtSet("/safplusAmf/ServiceGroup/%sSg/adminState" % prefix,"on")
     for x in range(0,numComp):
@@ -132,21 +132,21 @@ def testCreateNsuMcomp(prefix, numSu,numComp):
             time.sleep(2)
             ps = sp.mgt.get(compPfx + "presenceState")
             if ps == "instantiated":
-                clTest.testSuccess("AMF-DYN-SG.TC022: App is instantiated")
+                clTest.testSuccess("AMF-DYN-SGX.TC022: App is instantiated")
                 procId = 0
                 pstatus = "N/A"
                 try: # todo check process ID
                     procId = sp.mgt.getInt(compPfx + "processId")
                     pstatus = procStatus(procId)
                     if pstatus in ["R","S","D"]:
-                        clTest.testSuccess("AMF-DYN-SG.TC023: Instantiated app is running")
+                        clTest.testSuccess("AMF-DYN-SGX.TC023: Instantiated app is running")
                     else:  # Are there other valid process states?
-                        clTest.testFailed("AMF-DYN-SG.TC023: Instantiated app is running","pid [%s] status [%s]" % (procId, pstatus))
+                        clTest.testFailed("AMF-DYN-SGX.TC023: Instantiated app is running","pid [%s] status [%s]" % (procId, pstatus))
                 except Exception as e:
-                    clTest.testFailed("AMF-DYN-SG.TC023: Instantiated app is running","pid [%s] status [%s]" % (procId, pstatus))
+                    clTest.testFailed("AMF-DYN-SGX.TC023: Instantiated app is running","pid [%s] status [%s]" % (procId, pstatus))
                 break
             elif count == 5:
-                clTest.testFailed("AMF-DYN-SG.TC022: App is instantiated","comp state is [%s]" % ps)
+                clTest.testFailed("AMF-DYN-SGX.TC022: App is instantiated","comp state is [%s]" % ps)
                 raise TestFailed("app never instantiated")
 
 

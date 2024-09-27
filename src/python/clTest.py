@@ -89,11 +89,11 @@ def testCaseEnd(synopsis,frame=0):
 
 def testCase(name,test):
   testCaseStart(name,-1);
-  #try:
-  #  test()
-  #except Exception as e:
-  #  testFailed(name,"exception: " + str(e))
-  #testCaseEnd("",-1)
+  try:
+    test
+  except Exception as e:
+    testFailed(name,"exception: " + str(e))
+  testCaseEnd("",-1)
 
 def testSuccess(name):
   test(name, True, None)
