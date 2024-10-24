@@ -79,7 +79,7 @@ get_shell_working_dir()
 
 ASP_SCRIPT_DIR=`get_shell_working_dir` || exit 1
 ASP_DIR=`cd $ASP_SCRIPT_DIR/../../; pwd` || exit 1
-cd ${ASP_DIR}/bin; source setup > /dev/null
+#cd ${ASP_DIR}/bin; source setup > /dev/null
 # do not delete shared memory for all commands; DO delete it for start command only
 #rm -rf /dev/shm/SAFplus*
 
@@ -101,6 +101,8 @@ ASP_SCRIPT=$ASP_DIR/etc/safplus.py
 
 case "$1" in
     start)
+    rm -rf /dev/shm/SAFplus*
+    cd ${ASP_DIR}/bin; source setup $1> /dev/null
         shift
     if [ "$1" == "--load-cluster-model" ]; then
         export GENERATE_DB_FOR_NODE=1
@@ -114,16 +116,26 @@ case "$1" in
 	;;
     
     stop)
-	stop
+	cd ${ASP_DIR}/bin; source setup $1> /dev/null
+	stop	
         RETVAL=$?
+	if [ "$SAFPLUS_MSG_TRANSPORT" == "clMsgTipc.so" ] ; then
+           #unload tipc
+           echo "Unloading tipc..."
+           /sbin/tipc bearer disable media eth device $SAFPLUS_BACKPLANE_INTERFACE
+           echo "disable bearer $SAFPLUS_BACKPLANE_INTERFACE"
+           rmmod tipc
+        fi
 	;;
     
     status)
+	cd ${ASP_DIR}/bin; source setup $1> /dev/null
 	status
         RETVAL=$?
         ;;
 
     restart)
+	cd ${ASP_DIR}/bin; source setup $1> /dev/null
 	stop
         shift
     if [ "$1" == "--load-cluster-model" ]; then
@@ -142,6 +154,13 @@ case "$1" in
     zap)
         zap
         RETVAL=$?
+        if [ "$SAFPLUS_MSG_TRANSPORT" == "clMsgTipc.so" ] ; then
+           #unload tipc
+           echo "Unloading tipc..."
+           /sbin/tipc bearer disable media eth device $SAFPLUS_BACKPLANE_INTERFACE
+           echo "disable bearer $SAFPLUS_BACKPLANE_INTERFACE"
+           rmmod tipc
+        fi
         ;;
     
     help)

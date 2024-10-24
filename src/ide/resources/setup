@@ -8,7 +8,7 @@ sysctl -w net.core.rmem_default=20485760
 sysctl -w net.core.wmem_default=20485760
 
 unset SAFPLUS_SYSTEM_CONTROLLER
-
+export SAFPLUS_SYSTEM_CONTROLLER=0
 # set this node's name as specified in the XML model
 export ASP_NODENAME=node0
 
@@ -19,9 +19,23 @@ export CL_LOG_CODE_LOCATION_ENABLE=1
 # To use UDP broadcasts on the loopback interface I need to enable a broadcast address
 export SAFPLUS_BACKPLANE_INTERFACE=eth0
 
-# Set up the cloud network addresses (if using cloud mode)
-#../bin/safplus_cloud --add 127.0.0.1
-
 # Set up the management database to use the SAFplus checkpointing service
 export SAFPLUS_MGT_DB_PLUGIN=libclCkptDB.so
-export SAFPLUS_SYSTEM_CONTROLLER=0
+export SAFPLUS_MSG_TRANSPORT=clMsgUdp.so
+
+if [ "$1" == "start" ] && [ "$SAFPLUS_MSG_TRANSPORT" == "clMsgTipc.so" ] ; then
+   modprobe -a tipc
+   #set the following parameters for tipc and uncomment 3 lines:
+   # 1. netid: any number for example, 1340
+   # 2. 1.1.x: x is unique across cluster and will increase for each node for example, 1.1.1 for the 1st node, 1.1.2 for the 2nd node and so on
+   /sbin/tipc node set netid 1340
+   /sbin/tipc node set address 1.1.1
+   /sbin/tipc bearer enable media eth device $SAFPLUS_BACKPLANE_INTERFACE
+elif [ "$1" == "start" ] && [ "$SAFPLUS_MSG_TRANSPORT" == "clMsgSctp.so" ] ; then
+   # Set up the cloud network addresses (replace them with your IPs below)
+   ./safplus_cloud --add 192.168.56.102
+   ./safplus_cloud --add 192.168.56.104
+   ./safplus_cloud --list
+fi
+
+echo "AMF test setup complete"

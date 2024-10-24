@@ -1261,7 +1261,7 @@ def start_asp(stop_watchdog=True, force_start = False):
             proc_lock_file('touch')
         check_asp_status(not force_start)
         kill_asp(False)
-        cleanup_asp()
+        #cleanup_asp() #already done in etc/ini.d/safplus before
         if str(os.getenv("GENERATE_DB_FOR_NODE")).strip() == "1":
             # generate database for the case node run first and node will be leader
             generate_db_for_node()

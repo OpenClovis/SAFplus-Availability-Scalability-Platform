@@ -149,6 +149,11 @@ $(LIB_DIR)/libclAmf.so: $(wildcard $(SAFPLUS_SRC_DIR)/amf/*.cxx)
 	$(MAKE) -C $(SAFPLUS_SRC_DIR)/amf
 endif
 
+ifndef SAFPLUS_MSG_LIB
+$(LIB_DIR)/libclMsg.so $(BIN_DIR)/safplus_cloud:
+	$(MAKE) -C $(SAFPLUS_SRC_DIR)/msg
+endif
+
 ifndef SAFPLUS_MSG_PLUGIN
 # .PHONY: $(LIB_DIR)/clMsgUdp.so
 $(PLUGIN_DIR)/clMsgUdp.so $(PLUGIN_DIR)/clMsgTcp.so $(PLUGIN_DIR)/clMsgSctp.so $(PLUGIN_DIR)/clMsgTipc.so: $(wildcard $(SAFPLUS_SRC_DIR)/msg/transports/*.cxx)
