@@ -305,6 +305,98 @@ def drawCurvyArrow(ctx, startPos,endPos,middlePos,cust):
       ctx.fill()
       ctx.restore()
 
+def drawCurvyArrowPolyline(ctx, startPos,endPos, cust, offsetFirst=None, offsetSecond=None):
+      if type(cust) is dict: cust = dot.Dot(cust)
+
+      ctx.save()
+
+      try:
+        intermediate0 = startPos
+        intermediate1 = startPos
+        intermediate2 = endPos
+        intermediate3 = endPos
+        
+        if offsetFirst == 0:
+          intermediate0 = (startPos[0] - 30, startPos[1])
+          intermediate1 = (startPos[0] - 30, (startPos[1] + endPos[1]) // 2)
+        elif offsetFirst == 1 or offsetFirst == 3:
+          intermediate1 = (startPos[0], (startPos[1] + endPos[1]) // 2)
+        elif offsetFirst == 2:
+          intermediate0 = (startPos[0] + 30, startPos[1])
+          intermediate1 = (startPos[0] + 30, (startPos[1] + endPos[1]) // 2)
+        
+        if offsetSecond == 0:
+          intermediate2 = (endPos[0] - 30, (startPos[1] + endPos[1]) // 2)
+          intermediate3 = (endPos[0] - 30, endPos[1])
+        elif offsetSecond == 1 or offsetSecond == 3:
+          intermediate2 = (endPos[0], (startPos[1] + endPos[1]) // 2)
+        elif offsetSecond == 2:
+          intermediate2 = (endPos[0] + 30, (startPos[1] + endPos[1]) // 2)
+          intermediate3 = (endPos[0] + 30, endPos[1])
+
+        if offsetFirst == None and offsetSecond == None:
+          intermediate1 = (startPos[0], (startPos[1] + endPos[1]) // 2)
+          intermediate2 = (endPos[0], (startPos[1] + endPos[1]) // 2)
+        
+        # Define points for the polyline (connecting with bends)        
+        polyline_points = [startPos, intermediate0, intermediate1, intermediate2, intermediate3, endPos]
+
+        
+        ctx.set_source_rgba(*cust.color)
+        ctx.set_line_width(cust.lineThickness)
+        ctx.move_to(*polyline_points[0])
+
+        for point in polyline_points[1:]:
+            ctx.line_to(*point)
+      except:
+        pdb.set_trace()
+
+      ctx.stroke()
+      ctx.restore()
+
+      # Draw the diamond at the start of the line
+      drawDiamond(ctx, startPos)
+
+      # Draw the arrow at the end of the line
+      higher = True
+      if startPos[1] >= endPos[1]:
+        higher = False
+      drawArrow(ctx, endPos, higher, offsetSecond)
+      
+def drawDiamond(ctx, point):
+    """ Draw a diamond shape at the start of the line. """
+    ctx.save()
+    x, y = point
+    diamond_points = [(x - 10, y), (x, y - 10), (x + 10, y), (x, y + 10)]
+    ctx.set_source_rgb(0, 0, 0)  # Black color
+    ctx.move_to(*diamond_points[0])
+    for p in diamond_points[1:]:
+        ctx.line_to(*p)
+    ctx.close_path()
+    ctx.fill()
+    ctx.restore()
+
+def drawArrow(ctx, point, higher = None, offsetSecond=None):
+    """ Draw an arrow shape at the end of the line. """
+    ctx.save()
+    x, y = point
+    arrow_points = [(x - 10, y - 15), (x + 10, y - 15), (x, y)] # default the start rectangle is higher than the end rectangle
+    if higher == False: # the start rectangle is lower than the end rectangle
+      arrow_points = [(x - 10, y + 15), (x + 10, y + 15), (x, y)]
+    if offsetSecond == 0: # the arrow is on the left edge of the rectangle
+      arrow_points = [(x - 15, y - 10), (x - 15, y + 10), (x, y)]
+    elif offsetSecond == 2:# the arrow is on the right edge of the rectangle
+      arrow_points = [(x + 15, y - 10), (x + 15, y + 10), (x, y)]
+
+
+    ctx.set_source_rgb(0, 0, 0)  # Black color
+    ctx.move_to(*arrow_points[0])
+    for p in arrow_points[1:]:
+        ctx.line_to(*p)
+    ctx.close_path()
+    ctx.fill()
+    ctx.restore()
+
 def drawIntersectRect(ctx, rect):
   if 0: # account for scaling
     ctx.save()
@@ -470,7 +562,7 @@ class LazyLineGesture(Gesture,wx.Timer):
 
   def render(self, ctx):
     if self.downPos:   
-      drawCurvyArrow(ctx, self.downPos,self.curPos,[self.center],self.cust)
+      drawCurvyArrowPolyline(ctx, self.downPos,self.curPos,self.cust)
  
 def getRectInstance(ent, scale):
   return wx.Rect(int(ent.pos[0]*scale), int(ent.pos[1]*scale), int(ent.size[0]*ent.scale[0]*scale), int(ent.size[1]*ent.scale[1]*scale))

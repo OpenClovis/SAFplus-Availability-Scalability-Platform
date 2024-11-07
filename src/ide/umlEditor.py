@@ -259,6 +259,14 @@ class SelectTool(Tool):
           pos = (e.pos[0] * share.umlEditorPanel.scale,e.pos[1] * share.umlEditorPanel.scale) 
           ctx.set_line_width(2)
           ctx.rectangle(pos[0] + self.panel.scale*self.panel.translating['horizontal'], pos[1] + self.panel.scale*self.panel.translating['vertical'], 20*self.panel.scale, 20*self.panel.scale)
+          ctx.rectangle(pos[0] + self.panel.scale*self.panel.translating['horizontal'] + e.size[0]*self.panel.scale/2 - 10*self.panel.scale, pos[1] + self.panel.scale*self.panel.translating['vertical'], 20*self.panel.scale, 20*self.panel.scale)
+          ctx.rectangle(pos[0] + self.panel.scale*self.panel.translating['horizontal'] + e.size[0]*self.panel.scale - 20*self.panel.scale, pos[1] + self.panel.scale*self.panel.translating['vertical'], 20*self.panel.scale, 20*self.panel.scale)
+          ctx.rectangle(pos[0] + self.panel.scale*self.panel.translating['horizontal'] + e.size[0]*self.panel.scale - 20*self.panel.scale, pos[1] + self.panel.scale*self.panel.translating['vertical'] + e.size[1]*self.panel.scale/2 - 10*self.panel.scale, 20*self.panel.scale, 20*self.panel.scale)
+          ctx.rectangle(pos[0] + self.panel.scale*self.panel.translating['horizontal'] + e.size[0]*self.panel.scale - 20*self.panel.scale, pos[1] + self.panel.scale*self.panel.translating['vertical'] + e.size[1]*self.panel.scale - 20*self.panel.scale, 20*self.panel.scale, 20*self.panel.scale)
+          ctx.rectangle(pos[0] + self.panel.scale*self.panel.translating['horizontal'] + e.size[0]*self.panel.scale/2 - 10*self.panel.scale, pos[1] + self.panel.scale*self.panel.translating['vertical'] + e.size[1]*self.panel.scale - 20*self.panel.scale, 20*self.panel.scale, 20*self.panel.scale)
+          ctx.rectangle(pos[0] + self.panel.scale*self.panel.translating['horizontal'], pos[1] + self.panel.scale*self.panel.translating['vertical'] + e.size[1]*self.panel.scale - 20*self.panel.scale, 20*self.panel.scale, 20*self.panel.scale)
+          ctx.rectangle(pos[0] + self.panel.scale*self.panel.translating['horizontal'], pos[1] + self.panel.scale*self.panel.translating['vertical'] + e.size[1]*self.panel.scale/2 - 10*self.panel.scale, 20*self.panel.scale, 20*self.panel.scale)
+          
           ctx.set_source_rgba(0, 0, 1, 1)
           ctx.fill()
 
@@ -271,7 +279,7 @@ class SelectTool(Tool):
         entities = panel.findEntitiesAt(pos)
         self.dragPos = pos
         if not entities:
-          panel.statusBarText.SetLabel(self.defaultStatusText);
+          panel.statusBarText.SetLabel(self.defaultStatusText)
           self.touching = set()
           self.boxSel.start(panel,pos)
           return False
@@ -448,13 +456,13 @@ class ZoomTool(Tool):
 
       self.panel.Refresh()
 
-      zoomImg =  self.ScaleBitmap(self.handBmp, 16*newscale, 16*newscale)
+      zoomImg =  self.ScaleBitmap(self.handBmp, int(16*newscale), int(16*newscale))
       cursor = wx.CursorFromImage(zoomImg)
       self.panel.SetCursor(cursor)
 
   def ScaleBitmap(self, bitmap, width, height):
-      image = wx.ImageFromBitmap(bitmap)
-      image = image.Scale(width, height, wx.IMAGE_QUALITY_HIGH)
+      image = bitmap.ConvertToImage()
+      image = image.Scale(int(width), int(height), wx.IMAGE_QUALITY_HIGH)
       return image
 
 
@@ -489,6 +497,99 @@ class DeleteTool(Tool):
     vector = (pos_2[0] - pos_1[0], pos_2[1] - pos_1[1])
     return math.sqrt(vector[0]**2 + vector[1]**2)
 
+  def IsNearPolyline(self, click_pos, pps, threshold=10):
+      """ Check if the click is near any part of the polyline. """
+      if not pps:
+          return False
+
+      # Check each segment of the polyline
+      # print("len polyline: ", len(pps))
+      for i in range(len(pps) - 1):
+          if self.PointNearSegment(click_pos, pps[i], pps[i + 1], threshold):
+              return True
+
+      return False
+
+  def PointNearSegment(self, p, p1, p2, threshold):
+      """ Check if point p is within the threshold distance of the line segment p1-p2. """
+      # Calculate the length of the segment
+      segment_length = math.hypot(p2[0] - p1[0], p2[1] - p1[1])
+
+      if segment_length == 0:
+          return False
+
+      # Project point p onto the line segment p1-p2 and calculate the perpendicular distance
+      u = ((p[0] - p1[0]) * (p2[0] - p1[0]) + (p[1] - p1[1]) * (p2[1] - p1[1])) / (segment_length ** 2)
+      u = max(0, min(1, u))  # Clamp u to the range [0, 1] to stay on the segment
+      projection = (p1[0] + u * (p2[0] - p1[0]), p1[1] + u * (p2[1] - p1[1]))
+
+      # Calculate the distance between the point and its projection on the segment
+      distance = math.hypot(p[0] - projection[0], p[1] - projection[1])
+      # print("distance: ", distance)
+
+      # Return whether the distance is within the threshold
+      return distance <= threshold
+  
+  def calculateOffset(self, line, entity, size):
+    # if the mouse position near left edge of rectangle so the start point will has x of left edge rectangle and y of the mouse
+    if line[0] - entity[0] <= 64:
+      return (entity[0], line[1], 0) # 0: left
+    
+    # if the mouse position near right edge of rectangle so the start point will has x of right edge ectangle and y of the mouse
+    if entity[0] + size[0] - line[0] <= 64:
+      return ((entity[0] + size[0]), line[1], 2) # 2: right
+    
+    # if the mouse position near top edge of rectangle so the start point will has x of the mouse and y of the top of edge rectangle
+    if line[1] - entity[1] <= 64:
+      return (line[0], entity[1], 1) # 1: top
+    
+    # if the mouse position near bottom edge of rectangle so the start point will has x of the mouse and y of the bottom of edge rectangle
+    if entity[1] + size[1] - line[1] <= 64:
+      return (line[0], entity[1] + size[1], 3) # 3: bottom
+    
+    # if the mouse position <= 1/2 height of rectangle so the start point will has x of the mouse and y of the top of edge rectangle
+    if line[1] <= (entity[1] + size[1])/2:
+      return (line[0], entity[1], 1) # 1: top
+    
+    # if the mouse position > 1/2 height of rectangle so the start point will has x of the mouse and y of the bottom of edge rectangle
+    else:
+      return (line[0], entity[1] + size[1], 3) # 3: bottom
+    
+  def calculateIntermediates(self, startPos,endPos, offsetFirst=None, offsetSecond=None):
+      try:
+        intermediate0 = startPos
+        intermediate1 = startPos
+        intermediate2 = endPos
+        intermediate3 = endPos
+        
+        if offsetFirst == 0:
+          intermediate0 = (startPos[0] - 30, startPos[1])
+          intermediate1 = (startPos[0] - 30, (startPos[1] + endPos[1]) // 2)
+        elif offsetFirst == 1 or offsetFirst == 3:
+          intermediate1 = (startPos[0], (startPos[1] + endPos[1]) // 2)
+        elif offsetFirst == 2:
+          intermediate0 = (startPos[0] + 30, startPos[1])
+          intermediate1 = (startPos[0] + 30, (startPos[1] + endPos[1]) // 2)
+        
+        if offsetSecond == 0:
+          intermediate2 = (endPos[0] - 30, (startPos[1] + endPos[1]) // 2)
+          intermediate3 = (endPos[0] - 30, endPos[1])
+        elif offsetSecond == 1 or offsetSecond == 3:
+          intermediate2 = (endPos[0], (startPos[1] + endPos[1]) // 2)
+        elif offsetSecond == 2:
+          intermediate2 = (endPos[0] + 30, (startPos[1] + endPos[1]) // 2)
+          intermediate3 = (endPos[0] + 30, endPos[1])
+
+        if offsetFirst == None and offsetSecond == None:
+          intermediate1 = (startPos[0], (startPos[1] + endPos[1]) // 2)
+          intermediate2 = (endPos[0], (startPos[1] + endPos[1]) // 2)
+        
+        # Define points for the polyline (connecting with bends)        
+        polyline_points = [startPos, intermediate0, intermediate1, intermediate2, intermediate3, endPos]
+        return polyline_points
+      except:
+        pdb.set_trace()
+
   def wireDelete(self, pos):
     '''
     @summary    : detect wire by pos then delete wire(s)/connect(s)
@@ -501,10 +602,14 @@ class DeleteTool(Tool):
         end = arrow.contained.pos
         pos_1 = (st[0] + arrow.beginOffset[0], st[1] + arrow.beginOffset[1])
         pos_2 = (end[0] + arrow.endOffset[0], end[1] + arrow.endOffset[1])
-        l = self.getDistance(pos_1, pos_2)
-        l1 = self.getDistance(pos_1, pos)
-        l2 = self.getDistance(pos_2, pos)
-        if math.fabs(l1+l2-l) < 0.08:          
+        st = arrow.container.pos
+        end = arrow.contained.pos
+        nsp = (st[0] + arrow.beginOffset[0],st[1] + arrow.beginOffset[1])
+        nep = (end[0] + arrow.endOffset[0],end[1] + arrow.endOffset[1])
+        stp = self.calculateOffset(nsp, st, arrow.container.size)
+        endp = self.calculateOffset(nep, end, arrow.contained.size)
+        polyline_points = self.calculateIntermediates((stp[0],stp[1]),(endp[0],endp[1]), stp[2], endp[2])
+        if self.IsNearPolyline(pos, polyline_points):
           if (arrow.contained.data['entityType'] == 'Component' or arrow.contained.data['entityType'] == 'NonSafComponent') and arrow.container.data['entityType']=='ComponentServiceInstance':
               if arrow.container.data['type'] in arrow.contained.data['csiTypes']:
                 arrow.contained.data['csiTypes'].remove(arrow.container.data['type'])
@@ -980,7 +1085,12 @@ class Panel(scrolled.ScrolledPanel):
             #print 'UpdatedMidpoints = ', [(list(a.midpoints[0])[0]+self.translating['horizontal'], list(a.midpoints[0])[1]+self.translating['vertical'])]
             st = a.container.pos
             end = a.contained.pos
-            drawCurvyArrow(ctx, (st[0] + a.beginOffset[0],st[1] + a.beginOffset[1]),(end[0] + a.endOffset[0],end[1] + a.endOffset[1]),a.midpoints, linkNormalLook)
+            nsp = (st[0] + a.beginOffset[0],st[1] + a.beginOffset[1])
+            nep = (end[0] + a.endOffset[0],end[1] + a.endOffset[1])
+            stp = self.calculateOffset(nsp, st, a.container.size)
+            endp = self.calculateOffset(nep, end, a.contained.size)
+            drawCurvyArrowPolyline(ctx, (stp[0],stp[1]),(endp[0],endp[1]), linkNormalLook, stp[2], endp[2])
+            # drawCurvyArrow(ctx, (st[0] + a.beginOffset[0],st[1] + a.beginOffset[1]),(end[0] + a.endOffset[0],end[1] + a.endOffset[1]),a.midpoints, linkNormalLook)
         ctx.restore()
 
         # These are non-model based transient elements that need to be drawn like selection boxes
@@ -992,6 +1102,31 @@ class Panel(scrolled.ScrolledPanel):
           if isinstance(tool, SelectTool) and not self.drawSelectionBox:
             continue
           tool.render(ctx)
+
+    def calculateOffset(self, line, entity, size):
+      # if the mouse position near left edge of rectangle so the start point will has x of left edge rectangle and y of the mouse
+      if line[0] - entity[0] <= 64:
+        return (entity[0], line[1], 0) # 0: left
+      
+      # if the mouse position near right edge of rectangle so the start point will has x of right edge ectangle and y of the mouse
+      if entity[0] + size[0] - line[0] <= 64:
+        return ((entity[0] + size[0]), line[1], 2) # 2: right
+      
+      # if the mouse position near top edge of rectangle so the start point will has x of the mouse and y of the top of edge rectangle
+      if line[1] - entity[1] <= 64:
+        return (line[0], entity[1], 1) # 1: top
+      
+      # if the mouse position near bottom edge of rectangle so the start point will has x of the mouse and y of the bottom of edge rectangle
+      if entity[1] + size[1] - line[1] <= 64:
+        return (line[0], entity[1] + size[1], 3) # 3: bottom
+      
+      # if the mouse position <= 1/2 height of rectangle so the start point will has x of the mouse and y of the top of edge rectangle
+      if line[1] <= (entity[1] + size[1])/2:
+        return (line[0], entity[1], 1) # 1: top
+      
+      # if the mouse position > 1/2 height of rectangle so the start point will has x of the mouse and y of the bottom of edge rectangle
+      else:
+        return (line[0], entity[1] + size[1], 3) # 3: bottom
 
     def findEntitiesAt(self,pos):
       """Returns the entity located at the passed position """
