@@ -34,7 +34,7 @@
 #define CLMGTCONTAINER_H_
 
 #include <clMgtObject.hxx>
-
+#include <functional>
 namespace SAFplus
   {
   template <typename T>

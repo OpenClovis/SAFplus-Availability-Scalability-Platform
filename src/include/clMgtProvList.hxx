@@ -68,7 +68,7 @@ namespace SAFplus
   private:
     template<class U>
     ClRcT doRead(MgtDatabase *db, std::string parentXPath, const U & type) {
-      MgtObject::read(db, parentXPath);
+      return MgtObject::read(db, parentXPath);
     }
 
     ClRcT doRead(MgtDatabase *db, std::string parentXPath, std::string & type) {
@@ -103,11 +103,12 @@ namespace SAFplus
         else {
         }
       }
+      return CL_OK;
     }
 
     template<class U>
     ClRcT doSetObject(const std::string &val, const U & type) {
-      MgtObject::setObj(val);
+      return MgtObject::setObj(val);
     }
 
     ClRcT doSetObject(const std::string &val, std::string & type) {
@@ -128,6 +129,7 @@ namespace SAFplus
 
     template<class U>
     ClRcT doSetDb(std::string pxp, MgtDatabase *db, const U & type) {
+	return CL_OK;
     }
 
     ClRcT doSetDb(std::string pxp, MgtDatabase *db, std::string type)

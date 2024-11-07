@@ -230,8 +230,8 @@ else
   BOOST_CHRONO_CFLAGS:=-DUSE_BOOST_CHRONO
 endif
 
-LINK_STD_LIBS += $(PROTOBUF_LINK) -L$(BOOST_LIB_DIR) -lboost_thread $(BOOST_CHRONO_LIB) -lboost_system -lboost_filesystem -lpthread -lrt -ldl $(GPERFTOOLS_LINK)
-LINK_SO_LIBS += $(PROTOBUF_LINK) -L$(BOOST_LIB_DIR) -lboost_thread $(BOOST_CHRONO_LIB) -lboost_system -lboost_filesystem -lpthread -lrt -ldl $(GPERFTOOLS_LINK)
+LINK_STD_LIBS += $(PROTOBUF_LINK) -L$(BOOST_LIB_DIR) -lboost_thread $(BOOST_CHRONO_LIB) -lboost_system -lboost_filesystem -lboost_timer -lpthread -lrt -ldl $(GPERFTOOLS_LINK)
+LINK_SO_LIBS += $(PROTOBUF_LINK) -L$(BOOST_LIB_DIR) -lboost_thread $(BOOST_CHRONO_LIB) -lboost_system -lboost_filesystem -lboost_timer -lpthread -lrt -ldl $(GPERFTOOLS_LINK)
 
 CPP_FLAGS := $(CPP_FLAGS) -I$(SAFPLUS_INC_DIR) -I$(BOOST_INC_DIR) $(PROTOBUF_FLAGS) -I. -I$(SYSTEM_INC_DIR) -DSAFplus7 $(BOOST_CHRONO_CFLAGS)
 LOCAL_CPP_FLAGS := $(CPP_FLAGS) -I$(BOOST_INC_DIR) $(PROTOBUF_FLAGS) -I. -DSAFplus7 $(BOOST_CHRONO_CFLAGS)

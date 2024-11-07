@@ -10,6 +10,7 @@ using namespace boost::interprocess;
 
 #include <clLogApi.hxx>
 
+#include <cstdarg>
 
 static const char* CL_LOG_PRINT_FMT_STR     =         "%-26s [%s:%d] (%s.%d.%d : %s.%3s.%3s:%05d : %s) ";
 static const char* CL_LOG_PRINT_FMT_STR_WO_FILE    =   "%-26s (%s.%d.%d : %s.%3s.%3s:%05d : %s) ";
@@ -47,6 +48,7 @@ Logger* SAFplus::logInitialize()
         utilsInitialize();  /* Logging uses globals initialized by utils, but is tolerant of uninitialized vals.  Utils may log so this must be run AFTER logging is inited */
       }
       logInitCount++;
+      return nullptr;
 }
 
 uint_t SAFplusI::formatMsgPrefix(char* msg, LogSeverity  severity, uint_t serviceId, const char *pArea, const char  *pContext, const char *pFileName, uint_t lineNum)

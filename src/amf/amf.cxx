@@ -48,6 +48,8 @@ extern "C"
     lhs.saAmfContaintedComponentInstantiateCallback = NULL;
     lhs.saAmfContaintedComponentCleanupCallback = NULL;
 
+    SaAmfCallbacksT_3 dummy{0};
+    return dummy;
   }
 
 
@@ -179,6 +181,7 @@ SaAisErrorT saAmfDispatch(SaAmfHandleT amfHandle, SaDispatchFlagsT dispatchFlags
     } while ((dispatchFlags == SA_DISPATCH_BLOCKING)&&(!sess->finalize));  // DISPATCH_BLOCKING means to handle all incoming reqs until AMF finalized
 
   sess->dispatchCount.lock();
+  return SA_AIS_OK;
   }
 
 void sendCompAnnouncement(CompAnnoucementType type)

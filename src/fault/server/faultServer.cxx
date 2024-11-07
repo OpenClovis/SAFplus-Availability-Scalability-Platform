@@ -19,6 +19,7 @@
 #include <boost/asio/ip/address.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/filesystem/directory.hpp>
 #include <boost/foreach.hpp>
 #include <boost/unordered_map.hpp>
 #include <clCommon.hxx>

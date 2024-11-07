@@ -3,6 +3,8 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/asio/ip/address.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/exception.hpp>
+#include <boost/filesystem/directory.hpp>
 #include <boost/foreach.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/asio.hpp> // for signal handling
@@ -676,6 +678,7 @@ bool dbgRepair(const char* entity=NULL)
         }
       }
     }
+  return false;
   }
 
 bool dbgStart(const char* entity=NULL)
@@ -692,6 +695,7 @@ bool dbgStart(const char* entity=NULL)
       printf("Changed Service Group [%s] to [%s]\n",name.c_str(),c_str(ent->adminState.value));
       }
     }
+  return false;
   }
 
 bool dbgStop(const char* entity=NULL)
@@ -708,6 +712,7 @@ bool dbgStop(const char* entity=NULL)
       printf("Changed Service Group [%s] to [%s]\n",name.c_str(),c_str(ent->adminState.value));
       }
     }
+  return false;
   }
 
 bool dbgIdle(const char* entity=NULL)
@@ -724,6 +729,7 @@ bool dbgIdle(const char* entity=NULL)
       printf("Changed Service Group [%s] to [%s]\n",name.c_str(),c_str(ent->adminState.value));
       }
     }
+  return false;
   }
 
 

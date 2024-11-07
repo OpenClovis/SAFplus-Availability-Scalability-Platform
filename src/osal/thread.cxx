@@ -297,6 +297,7 @@ bool ThreadSem::blockUntil(uint amt,uint mSec)
         else return false;
       }
     }
+    return true;
   }
 
   ThreadSem::~ThreadSem()

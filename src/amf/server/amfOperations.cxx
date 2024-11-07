@@ -364,6 +364,7 @@ namespace SAFplus
     if ((su->adminState.value == SAFplusAmf::AdministrativeState::on) || (sg->adminState.value == SAFplusAmf::AdministrativeState::on)
       || (node->adminState.value == SAFplusAmf::AdministrativeState::off) || (app && app->adminState.value == SAFplusAmf::AdministrativeState::on))
       return SAFplusAmf::AdministrativeState::on;
+    return SAFplusAmf::AdministrativeState::off;
     }
 
   SAFplusAmf::AdministrativeState effectiveAdminState(SAFplusAmf::ServiceGroup* sg)
@@ -379,6 +380,7 @@ namespace SAFplus
 
     if ((sg->adminState.value == SAFplusAmf::AdministrativeState::on) || (app && app->adminState.value == SAFplusAmf::AdministrativeState::on))
       return SAFplusAmf::AdministrativeState::on;
+    return SAFplusAmf::AdministrativeState::off;
     }
 
   SAFplusAmf::AdministrativeState effectiveAdminState(SAFplusAmf::ServiceInstance* si)
@@ -1879,6 +1881,7 @@ namespace SAFplus
               }   
            }           
         }
+	return true;
     }
 
     void AmfOperations::assignWorkCallback(SAFplusAmf::Component* comp)

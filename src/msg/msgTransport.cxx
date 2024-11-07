@@ -234,6 +234,7 @@ namespace SAFplus
       assert(offset+start < allocatedLen);
       return (void*) (((char*) &buffer)+offset+start);
       }
+      return nullptr;
     }
 
     int MsgFragment::append(const char* s, int n)
@@ -261,6 +262,7 @@ namespace SAFplus
       {
       return (void*) (((char*) &buffer)+offset+start);
       }
+    return nullptr;
     }
 
 

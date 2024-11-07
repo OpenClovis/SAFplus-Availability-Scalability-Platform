@@ -188,6 +188,8 @@ SAFplus::Handle test_wait(Checkpoint& c1)
   uint_t t2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
   clTest(("wait actually waited"), t2-t1 > 500, ("st: %d end: %d",t1, t2));
   clTest(("but not too long"), t2-t1 < 1500, ("st: %d end: %d duration: %d",t1, t2,t2 - t1));  // can be very large, esp. in slow machines like qemu or VMs
+  SAFplus::Handle dummy = SAFplus::Handle();
+  return dummy;
 }
 
 

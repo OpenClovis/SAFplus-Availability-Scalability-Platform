@@ -72,11 +72,15 @@ namespace SAFplus
     {
       MgtRoot::getInstance()->bind(handle, obj);
     }
+
+    return CL_OK;
   }
 
   ClRcT MgtModule::registerRpc(Handle handle, MgtRpc* obj)
   {
       MgtRoot::getInstance()->registerRpc(handle, obj);
+
+      return CL_OK;
   }
 
   ClRcT MgtModule::addMgtObject(MgtObject *mgtObject, const std::string& route)

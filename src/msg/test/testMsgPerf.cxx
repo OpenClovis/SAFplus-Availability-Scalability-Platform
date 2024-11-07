@@ -1,5 +1,6 @@
 #include <boost/thread.hpp>
-#include <boost/timer.hpp>
+#include <boost/timer/timer.hpp>
+#include <boost/chrono/duration.hpp>
 #include <boost/program_options.hpp>
 #include <iostream>
 #include <clMsgApi.hxx>
@@ -10,7 +11,8 @@ uint_t reflectorNode = 102;
 uint_t repeat = 1;
 bool sar = false;
 using namespace SAFplus;
-using namespace boost;
+using namespace boost::timer;
+using namespace boost::chrono;
 namespace po = boost::program_options;
 
 std::ostringstream performanceReport;
@@ -95,7 +97,7 @@ bool testChunkingPerf(MsgSocket* src, MsgSocket* sink,Handle dest, int msgLen, i
   Message* m;
   unsigned int totalMsgs=0;
   unsigned long seed = 0;
-  timer t;
+  cpu_timer t;
   int drops = 0;
 
   for (int loop = 0; loop<numLoops; loop++)
@@ -185,7 +187,9 @@ bool testChunkingPerf(MsgSocket* src, MsgSocket* sink,Handle dest, int msgLen, i
         }
     }
 
-  double elapsed = t.elapsed();
+  // double elapsed = t.elapsed();
+  duration<double> seconds = nanoseconds(t.elapsed().user);
+  double elapsed = seconds.count();
   // Bandwidth measurements are doubled because the program sends AND receives each message
   printf("%s: len [%6d] stride [%6d] Bandwidth [%8.2f msg/s, %8.2f MB/s] drops [%5d]\n", testIdentifier, msgLen, msgsPerCall, 2*((double) totalMsgs)/elapsed, 2*(((double)(totalMsgs*msgLen*8))/elapsed)/1000000.0,drops);
 
@@ -233,7 +237,7 @@ bool testLatency(MsgSocket* src, MsgSocket* sink,Handle dest, int msgLen, int nu
   frag->len = msgLen;
   msgCount++;
 
-  timer t;
+  cpu_timer t;
   for (int loop = 0; loop<numLoops; loop++)
     {
       Handle d = m->getAddress();
@@ -259,7 +263,9 @@ bool testLatency(MsgSocket* src, MsgSocket* sink,Handle dest, int msgLen, int nu
 	}
 #endif
     }
-  double elapsed = t.elapsed();
+  // double elapsed = t.elapsed();
+  duration<double> seconds = nanoseconds(t.elapsed().user);
+  double elapsed = seconds.count();
 
   if (m)
     {

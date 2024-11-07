@@ -270,6 +270,7 @@ ClRcT MgtHistoryStat<T>::startTimer()
 
     return rc;
 #endif
+    return CL_OK;
 }
 
 template <class T>

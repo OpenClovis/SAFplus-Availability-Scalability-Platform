@@ -22,6 +22,8 @@
 
 #include <clCommon.hxx>
 
+#include <list>
+
 namespace SAFplus
 {
 

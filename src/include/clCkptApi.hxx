@@ -134,6 +134,8 @@ namespace SAFplus
       //printf("nullt? %d %d\n", c.isNullT(),isNullT());
       memcpy(data,c.data,len());
       change = c.change;
+
+      return *this;
     }
 
   private:

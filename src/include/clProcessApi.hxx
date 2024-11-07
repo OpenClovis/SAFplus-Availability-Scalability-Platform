@@ -6,6 +6,8 @@
 #include <clCommon.hxx>
 #include <signal.h>
 
+#include <vector>
+
 namespace SAFplus
   {
   class ProcessError:public Error

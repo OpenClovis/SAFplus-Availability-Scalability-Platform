@@ -261,5 +261,6 @@ PyInit_pyDbal(void)
 
     safplusInitialize(SAFplus::LibDep::DBAL | SAFplus::LibDep::LOG | SAFplus::LibDep::OSAL | SAFplus::LibDep::HEAP | SAFplus::LibDep::TIMER | SAFplus::LibDep::BUFFER);
 
-    (void) PyModule_Create(&DbalModDef);
+    //(void) PyModule_Create(&DbalModDef);
+    return PyModule_Create(&DbalModDef);
 }

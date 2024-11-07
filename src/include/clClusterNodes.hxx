@@ -22,6 +22,7 @@ namespace SAFplus
     if (s == NodeStatus::Dead) return "dead";
     if (s == NodeStatus::Unknown) return "unknown";
     if (s == NodeStatus::Alive) return "alive";
+    return "";
   }
 
   // Client side of the cloud discovery system.  But still intended for internal use.
