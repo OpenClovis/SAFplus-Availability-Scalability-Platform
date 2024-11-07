@@ -250,7 +250,7 @@ class PyDBAL():
                 predicate.append(token[1])
 
             #This is array index [1] ... [2] ...(already combine with @attributes)
-            if not re.match("\d+$", predicate[0]):
+            if not re.match(r"\d+$", predicate[0]):
                 while len(predicate)>3:
                     #Ignore 'and' expression token
                     if predicate[0] == 'and':

@@ -13,6 +13,7 @@ if sys.version_info[:3] < (2, 4, 3):
     print("Error: Must use Python 2.4.3 or greater for this script")
     sys.exit(1)
 
+SUPPORT_EMAIL                = 'support@openclovis.com'  # email for script maintainer
 # ------------------------------------------------------------------------------
 # Custom Imports
 # ------------------------------------------------------------------------------
@@ -31,12 +32,12 @@ except ImportError:
 # Settings
 # ------------------------------------------------------------------------------
 
-THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-7.0.1'                # Look for PKG starting with this name
-THIRDPARTYPKG_DEFAULT        = '3rdparty-base-7.0.1.tar'            # search this package if no 3rdPartyPkg found
+THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-7.0.2'                # Look for PKG starting with this name
+THIRDPARTYPKG_DEFAULT        = '3rdparty-base-7.0.2.tar'            # search this package if no 3rdPartyPkg found
 if determine_bit() == 64:
-  THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-7.0.1'       # Look for PKG starting with this name
-  THIRDPARTYPKG_DEFAULT        = '3rdparty-base-7.0.1.tar'
-SUPPORT_EMAIL                = 'support@openclovis.com'            # email for script maintainer
+  THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-7.0.2'       # Look for PKG starting with this name
+  THIRDPARTYPKG_DEFAULT        = '3rdparty-base-7.0.2.tar'
+
 INSTALL_LOCKFILE             = '/tmp/.openclovis_installer'        # installer lockfile location
 
 class ASPInstaller:
@@ -387,7 +388,7 @@ class ASPInstaller:
         else:
            Pkg_Found = 1
            for ThirdParty in ThirdPartyList:
-               sub_vers = re.sub("\D", "", re.sub (THIRDPARTY_NAME_STARTS_WITH, "", ThirdParty))
+               sub_vers = re.sub(r"\D", "", re.sub (THIRDPARTY_NAME_STARTS_WITH, "", ThirdParty))
                if sub_vers:
                   sub_vers = int (sub_vers)
                   if sub_vers > max_ver:
@@ -434,7 +435,7 @@ class ASPInstaller:
         elif self.OS.yum and not syscall('which yum'):
             self.feedback('Error: Could not find yum, cannot continue.\n\tMay be a problem with $PATH', True)
         
-        self.feedback('Beginning preinstall phase... please wait. This may take up to 60 minutes.')
+        self.feedback('Beginning preinstall phase... please wait. This may take up to 40 minutes.')
         
         install_str = ''
         install_lst = []        
@@ -495,13 +496,15 @@ class ASPInstaller:
                #  pip3_21 = 'curl https://bootstrap.pypa.io/pip -o get-pip.py'
                #system(pip3_21)
                #system('python3 get-pip.py --force-reinstall')
-               syscall('pip3 install --upgrade pip;')
-               self.debug('Installing via pip3: ' + pip_install_str)
-               (retval, result, signal, core) = system('pip3 install %s' % pip_install_str)
-               self.debug("Result: %d, output: %s" % (retval, str(result)))
-               if retval != 0:
-                 self.feedback("\n\nPreinstall via pip3 was not successful.  You may need to install some of the following packages yourself.\n%s\n\nOutput of apt-get was:\n%s" % (pip_install_str,"".join(result)), fatal=True)
-                 return
+               syscall('pip3 install --upgrade pip')
+               for dep in self.preinstallPipQueue:
+                 if type(dep.name) == type(""):  # A string means its a simple dependency
+                   self.debug('Installing via pip3: ' + dep.name)
+                   (retval, result, signal, core) = system('pip3 install --break-system-packages %s' % dep.name)
+                   self.debug("Result: %d, output: %s" % (retval, str(result)))
+                   if retval != 0:
+                     self.feedback("\n\nPreinstall via pip3 was not successful.  You may need to install some of the following packages yourself.\n%s\n\nOutput of apt-get was:\n%s" % (dep.name,"".join(result)), fatal=True)
+                     return
                #system('git clone https://github.com/mbj4668/pyang pyang')
                #os.chdir('pyang')
                #system('git reset --hard a6e51ba83f06829d3d26849bcb306f49f335267f')

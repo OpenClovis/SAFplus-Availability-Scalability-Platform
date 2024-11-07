@@ -1071,7 +1071,7 @@ def save_asp_runtime_files():
         def dir_size(d, defsize=10*1024):
             l = Popen('du -sk %s' % d)
             if len(l) != 1:
-                log.critical('The command \`du -sk\' did not return '
+                log.critical('The command \"du -sk\" did not return '
                              'expected output, returning %sKb as the value'
                              % defsize)
                 return defsize

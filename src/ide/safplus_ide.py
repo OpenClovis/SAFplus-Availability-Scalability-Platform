@@ -530,7 +530,7 @@ class SAFplusFrame(wx.Frame):
     def enableTools(self, page):
       t = self.model
       if not t: return      
-      if re.sub("\*", "", page) == self.getCurrentPageText(0):
+      if re.sub(r"\*", "", page) == self.getCurrentPageText(0):
         # uml modelling is selected, now enable tools belonging to it and disable the others not belonging to it
         if t.uml: 
           t.uml.enableTools(True)
@@ -538,7 +538,7 @@ class SAFplusFrame(wx.Frame):
         if t.instance:
           t.instance.enableTools(False)
           t.instance.enableMenuItems(False) # set menu items state also
-      elif re.sub("\*", "", page) == self.getCurrentPageText(2):
+      elif re.sub(r"\*", "", page) == self.getCurrentPageText(2):
         # instantiation is selected, now enable tools belonging to it and disable the others not belonging to it
         if t.uml:
           t.uml.enableTools(False)
@@ -798,7 +798,7 @@ class Page(wx.Panel):
     label = self.parent.tab.GetPageText(index)
 
     if '*' in label:
-      label = re.sub("\*", "", label)
+      label = re.sub(r"\*", "", label)
       self.parent.tab.SetPageText(index, label)
       self.control.save_file()
 
@@ -824,7 +824,7 @@ class Page(wx.Panel):
     index = self.parent.tab.GetSelection()
     label = self.parent.tab.GetPageText(index)
     if '*' in label:
-      label = re.sub("\*", "", label)
+      label = re.sub(r"\*", "", label)
       self.parent.tab.SetPageText(index, label)
 
   def onEditChange(self, event):
