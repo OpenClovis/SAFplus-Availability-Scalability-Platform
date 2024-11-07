@@ -52,7 +52,7 @@ def system(cmd):
     #print 'Executing command: [%s]' % cmd
     #command = subprocess.run([cmd], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     
-    child = subprocess.Popen([cmd], shell = True, stdout=subprocess.PIPE)
+    child = subprocess.Popen([cmd], shell = True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     retval = child.wait()
     signal = retval & 0x7f
     core   = ((retval & 0x80) !=0)

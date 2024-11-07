@@ -2,7 +2,7 @@ import pdb
 import os
 import objects
 from common import *
-from distutils.version import *
+#from distutils.version import *
 
 cmp_version = lambda x, y: LooseVersion(x).__cmp__(y) #Equal 0, greater 1, lesser -1
 
@@ -226,6 +226,49 @@ class Ubuntu22(OS):
         for name in pip_deps:
             D = objects.RepoDep(name)
             self.pre_pip_dep_list.append(D)
+#-------------------------------------------------------------- 
+
+class Ubuntu24(OS):
+    """ Ubuntu Distro class """
+    def pre_init(self):
+        self.name = 'Ubuntu'
+        self.apt = True
+
+    def load_preinstall_deps(self):
+
+        deps =  ['build-essential',
+                 'autoconf',
+                 'python3.12-dev',
+                 #'python-pip',
+                 'pkg-config',
+                 'libtool',
+                 'curl',
+                 'python3-pip'
+                ]
+
+        ide_deps = ['libffi-dev',
+                'libgtk-3-dev',
+                'gir1.2-rsvg-2.0',
+                'python3-cairo',
+                'python3-gi-cairo',
+                'python3-gi',
+                'python3-wxgtk4.0'
+                ]
+
+        pip_deps =  ['genshi', 'watchdog', 'paramiko'] # 'wxPython==4.2.0']
+
+        for name in deps:
+            D = objects.RepoDep(name)
+            self.pre_dep_list.append(D)
+
+        for name in ide_deps:
+            D = objects.RepoDep(name)
+            self.ide_pre_dep_list.append(D)
+
+        for name in pip_deps:
+            D = objects.RepoDep(name)
+            self.pre_pip_dep_list.append(D)
+
 # ------------------------------------------------------------------------------
 
 class CentOS8(OS):
@@ -422,6 +465,8 @@ def determine_os():
                     return Ubuntu18()
                 elif '22.' in fdata:
                     return Ubuntu22()
+                elif '24.' in fdata:
+                    return Ubuntu24()
         # Debian
         if os.path.isfile('/etc/debian_version'):
             print ('Debian OS')

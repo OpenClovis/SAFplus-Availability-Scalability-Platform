@@ -16,6 +16,8 @@ from pyang import error
 from pyang import util
 from pyang import hello
 from pyang import statements
+from pyang import FileRepository
+from pyang import Context
 
 def xpathof(yang):
   """Returns a string which is the xpath of this node"""
@@ -30,8 +32,13 @@ def xpathof(yang):
   return "/".join(ret)
 
 def go(path,filenames):
-  repos = pyang.FileRepository(path)
-  ctx = pyang.Context(repos)
+  # repos = pyang.FileRepository(path)
+  #repos = repository.FileRepository(path)
+
+  repos = FileRepository(path)
+
+
+  ctx = Context(repos)
 
   ctx.canonical = None
   ctx.max_line_len = None
@@ -87,7 +94,7 @@ def go(path,filenames):
 
 def getArg(stmts,keyword,default=None):
   """ Given a keyword and a list of statements or a pyang statement object, returns the arg"""
-  if type(stmts) is pyang.statements.Statement: stmts = stmts.substmts
+  if isinstance(stmts, statements.Statement): stmts = stmts.substmts
   for s in stmts:
     if s.keyword == keyword:
       return s.arg
@@ -95,7 +102,7 @@ def getArg(stmts,keyword,default=None):
 
 def getChildren(stmts, keyword ):
   """ Given a keyword and a list of statements or a pyang statement object, returns a list of matching substatements"""
-  if type(stmts) is pyang.statements.Statement: stmts = stmts.substmts
+  if isinstance(stmts, statements.Statement): stmts = stmts.substmts
   for s in stmts:
     if s.keyword == keyword:
       yield s

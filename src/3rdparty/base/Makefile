@@ -107,7 +107,7 @@ LIBXML2_VER=2.9.0
 LIBXML2_PKG=$(LIBXML2)-$(LIBXML2_VER).tar.gz
 
 BOOST=boost
-BOOST_VER=1.62.0
+BOOST_VER=1.86.0
 BOOST_PKG=$(BOOST)_$(subst .,_,$(BOOST_VER)).tar.gz
 BOOST_FLAVOR=link=shared runtime-link=shared variant=debug threading=multi --without-python --without-iostreams --without-mpi --without-context
 
@@ -418,7 +418,7 @@ $(BOOST_PKG):
 pyyang: $(PYANG_PKG)
 	(rm -rf $(PYANG))
 	(tar xvfz $<  > /dev/null)
-	(cd pyang; python setup.py install)
+#	(cd pyang; python setup.py install)
 	chmod -R 757 $(SAFPLUS_TARGET)
 #pyang:
 #	git clone https://github.com/mbj4668/pyang pyang
