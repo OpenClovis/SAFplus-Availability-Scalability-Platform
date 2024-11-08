@@ -1503,8 +1503,8 @@ echo_cmd = '/bin/echo'
       p = "qnx"
       code = qnx_code
 
-    import imp
-    s = imp.new_module("aspinfo_%s" % p)
+    import types
+    s = types.ModuleType("aspinfo_%s" % p)
     sys.modules['aspinfo_%s'%p] = s
 
     exec (code, s.__dict__)

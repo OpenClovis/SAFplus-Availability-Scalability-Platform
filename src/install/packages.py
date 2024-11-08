@@ -243,7 +243,8 @@ class Ubuntu24(OS):
                  'pkg-config',
                  'libtool',
                  'curl',
-                 'python3-pip'
+                 'python3-pip',
+                 'python3-lxml'
                 ]
 
         ide_deps = ['libffi-dev',
