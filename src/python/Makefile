@@ -15,10 +15,17 @@ PYTHON_SUBVER1 :=$(shell python3 -c "import sys; print (\"%d\" % (sys.version_in
 PYTHON_SUBVER2 :=$(shell python3 -c "import sys; print (\"%d\" % (sys.version_info[1]))")
 PY_INC := -I$(SYSTEM_INC_DIR) -I$(SYSTEM_INC_DIR)/python$(PYTHON_VER)m -I$(SYSTEM_INC_DIR)/python$(PYTHON_VER)
 # Note to make boost_python: cd boost/libs/python/example/quickstart; ../../../../bjam toolset=gcc --verbose-test test
-ifeq ($(shell test $(PYTHON_SUBVER1) -gt 2 && test $(PYTHON_SUBVER2) -gt 9  ; echo $$?),0)
-PY_LIB := -lpython$(PYTHON_VER) -L$(BOOST_DIR)/libs -lboost_python
+
+ifeq ($(shell test $(PYTHON_SUBVER1) -ge 3  && test $(PYTHON_SUBVER2) -ge 12  ; echo $$?),0)
+BOOST_PY_LIB := -lboost_python$(PYTHON_SUBVER1)$(PYTHON_SUBVER2)
 else
-PY_LIB := -lpython$(PYTHON_VER)m -L$(BOOST_DIR)/libs -lboost_python
+BOOST_PY_LIB := -lpython$(PYTHON_VER)m -L$(BOOST_DIR)/libs -lboost_python
+endif
+
+ifeq ($(shell test $(PYTHON_SUBVER1) -gt 2 && test $(PYTHON_SUBVER2) -gt 9  ; echo $$?),0)
+PY_LIB := -lpython$(PYTHON_VER) -L$(BOOST_DIR)/libs $(BOOST_PY_LIB)
+else
+PY_LIB := -lpython$(PYTHON_VER)m -L$(BOOST_DIR)/libs $(BOOST_PY_LIB)
 endif
 
 PY_CLIENT_H := $(wildcard *.hpp) $(wildcard ../include/*.hpp) $(wildcard ../include/*.hxx)

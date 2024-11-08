@@ -52,15 +52,19 @@ def system(cmd):
     #print 'Executing command: [%s]' % cmd
     #command = subprocess.run([cmd], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     
-    child = subprocess.Popen([cmd], shell = True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    retval = child.wait()
-    signal = retval & 0x7f
-    core   = ((retval & 0x80) !=0)
-    retval = retval >> 8   
-    output = child.stdout.read() 
-            
-       
-    return (retval, output, signal, core)
+    child = subprocess.Popen([cmd], shell = True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    #retval = child.wait()
+    #signal = retval & 0x7f
+    #core   = ((retval & 0x80) !=0)
+    #retval = retval >> 8   
+    #output = child.stdout.read().decode("utf-8")
+    #err = child.stderr.read().decode("utf-8")
+    #output += "\n" + err
+    output,err = child.communicate()
+    output = output.decode("utf-8")
+    err = err.decode("utf-8")
+    output += "\n" + err
+    return (child.returncode, output, 0 ,0)
 
 # points to root directory where install.py
 
