@@ -622,6 +622,7 @@ class ProjectTreePanel(wx.Panel):
           frame.openFile[newPath] = frame.openFile.pop(itemPath)
           frame.openFile[newPath].control.file_path = newPath
           frame.openFile[newPath].control.detect_language()
+          frame.openFile[newPath].control.apply_settings()
       elif os.path.isdir(itemPath):
         prj = self.active()
         if prj:
@@ -1533,6 +1534,7 @@ class ProjectTreePanel(wx.Panel):
       Page = self.guiPlaces.frame.tab.GetPage(index)
       if Page.__class__.__name__ == "Page":
         Page.control.detect_language()
+        Page.control.apply_settings()
 
   def OnHelpConents(self, event):
     '''

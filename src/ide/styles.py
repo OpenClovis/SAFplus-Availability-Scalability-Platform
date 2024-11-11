@@ -6,6 +6,8 @@ import wx.stc as stc
 import copy
 import pickle
 import util
+from settings import settings
+from style_data import Style, Language, Makefile, Yang
 
 STYLE_PATH = 'styles.dat'
 DEFAULT_STYLE_PATH = 'default-styles.dat'
@@ -32,6 +34,11 @@ class StyleManager(object):
                 self.base_style = pickler.load()
                 self.app_styles = pickler.load()
                 self.languages = pickler.load()
+                self.editor_background_color = pickler.load()
+                self.selection_bg_color = pickler.load()
+                self.selection_fg_color = pickler.load()
+                self.caret_line_bg = pickler.load()
+                self.caret_fg = pickler.load()
                 file.close()
                 return
             except:
@@ -39,6 +46,11 @@ class StyleManager(object):
         self.base_style = create_base_style()
         self.app_styles = create_app_styles(self.base_style)
         self.languages = create_languages(self.base_style)
+        self.editor_background_color = (255, 255, 255)
+        self.selection_bg_color = settings.SELECTION_BACKGROUND
+        self.selection_fg_color = settings.SELECTION_FOREGROUND
+        self.caret_line_bg = settings.CARET_LINE_BACKGROUND
+        self.caret_fg = settings.CARET_FOREGROUND
     def save(self):
         try:
             file = open(STYLE_PATH, 'wb')
@@ -46,6 +58,11 @@ class StyleManager(object):
             pickler.dump(self.base_style)
             pickler.dump(self.app_styles)
             pickler.dump(self.languages)
+            pickler.dump(self.editor_background_color)
+            pickler.dump(self.selection_bg_color)
+            pickler.dump(self.selection_fg_color)
+            pickler.dump(self.caret_line_bg)
+            pickler.dump(self.caret_fg)
             file.close()
         except:
             pass
@@ -77,77 +94,6 @@ class StyleManager(object):
             if extension in language.extensions:
                 return language
         return None
-        
-class Style(object):
-    def __init__(self, parent=None, number=None, name=None, preview=None, 
-        font=None, size=None, bold=None, italic=None, underline=None, 
-        foreground=None, background=None):
-        self._parent = parent
-        self._number = number
-        self._name = name
-        self._preview = preview or name
-        self._font = font
-        self._size = size
-        self._bold = bold
-        self._italic = italic
-        self._underline = underline
-        self._foreground = foreground
-        self._background = background
-    def __cmp__(self, other):
-        return cmp(self.preview, other.preview)
-    def __setattr__(self, name, value):
-        if name.startswith('_'):
-            super(Style, self).__setattr__(name, value)
-        else:
-            setattr(self, '_%s' % name, value)
-    def __getattr__(self, name):
-        if name.startswith('_'):
-            return super(Style, self).__getattr__(name)
-        value = getattr(self, '_%s' % name)
-        if value is None and self._parent:
-            return getattr(self._parent, name)
-        return value
-    def clear(self):
-        if self._parent is None:
-            return
-        self.font = None
-        self.size = None
-        self.bold = None
-        self.italic = None
-        self.underline = None
-        self.foreground = None
-        self.background = None
-    def create_font(self):
-        return create_font(self.font, self.size, self.bold, self.italic, self.underline)
-    def create_foreground(self):
-        return create_color(*self.foreground)
-    def create_background(self):
-        return create_color(*self.background)
-        
-class Language(object):
-    def __init__(self, name, extensions=[], lexer=stc.STC_LEX_NULL, 
-        base_style=None, styles=[], keywords='', keywords2='', keywords3='',
-        line_comment='', block_comment=('', '')):
-        self.name = name
-        self.extensions = extensions
-        self.lexer = lexer
-        self.base_style = base_style
-        self.styles = styles
-        self.keywords = keywords
-        self.keywords2 = keywords2
-        self.keywords3 = keywords3
-        self.line_comment = line_comment
-        self.block_comment = block_comment
-    def copy_from(self, other):
-        self.extensions = other.extensions
-        self.lexer = other.lexer
-        self.keywords = other.keywords
-        self.keywords2 = other.keywords2
-        self.keywords3 = other.keywords3
-        self.line_comment = other.line_comment
-        self.block_comment = other.block_comment
-    def __cmp__(self, other):
-        return cmp(self.name, other.name)
         
 def create_base_style():
     base_style = Style(None, stc.STC_STYLE_DEFAULT, 'Global Style', None, 
@@ -335,15 +281,20 @@ def create_languages(base_style):
             Style(style, stc.STC_C_WORD2, 'Keyword 2'),
         ],
         keywords='''
-            asm auto bool
-            break case catch char class const const_cast continue default delete
-            do double dynamic_cast else enum explicit export extern false float for
-            friend goto if inline int long mutable namespace new operator private
-            protected public register reinterpret_cast return short signed sizeof
-            static static_cast struct switch template this throw true try typedef
-            typeid typename union unsigned using virtual void volatile wchar_t while
+            asm
+            break case catch class const_cast continue default delete
+            do dynamic_cast else enum export false  for
+            friend goto if namespace new operator private
+            protected public reinterpret_cast return sizeof
+            static_cast struct switch template this throw true try typedef
+            typeid typename union using virtual while
+            bitand bitor constexpr co_await co_return co_yield
+            decltype noexcept not not_eq nullptr or or_eq
+            requires static_assert and xor xor_eq
         ''',
         keywords2='''
+            auto bool char const double explicit extern float inline int long mutable
+            register short signed static unsigned void volatile wchar_t
         ''',
         keywords3='''
         ''',
@@ -447,6 +398,7 @@ def create_languages(base_style):
         lexer=stc.STC_LEX_XML,
         base_style=style,
         styles=[
+            Style(style, stc.STC_H_DEFAULT, "Default"),
             Style(style, stc.STC_H_ATTRIBUTE, 'Attribute'),
             Style(style, stc.STC_H_ATTRIBUTEUNKNOWN, 'Attribute Unknown'),
             Style(style, stc.STC_H_CDATA, 'CDATA'),
@@ -476,26 +428,13 @@ def create_languages(base_style):
     
     # Makefile
     style = Style(base_style, name='Makefile Base Style')
-    makefile = Language(
-        name='Makefile',
-        extensions=['makefile'],
-        lexer=stc.STC_LEX_MAKEFILE,
-        base_style=style,
-        styles=[
-            Style(style, stc.STC_MAKE_COMMENT, 'Comment'),
-            Style(style, stc.STC_MAKE_DEFAULT, 'Default'),
-            Style(style, stc.STC_MAKE_IDENTIFIER, 'Identifer'),
-            Style(style, stc.STC_MAKE_IDEOL, 'Ideol'),
-            Style(style, stc.STC_MAKE_OPERATOR, 'Operator'),
-            Style(style, stc.STC_MAKE_PREPROCESSOR, 'Preprocessor'),
-            Style(style, stc.STC_MAKE_TARGET, 'Make target'),
-        ],
-        keywords='''
-        ''',
-        line_comment='#',
-        block_comment=('', ''),
-    )
+    makefile = Makefile(base_style=style)
     result.append(makefile)
+
+    # Yang
+    style = Style(base_style, name='Yang Base Style')
+    yang = Yang(base_style=style)
+    result.append(yang)
 
     return result
     
