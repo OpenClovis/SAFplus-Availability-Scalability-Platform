@@ -4,9 +4,11 @@
 import wx
 import wx.aui as aui
 import wx.stc as stc
+import wx.lib.scrolledpanel as scrolled
 import copy
 import util
 import styles
+import color_scheme
 
 def color_tuple(color):
     return color.Red(), color.Green(), color.Blue()
@@ -291,14 +293,18 @@ class StyleDialog(wx.Dialog):
         self.load()
         sizer = wx.BoxSizer(wx.VERTICAL)
         #notebook = wx.Notebook(self, -1)
-        notebook = aui.AuiNotebook(self, -1, style=wx.BORDER_NONE)
+        notebook = aui.AuiNotebook(self, -1, style=wx.BORDER_NONE | wx.aui.AUI_NB_SCROLL_BUTTONS)
         notebook.SetTabCtrlHeight(32)
         page1 = self.create_global_page(notebook)
         page2 = self.create_app_page(notebook)
         page3 = self.create_language_page(notebook)
+        page4 = self.create_misc_page(notebook)
+        page5 = self.create_color_scheme_page(notebook)
         notebook.AddPage(page1, 'Global Style')
         notebook.AddPage(page2, 'Application Styles')
         notebook.AddPage(page3, 'Language Styles')
+        notebook.AddPage(page4, 'Miscellaneous')
+        notebook.AddPage(page5, 'Color Scheme')
         w, h = page3.GetMinSize()
         h = notebook.GetHeightForPageHeight(h)
         notebook.SetMinSize((w, h))
@@ -322,12 +328,31 @@ class StyleDialog(wx.Dialog):
         self.base_style = style_manager.base_style
         self.app_styles = style_manager.app_styles
         self.languages = style_manager.languages
+        self.editor_background_color = style_manager.editor_background_color
+        self.selection_bg_color = style_manager.selection_bg_color
+        self.selection_fg_color = style_manager.selection_fg_color
+        self.caret_line_bg = style_manager.caret_line_bg
+        self.caret_fg = style_manager.caret_fg
     def save(self):
-        data = (self.base_style, self.app_styles, self.languages)
+        data = (
+            self.base_style,
+            self.app_styles,
+            self.languages,
+            self.editor_background_color,
+            self.selection_bg_color,
+            self.selection_fg_color,
+            self.caret_line_bg,
+            self.caret_fg
+        )
         data = copy.deepcopy(data)
         self.style_manager.base_style = data[0]
         self.style_manager.app_styles = data[1]
         self.style_manager.languages = data[2]
+        self.style_manager.editor_background_color = data[3]
+        self.style_manager.selection_bg_color = data[4]
+        self.style_manager.selection_fg_color = data[5]
+        self.style_manager.caret_line_bg = data[6]
+        self.style_manager.caret_fg = data[7]
         self.style_manager.save()
     def on_change(self, event):
         event.Skip()
@@ -376,8 +401,118 @@ class StyleDialog(wx.Dialog):
         page.SetSizerAndFit(sizer)
         self.language_controls = controls
         return page
-        
-        
+
+    def create_misc_page(self, parent):
+        page = wx.Panel(parent, -1)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        editor_data = {"Background": (self.set_editor_bg, self.get_editor_bg)}
+        selection_data = {"Foreground": (self.set_sel_fg, self.get_sel_fg),
+                          "Background": (self.set_sel_bg, self.get_sel_bg)}
+        caret_data = {"Foreground": (self.set_caret_fg, self.get_caret_fg),
+                      "Line Background": (self.set_caret_line_bg, self.get_caret_line_bg)}
+
+        self.misc_editor_controls = TopicColorPicker(page, "Editor", editor_data)
+        self.misc_sel_controls = TopicColorPicker(page, "Selection", selection_data)
+        self.misc_caret_controls = TopicColorPicker(page, "Caret", caret_data)
+
+        sizer.Add(self.misc_editor_controls, 0, wx.EXPAND | wx.ALL, 10)
+        sizer.Add(self.misc_sel_controls, 0, wx.EXPAND | wx.ALL, 10)
+        sizer.Add(self.misc_caret_controls, 0, wx.EXPAND | wx.ALL, 10)
+
+        page.SetSizerAndFit(sizer)
+        return page
+
+    def create_color_scheme_page(self, parent):
+        page = scrolled.ScrolledPanel(parent, -1)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        schemes = color_scheme.get_schemes()
+        demos = []
+        for scheme in schemes:
+            demo = scheme.create_demo(self, page)
+            demos.append(demo)
+            sizer.Add(demo, 0, wx.EXPAND, 0)
+
+        page.SetSizerAndFit(sizer)
+        page.SetupScrolling()
+        return page
+
+    def update_all_controls(self):
+        self.global_controls.update_controls()
+        self.app_controls.update_controls()
+        self.language_controls.update_controls()
+        self.misc_editor_controls.update_controls()
+        self.misc_sel_controls.update_controls()
+        self.misc_caret_controls.update_controls()
+ 
+    def set_editor_bg(self, color_tuple):
+        self.editor_background_color = color_tuple
+    def get_editor_bg(self):
+        return self.editor_background_color
+
+    def set_sel_bg(self, color_tuple):
+        self.selection_bg_color = color_tuple
+    def get_sel_bg(self):
+        return self.selection_bg_color
+
+    def set_sel_fg(self, color_tuple):
+        self.selection_fg_color = color_tuple
+    def get_sel_fg(self):
+        return self.selection_fg_color
+
+    def set_caret_line_bg(self, color_tuple):
+        self.caret_line_bg = color_tuple
+    def get_caret_line_bg(self):
+        return self.caret_line_bg
+
+    def set_caret_fg(self, color_tuple):
+        self.caret_fg = color_tuple
+    def get_caret_fg(self):
+        return self.caret_fg
+
+class TopicColorPicker(wx.Panel):
+    def __init__(self, parent, topic_name, topic_color_data):
+        super().__init__(parent)
+        self.data_lut = {}
+        notebook = parent.GetParent()
+        self.style_dialog = notebook.GetParent()
+
+        box = wx.StaticBox(self, -1, topic_name)
+        n_cols = len(topic_color_data)
+        sizer = wx.StaticBoxSizer(box, wx.VERTICAL)
+        grid = wx.FlexGridSizer(2, n_cols + 1, 3, 10)
+        grid.AddGrowableCol(n_cols)
+
+        for topic_comp_name in topic_color_data.keys():
+            grid.Add(wx.StaticText(self, -1, topic_comp_name))
+        grid.AddSpacer(0)
+        for data_setter, data_getter in topic_color_data.values():
+            original_color = data_getter()
+            color_picker = wx.ColourPickerCtrl(self, -1, style=wx.CLRP_SHOW_LABEL)
+            color_picker.SetColour(wx.Colour(*original_color))
+            color_picker.Bind(wx.EVT_COLOURPICKER_CHANGED, self.on_color_changed)
+            grid.Add(color_picker, 0, wx.EXPAND)
+            self.data_lut[color_picker.Id] = (data_setter, data_getter)
+        grid.AddSpacer(0)
+
+        sizer.Add(grid, 1, wx.EXPAND|wx.ALL, 5)
+        self.SetSizer(sizer)
+
+    def update_controls(self):
+        for color_picker_id, (setter, getter) in self.data_lut.items():
+            color_picker = wx.FindWindowById(color_picker_id)
+            color_tuple = getter()
+            color_picker.SetColour(wx.Colour(*color_tuple))
+
+    def wxcolour_to_tuple(self, wxcolour):
+        return (wxcolour.red, wxcolour.green, wxcolour.blue)
+
+    def on_color_changed(self, evt):
+        colour_picker = evt.GetEventObject()
+        data = self.wxcolour_to_tuple(colour_picker.GetColour())
+        data_setter = self.data_lut[colour_picker.Id][0]
+        data_setter(data)
+        self.style_dialog.apply.Enable() # enable the apply button
         
 if __name__ == '__main__':
     app = wx.PySimpleApp()

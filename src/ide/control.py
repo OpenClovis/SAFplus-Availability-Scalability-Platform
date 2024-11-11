@@ -77,19 +77,21 @@ class EditorControl(stc.StyledTextCtrl):
                 return False
         return True
     def apply_settings(self):
+        manager = self.get_frame().parent.style_manager
+
         self.IndicatorSetStyle(1, stc.STC_INDIC_ROUNDBOX)
         self.IndicatorSetForeground(1, wx.RED)
         self.IndicatorSetStyle(2, stc.STC_INDIC_ROUNDBOX)
         self.IndicatorSetForeground(2, wx.BLUE)
-        self.SetCaretForeground(settings.CARET_FOREGROUND)
+        self.SetCaretForeground(manager.caret_fg)
         self.SetCaretLineVisible(settings.CARET_LINE_VISIBLE)
-        self.SetCaretLineBackground(settings.CARET_LINE_BACKGROUND)
+        self.SetCaretLineBackground(manager.caret_line_bg)
         self.SetCaretPeriod(settings.CARET_PERIOD)
 
         self.SetCaretWidth(settings.CARET_WIDTH)
         self.SetWrapMode(stc.STC_WRAP_WORD if settings.WORD_WRAP else stc.STC_WRAP_NONE)
-        self.SetSelBackground(bool(settings.SELECTION_BACKGROUND), settings.SELECTION_BACKGROUND)
-        self.SetSelForeground(bool(settings.SELECTION_FOREGROUND), settings.SELECTION_FOREGROUND)
+        self.SetSelBackground(bool(settings.SELECTION_BACKGROUND), manager.selection_bg_color)
+        self.SetSelForeground(bool(settings.SELECTION_FOREGROUND), manager.selection_fg_color)
         self.SetUseHorizontalScrollBar(settings.USE_HORIZONTAL_SCROLL_BAR)
         self.SetBackSpaceUnIndents(settings.BACKSPACE_UNINDENTS)
         
@@ -108,7 +110,9 @@ class EditorControl(stc.StyledTextCtrl):
         self.apply_bookmark_settings()
         self.apply_folding_settings()
         self.show_line_numbers()
-        self.detect_language()
+
+        self.StyleSetBackground(wx.stc.STC_STYLE_DEFAULT, manager.editor_background_color)
+        # self.detect_language()
     def apply_bookmark_settings(self):
         if True:
             self.SetMarginType(self.BOOKMARK_MARGIN, stc.STC_MARGIN_SYMBOL)
@@ -121,7 +125,7 @@ class EditorControl(stc.StyledTextCtrl):
         if True:
             self.SetProperty("fold", "1")
             self.SetMarginType(self.FOLDING_MARGIN, stc.STC_MARGIN_SYMBOL)
-            # self.SetMarginMask(self.FOLDING_MARGIN, stc.STC_MASK_FOLDERS)
+            self.SetMarginMask(self.FOLDING_MARGIN, stc.STC_MASK_FOLDERS)
             self.SetMarginSensitive(self.FOLDING_MARGIN, True)
             self.SetMarginWidth(self.FOLDING_MARGIN, settings.FOLDING_MARGIN_SIZE)
             self.MarkerDefine(stc.STC_MARKNUM_FOLDEREND, stc.STC_MARK_BOXPLUSCONNECTED, "white", "#666666")
@@ -181,10 +185,12 @@ class EditorControl(stc.StyledTextCtrl):
         finally:
             self.mark_stat()
             self.detect_language()
+            self.apply_settings()
         return False
     def reload_file(self, emptyUndoBuffer=True):
         if self.file_path:
             self.open_file(self.file_path, emptyUndoBuffer)
+            self.apply_settings()
     def detect_language(self):
         path = self.file_path
         manager = self.get_frame().parent.style_manager
@@ -207,6 +213,9 @@ class EditorControl(stc.StyledTextCtrl):
         self.apply_styles(manager.app_styles)
         if language:
             self.SetLexer(language.lexer)
+            if language.lexer == stc.STC_LEX_CONTAINER:
+                self.Bind(stc.EVT_STC_STYLENEEDED, language.style_routine)
+                self.style_once(language)
             self.SetKeyWords(0, ' '.join(language.keywords.split()))
             for n in range(2, 8):
                 attr = 'keywords%d' % n
@@ -479,9 +488,9 @@ class EditorControl(stc.StyledTextCtrl):
     def on_updateui(self, event):
         self.match_brace()
         self.update_line_numbers()
-        self.highlight_selection()
-        self.highlight_markers()
-        
+        # self.highlight_selection()
+        # self.highlight_markers()
+ 
     def toggle_macro(self):
         if self._recording:
             self.stop_macro()
@@ -544,4 +553,12 @@ class EditorControl(stc.StyledTextCtrl):
     def on_macrorecord(self, event):
         command = (event.GetMessage(), event.GetWParam(), event.GetLParam())
         self._macro.append(command)
-        
+
+    def style_once(self, unsupportedLanguage):
+        # Manually styling the document for unsupported languages
+        start_pos = 0
+        end_pos = self.GetTextLength()
+        text = self.GetText()
+
+        tokens = unsupportedLanguage.tokenize(start_pos, end_pos, text)
+        unsupportedLanguage.apply_style(tokens, self)

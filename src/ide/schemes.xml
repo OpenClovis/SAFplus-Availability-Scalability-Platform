@@ -1,0 +1,426 @@
+<schemes>
+    <scheme name="Tango">
+        <language name="C">
+            <style name="Character" foreground="#000000" />
+            <style name="Comment" foreground="#214D9B" />
+            <style name="Comment Line" foreground="#214D9B" />
+            <style name="Whitespace" foreground="#000000" />
+            <style name="Identifier" foreground="#000000" />
+            <style name="Number" foreground="#AF7FAA" />
+            <style name="Operator" foreground="#000000" />
+            <style name="Preprocessor" foreground="#C37306" />
+            <style name="Regex" foreground="#000000" />
+            <style name="String" foreground="#AF7FAA" />
+            <style name="String EOL" foreground="#000000" />
+            <style name="Uuid" foreground="#000000" />
+            <style name="Verbatim" foreground="#000000" />
+            <style name="Keyword" foreground="#A40001" bold="true" />
+            <style name="Keyword 2" foreground="#4E9A06" bold="true" />
+        </language>
+        <language name="C++">
+            <style name="Character" foreground="#000000" />
+            <style name="Comment" foreground="#214D9B" />
+            <style name="Commentdoc" foreground="#214D9B" />
+            <style name="Commentdockeyword" foreground="#214D9B" />
+            <style name="Commentdockeyworderror" foreground="#214D9B" />
+            <style name="Comment Line" foreground="#214D9B" />
+            <style name="Commentlinedoc" foreground="#214D9B" />
+            <style name="Whitespace" foreground="#000000" />
+            <style name="Globalclass" foreground="#AF7FAA" />
+            <style name="Identifier" foreground="#000000" />
+            <style name="Number" foreground="#AF7FAA" />
+            <style name="Operator" foreground="#000000" />
+            <style name="Preprocessor" foreground="#C37306" />
+            <style name="Regex" foreground="#000000" />
+            <style name="String" foreground="#AF7FAA" />
+            <style name="String EOL" foreground="#000000" />
+            <style name="Uuid" foreground="#000000" />
+            <style name="Verbatim" foreground="#000000" />
+            <style name="Keyword" foreground="#A40001" bold="true" />
+            <style name="Keyword 2" foreground="#4E9A06" bold="true" />
+        </language>
+        <language name="XML">
+            <style name="Default" foreground="#000000" />
+            <style name="Attribute" foreground="#4E9A06" bold="true" />
+            <style name="Attribute Unknown" foreground="#000000" />
+            <style name="CDATA" foreground="#000000" />
+            <style name="Comment" foreground="#214D9B" />
+            <style name="Double String" foreground="#AF7FAA" />
+            <style name="Entity" foreground="#000000" />
+            <style name="Number" foreground="#AF7FAA" />
+            <style name="Other" foreground="#4E9A06" />
+            <style name="Question" foreground="#000000" />
+            <style name="Script" foreground="#000000" />
+            <style name="Single String" foreground="#AF7FAA" />
+            <style name="Tag" foreground="#3465A4" />
+            <style name="Tag End" foreground="#3465A4" />
+            <style name="Tag Unknown" foreground="#000000" />
+            <style name="Value" foreground="#000000" />
+            <style name="Xccomment" foreground="#000000" />
+            <style name="XML End" foreground="#000000" />
+            <style name="XML Start" foreground="#000000" />
+        </language>
+        <language name="Makefile">
+            <style name="Default" foreground="#000000" />
+            <style name="Target" foreground="#3468B7" />
+            <style name="Keyword" foreground="#A40000" bold="true" />
+            <style name="Comment" foreground="#2B4B89" />
+            <style name="Built-in Function" foreground="#356CC4" />
+            <style name="Referenced Variable" foreground="#4E9A06" bold="true" />
+            <style name="Special Variable" foreground="#5D3771" />
+        </language>
+        <language name="Yang">
+            <style name="Default" foreground="#000000" />
+            <style name="Keyword" foreground="#A40001" bold="true" />
+            <style name="Build-in Type" foreground="#4E9A06" bold="true" />
+            <style name="Comment" foreground="#214D9B" />
+            <style name="Operator" foreground="#000000" />
+            <style name="String" foreground="#AF7FAA" />
+            <style name="Number" foreground="#AF7FAA" />
+        </language>
+        <editor background="#FFFFFF" />
+        <selection background="#E95420" foreground="#FCFDFF" />
+        <caret line="#EEEEEC" foreground="#000000" />
+        <brace background="#BABDB6" foreground="#FFFFFF" />
+    </scheme>
+
+    <scheme name="Omega">
+        <language name="C">
+            <style name="Character" foreground="#D9A819" />
+            <style name="Comment" foreground="#888A85" />
+            <style name="Comment Line" foreground="#888A85" />
+            <style name="Whitespace" foreground="#000000" />
+            <style name="Identifier" foreground="#C5D2D3" />
+            <style name="Number" foreground="#D9A819" />
+            <style name="Operator" foreground="#C5D2D3" />
+            <style name="Preprocessor" foreground="#B673AD" />
+            <style name="Regex" foreground="#000000" />
+            <style name="String" foreground="#D9A819" />
+            <style name="String EOL" foreground="#000000" />
+            <style name="Uuid" foreground="#000000" />
+            <style name="Verbatim" foreground="#000000" />
+            <style name="Keyword" foreground="#FFFFFF" bold="true" />
+            <style name="Keyword 2" foreground="#81C244" bold="true" />
+        </language>
+        <language name="C++">
+            <style name="Character" foreground="#D9A819" />
+            <style name="Comment" foreground="#888A85" />
+            <style name="Commentdoc" foreground="#888A85" />
+            <style name="Commentdockeyword" foreground="#888A85" />
+            <style name="Commentdockeyworderror" foreground="#888A85" />
+            <style name="Comment Line" foreground="#888A85" />
+            <style name="Commentlinedoc" foreground="#888A85" />
+            <style name="Whitespace" foreground="#000000" />
+            <style name="Globalclass" foreground="#AF7FAA" />
+            <style name="Identifier" foreground="#C5D2D3" />
+            <style name="Number" foreground="#D9A819" />
+            <style name="Operator" foreground="#C5D2D3" />
+            <style name="Preprocessor" foreground="#B673AD" />
+            <style name="Regex" foreground="#000000" />
+            <style name="String" foreground="#D9A819" />
+            <style name="String EOL" foreground="#000000" />
+            <style name="Uuid" foreground="#000000" />
+            <style name="Verbatim" foreground="#000000" />
+            <style name="Keyword" foreground="#FFFFFF" bold="true" />
+            <style name="Keyword 2" foreground="#81C244" bold="true" />
+        </language>
+        <language name="XML">
+            <style name="Default" foreground="#C5D2D3" />
+            <style name="Attribute" foreground="#81C244" bold="true" />
+            <style name="Attribute Unknown" foreground="#000000" />
+            <style name="CDATA" foreground="#000000" />
+            <style name="Comment" foreground="#888A85" />
+            <style name="Double String" foreground="#D9A819" />
+            <style name="Entity" foreground="#000000" />
+            <style name="Number" foreground="#D9A819" />
+            <style name="Other" foreground="#81C244" />
+            <style name="Question" foreground="#C5D2D3" />
+            <style name="Script" foreground="#000000" />
+            <style name="Single String" foreground="#D9A819" />
+            <style name="Tag" foreground="#649CCE" />
+            <style name="Tag End" foreground="#649CCE" />
+            <style name="Tag Unknown" foreground="#000000" />
+            <style name="Value" foreground="#000000" />
+            <style name="Xccomment" foreground="#000000" />
+            <style name="XML End" foreground="#000000" />
+            <style name="XML Start" foreground="#000000" />
+        </language>
+        <language name="Makefile">
+            <style name="Default" foreground="#C5D2D3" />
+            <style name="Target" foreground="#719FCE" />
+            <style name="Keyword" foreground="#FFFFFF" bold="true" />
+            <style name="Comment" foreground="#88866B" />
+            <style name="Built-in Function" foreground="#719FCE" />
+            <style name="Referenced Variable" foreground="#83C244" bold="true" />
+            <style name="Special Variable" foreground="#B673AF" bold="true" />
+        </language>
+        <language name="Yang">
+            <style name="Default" foreground="#C5D2D3" />
+            <style name="Keyword" foreground="#FFFFFF" bold="true" />
+            <style name="Build-in Type" foreground="#81C244" bold="true" />
+            <style name="Comment" foreground="#888A85" />
+            <style name="Operator" foreground="#C5D2D3" />
+            <style name="String" foreground="#D9A819" />
+            <style name="Number" foreground="#D9A819" />
+        </language>
+        <editor background="#3D3B3B" />
+        <selection background="#888A85" foreground="#EEEEEC" />
+        <caret line="#555753" foreground="#FFFFFF" />
+        <brace background="#BABDB6" foreground="#FFFFFF" />
+    </scheme>
+
+    <scheme name="SolarizedLight">
+        <language name="C">
+            <style name="Character" foreground="#000000" />
+            <style name="Comment" foreground="#93A2AC" />
+            <style name="Comment Line" foreground="#93A2AC" />
+            <style name="Whitespace" foreground="#000000" />
+            <style name="Identifier" foreground="#587191" />
+            <style name="Number" foreground="#2BA5B2" />
+            <style name="Operator" foreground="#587191" />
+            <style name="Preprocessor" foreground="#8073C5" />
+            <style name="Regex" foreground="#000000" />
+            <style name="String" foreground="#2BA5B2" />
+            <style name="String EOL" foreground="#000000" />
+            <style name="Uuid" foreground="#000000" />
+            <style name="Verbatim" foreground="#000000" />
+            <style name="Keyword" foreground="#CB4B17" />
+            <style name="Keyword 2" foreground="#C48B03" />
+        </language>
+        <language name="C++">
+            <style name="Character" foreground="#000000" />
+            <style name="Comment" foreground="#93A2AC" />
+            <style name="Commentdoc" foreground="#93A2AC" />
+            <style name="Commentdockeyword" foreground="#93A2AC" />
+            <style name="Commentdockeyworderror" foreground="#93A2AC" />
+            <style name="Comment Line" foreground="#93A2AC" />
+            <style name="Commentlinedoc" foreground="#93A2AC" />
+            <style name="Whitespace" foreground="#000000" />
+            <style name="Globalclass" foreground="#2BA5B2" />
+            <style name="Identifier" foreground="#587191" />
+            <style name="Number" foreground="#2BA5B2" />
+            <style name="Operator" foreground="#587191" />
+            <style name="Preprocessor" foreground="#8073C5" />
+            <style name="Regex" foreground="#000000" />
+            <style name="String" foreground="#2BA5B2" />
+            <style name="String EOL" foreground="#000000" />
+            <style name="Uuid" foreground="#000000" />
+            <style name="Verbatim" foreground="#000000" />
+            <style name="Keyword" foreground="#CB4B17" />
+            <style name="Keyword 2" foreground="#C48B03" />
+        </language>
+        <language name="XML">
+            <style name="Default" foreground="#587191" />
+            <style name="Attribute" foreground="#C48B03" />
+            <style name="Attribute Unknown" foreground="#000000" />
+            <style name="CDATA" foreground="#000000" />
+            <style name="Comment" foreground="#93A2AC" />
+            <style name="Double String" foreground="#2BA5B2" />
+            <style name="Entity" foreground="#000000" />
+            <style name="Number" foreground="#2BA5B2" />
+            <style name="Other" foreground="#C48B03" />
+            <style name="Question" foreground="#587191" />
+            <style name="Script" foreground="#000000" />
+            <style name="Single String" foreground="#2BA5B2" />
+            <style name="Tag" foreground="#268BD2" />
+            <style name="Tag End" foreground="#268BD2" />
+            <style name="Tag Unknown" foreground="#000000" />
+            <style name="Value" foreground="#000000" />
+            <style name="Xccomment" foreground="#000000" />
+            <style name="XML End" foreground="#000000" />
+            <style name="XML Start" foreground="#000000" />
+        </language>
+        <language name="Makefile">
+            <style name="Default" foreground="#587191" />
+            <style name="Target" foreground="#278FD8" />
+            <style name="Keyword" foreground="#CC4E38" />
+            <style name="Comment" foreground="#98A1A2" />
+            <style name="Built-in Function" foreground="#278FD8" />
+            <style name="Referenced Variable" foreground="#B58900" />
+            <style name="Special Variable" foreground="#8273C4" />
+        </language>
+        <language name="Yang">
+            <style name="Default" foreground="#587191" />
+            <style name="Keyword" foreground="#CB4B17" />
+            <style name="Build-in Type" foreground="#C48B03" />
+            <style name="Comment" foreground="#93A2AC" />
+            <style name="Operator" foreground="#587191" />
+            <style name="String" foreground="#2BA5B2" />
+            <style name="Number" foreground="#2BA5B2" />
+        </language>
+        <editor background="#FDF6E3" />
+        <selection background="#93A1A1" foreground="#FDF6E3" />
+        <caret line="#EEE8D5" foreground="#000000" />
+        <brace background="#93A1A1" foreground="#FDF6E3" />
+    </scheme>
+
+    <scheme name="SolarizedDark">
+        <language name="C">
+            <style name="Character" foreground="#000000" />
+            <style name="Comment" foreground="#586E75" />
+            <style name="Comment Line" foreground="#586E75" />
+            <style name="Whitespace" foreground="#000000" />
+            <style name="Identifier" foreground="#93A1A1" />
+            <style name="Number" foreground="#29A198" />
+            <style name="Operator" foreground="#93A1A1" />
+            <style name="Preprocessor" foreground="#4D6FC3" />
+            <style name="Regex" foreground="#000000" />
+            <style name="String" foreground="#29A198" />
+            <style name="String EOL" foreground="#000000" />
+            <style name="Uuid" foreground="#000000" />
+            <style name="Verbatim" foreground="#000000" />
+            <style name="Keyword" foreground="#C74526" />
+            <style name="Keyword 2" foreground="#B58900" />
+        </language>
+        <language name="C++">
+            <style name="Character" foreground="#000000" />
+            <style name="Comment" foreground="#586E75" />
+            <style name="Commentdoc" foreground="#586E75" />
+            <style name="Commentdockeyword" foreground="#586E75" />
+            <style name="Commentdockeyworderror" foreground="#586E75" />
+            <style name="Comment Line" foreground="#586E75" />
+            <style name="Commentlinedoc" foreground="#586E75" />
+            <style name="Whitespace" foreground="#000000" />
+            <style name="Globalclass" foreground="#29A198" />
+            <style name="Identifier" foreground="#93A1A1" />
+            <style name="Number" foreground="#29A198" />
+            <style name="Operator" foreground="#93A1A1" />
+            <style name="Preprocessor" foreground="#4D6FC3" />
+            <style name="Regex" foreground="#000000" />
+            <style name="String" foreground="#29A198" />
+            <style name="String EOL" foreground="#000000" />
+            <style name="Uuid" foreground="#000000" />
+            <style name="Verbatim" foreground="#000000" />
+            <style name="Keyword" foreground="#C74526" />
+            <style name="Keyword 2" foreground="#B58900" />
+        </language>
+        <language name="XML">
+            <style name="Default" foreground="#93A1A1" />
+            <style name="Attribute" foreground="#B58900" />
+            <style name="Attribute Unknown" foreground="#000000" />
+            <style name="CDATA" foreground="#000000" />
+            <style name="Comment" foreground="#586E75" />
+            <style name="Double String" foreground="#29A198" />
+            <style name="Entity" foreground="#000000" />
+            <style name="Number" foreground="#29A198" />
+            <style name="Other" foreground="#B58900" />
+            <style name="Question" foreground="#93A1A1" />
+            <style name="Script" foreground="#000000" />
+            <style name="Single String" foreground="#29A198" />
+            <style name="Tag" foreground="#268BD2" />
+            <style name="Tag End" foreground="#268BD2" />
+            <style name="Tag Unknown" foreground="#000000" />
+            <style name="Value" foreground="#000000" />
+            <style name="Xccomment" foreground="#000000" />
+            <style name="XML End" foreground="#000000" />
+            <style name="XML Start" foreground="#000000" />
+        </language>
+        <language name="Makefile">
+            <style name="Default" foreground="#93A1A1" />
+            <style name="Target" foreground="#218AD2" />
+            <style name="Keyword" foreground="#CB4B16" />
+            <style name="Comment" foreground="#586E75" />
+            <style name="Built-in Function" foreground="#218AD2" />
+            <style name="Referenced Variable" foreground="#B58900" />
+            <style name="Special Variable" foreground="#6C71C4" />
+        </language>
+        <language name="Yang">
+            <style name="Default" foreground="#93A1A1" />
+            <style name="Keyword" foreground="#C74526" />
+            <style name="Build-in Type" foreground="#B58900" />
+            <style name="Comment" foreground="#586E75" />
+            <style name="Operator" foreground="#93A1A1" />
+            <style name="String" foreground="#29A198" />
+            <style name="Number" foreground="#29A198" />
+        </language>
+        <editor background="#002B36" />
+        <selection background="#657B83" foreground="#002B36" />
+        <caret line="#073642" foreground="#FFFFFF" />
+        <brace background="#586E75" foreground="#002B36" />
+    </scheme>
+
+    <scheme name="Classic">
+        <language name="C">
+            <style name="Character" foreground="#000000" />
+            <style name="Comment" foreground="#0000FF" />
+            <style name="Comment Line" foreground="#0000FF" />
+            <style name="Whitespace" foreground="#000000" />
+            <style name="Identifier" foreground="#000000" />
+            <style name="Number" foreground="#FF00FF" />
+            <style name="Operator" foreground="#000000" />
+            <style name="Preprocessor" foreground="#BC26F0" />
+            <style name="Regex" foreground="#000000" />
+            <style name="String" foreground="#FF00FF" />
+            <style name="String EOL" foreground="#000000" />
+            <style name="Uuid" foreground="#000000" />
+            <style name="Verbatim" foreground="#000000" />
+            <style name="Keyword" foreground="#A52A2A" bold="true" />
+            <style name="Keyword 2" foreground="#2E8B57" bold="true" />
+        </language>
+        <language name="C++">
+            <style name="Character" foreground="#000000" />
+            <style name="Comment" foreground="#0000FF" />
+            <style name="Commentdoc" foreground="#0000FF" />
+            <style name="Commentdockeyword" foreground="#0000FF" />
+            <style name="Commentdockeyworderror" foreground="#0000FF" />
+            <style name="Comment Line" foreground="#0000FF" />
+            <style name="Commentlinedoc" foreground="#0000FF" />
+            <style name="Whitespace" foreground="#000000" />
+            <style name="Globalclass" foreground="#FF00FF" />
+            <style name="Identifier" foreground="#000000" />
+            <style name="Number" foreground="#FF00FF" />
+            <style name="Operator" foreground="#000000" />
+            <style name="Preprocessor" foreground="#BC26F0" />
+            <style name="Regex" foreground="#000000" />
+            <style name="String" foreground="#FF00FF" />
+            <style name="String EOL" foreground="#000000" />
+            <style name="Uuid" foreground="#000000" />
+            <style name="Verbatim" foreground="#000000" />
+            <style name="Keyword" foreground="#A52A2A" bold="true" />
+            <style name="Keyword 2" foreground="#2E8B57" bold="true" />
+        </language>
+        <language name="XML">
+            <style name="Default" foreground="#000000" />
+            <style name="Attribute" foreground="#6A5ACD" />
+            <style name="Attribute Unknown" foreground="#000000" />
+            <style name="CDATA" foreground="#000000" />
+            <style name="Comment" foreground="#0000FF" />
+            <style name="Double String" foreground="#FF00FF" />
+            <style name="Entity" foreground="#000000" />
+            <style name="Number" foreground="#FF00FF" />
+            <style name="Other" foreground="#6A5ACD" />
+            <style name="Question" foreground="#000000" />
+            <style name="Script" foreground="#000000" />
+            <style name="Single String" foreground="#FF00FF" />
+            <style name="Tag" foreground="#008A8C" />
+            <style name="Tag End" foreground="#008A8C" />
+            <style name="Tag Unknown" foreground="#000000" />
+            <style name="Value" foreground="#000000" />
+            <style name="Xccomment" foreground="#000000" />
+            <style name="XML End" foreground="#000000" />
+            <style name="XML Start" foreground="#000000" />
+        </language>
+        <language name="Makefile">
+            <style name="Default" foreground="#000000" />
+            <style name="Target" foreground="#238B8C" />
+            <style name="Keyword" foreground="#A52A2A" bold="true" />
+            <style name="Comment" foreground="#0000FF" />
+            <style name="Built-in Function" foreground="#238B8C" />
+            <style name="Referenced Variable" foreground="#2E8B57" bold="true" />
+            <style name="Special Variable" foreground="#A020F0" />
+        </language>
+        <language name="Yang">
+            <style name="Default" foreground="#000000" />
+            <style name="Keyword" foreground="#A52A2A" bold="true" />
+            <style name="Build-in Type" foreground="#2E8B57" bold="true" />
+            <style name="Comment" foreground="#0000FF" />
+            <style name="Operator" foreground="#000000" />
+            <style name="String" foreground="#FF00FF" />
+            <style name="Number" foreground="#FF00FF" />
+        </language>
+        <editor background="#FFFFFF" />
+        <selection background="#E95420" foreground="#FCFDFF" />
+        <caret line="#EEEEEC" foreground="#000000" />
+        <brace background="#BABDB6" foreground="#FFFFFF" />
+    </scheme>
+</schemes>
