@@ -6,8 +6,10 @@ import wx.stc as stc
 import copy
 import pickle
 import util
+import os
 from settings import settings
 from style_data import Style, Language, Makefile, Yang
+from util import get_ide_dir, rbg_to_tuple
 
 STYLE_PATH = 'styles.dat'
 DEFAULT_STYLE_PATH = 'default-styles.dat'
@@ -29,7 +31,8 @@ class StyleManager(object):
     def load(self):
         for path in (STYLE_PATH, DEFAULT_STYLE_PATH):
             try:
-                file = open(path, 'rb')
+                full_path = get_ide_dir() + os.sep + path
+                file = open(full_path, 'rb')
                 pickler = pickle.Unpickler(file)
                 self.base_style = pickler.load()
                 self.app_styles = pickler.load()
@@ -46,14 +49,15 @@ class StyleManager(object):
         self.base_style = create_base_style()
         self.app_styles = create_app_styles(self.base_style)
         self.languages = create_languages(self.base_style)
-        self.editor_background_color = (255, 255, 255)
-        self.selection_bg_color = settings.SELECTION_BACKGROUND
-        self.selection_fg_color = settings.SELECTION_FOREGROUND
-        self.caret_line_bg = settings.CARET_LINE_BACKGROUND
-        self.caret_fg = settings.CARET_FOREGROUND
+        self.editor_background_color = rbg_to_tuple(settings.EDITOR_BACKGROUND)
+        self.selection_bg_color = rbg_to_tuple(settings.SELECTION_BACKGROUND)
+        self.selection_fg_color = rbg_to_tuple(settings.SELECTION_FOREGROUND)
+        self.caret_line_bg = rbg_to_tuple(settings.CARET_LINE_BACKGROUND)
+        self.caret_fg = rbg_to_tuple(settings.CARET_FOREGROUND)
     def save(self):
         try:
-            file = open(STYLE_PATH, 'wb')
+            full_path = get_ide_dir() + os.sep + STYLE_PATH
+            file = open(full_path, 'wb')
             pickler = pickle.Pickler(file, -1)
             pickler.dump(self.base_style)
             pickler.dump(self.app_styles)
@@ -403,7 +407,6 @@ def create_languages(base_style):
             Style(style, stc.STC_H_ATTRIBUTEUNKNOWN, 'Attribute Unknown'),
             Style(style, stc.STC_H_CDATA, 'CDATA'),
             Style(style, stc.STC_H_COMMENT, 'Comment'),
-            Style(style, stc.STC_H_DEFAULT, 'Whitespace'),
             Style(style, stc.STC_H_DOUBLESTRING, 'Double String'),
             Style(style, stc.STC_H_ENTITY, 'Entity'),
             Style(style, stc.STC_H_NUMBER, 'Number'),
