@@ -1,21 +1,13 @@
 import wx
 import wx.richtext as rt
 import xml.etree.ElementTree as ET
+import os
 from copy import deepcopy
-
-def rbg_to_tuple(htmlRbg):
-    red_h = htmlRbg[1:3]
-    green_h = htmlRbg[3:5]
-    blue_h = htmlRbg[5:7]
-
-    red_d = int(red_h, 16)
-    green_d = int(green_h, 16)
-    blue_d = int(blue_h, 16)
-
-    return (red_d, green_d, blue_d)
+from util import get_ide_dir, rbg_to_tuple
 
 def get_schemes():
-    schemes_doc = ET.parse("schemes.xml")
+    scheme_file = get_ide_dir() + os.sep + "schemes.xml"
+    schemes_doc = ET.parse(scheme_file)
     schemeElements = schemes_doc.findall("./scheme")
     return [Scheme(element.attrib["name"], schemes_doc) for element in schemeElements]
 

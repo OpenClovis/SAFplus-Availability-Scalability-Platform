@@ -4,6 +4,7 @@
 import pickle
 import defaults
 import util
+import os
 
 class InvalidSettingError(util.BaseException):
     pass
@@ -119,7 +120,8 @@ class MemorySettings(Settings):
         
 def create_chain():
     settings = ModuleSettings(None, defaults)
-    settings = FileSettings(settings, 'settings.dat')
+    setting_file = util.get_ide_dir() + os.sep + 'settings.dat'
+    settings = FileSettings(settings, setting_file)
     #settings = MemorySettings(settings)
     #settings = ProxySettings(None, settings)
     return settings

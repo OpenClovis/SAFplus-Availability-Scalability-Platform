@@ -2,6 +2,7 @@
 # Source https://github.com/fogleman/TextEditor
 
 import wx
+import os
 
 class BaseException(Exception):
     def __init__(self, message):
@@ -89,4 +90,18 @@ def add_history(new_item, item_list, max_size):
     if len(result) > max_size:
         result = result[:max_size]
     return result
+
+def get_ide_dir():
+    return os.path.dirname(os.path.abspath(__file__))
+
+def rbg_to_tuple(htmlRbg):
+    red_h = htmlRbg[1:3]
+    green_h = htmlRbg[3:5]
+    blue_h = htmlRbg[5:7]
+
+    red_d = int(red_h, 16)
+    green_d = int(green_h, 16)
+    blue_d = int(blue_h, 16)
+
+    return (red_d, green_d, blue_d)
     
