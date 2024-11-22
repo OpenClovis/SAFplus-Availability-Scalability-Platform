@@ -98,7 +98,8 @@ class FilesExistenceDaemon:
 
   def createDaemon(self):
     self.thread = Thread(target = self.daemonRoutine)
-    self.thread.setDaemon(True)
+    #self.thread.setDaemon(True)
+    self.thread.daemon = True
     self.thread.start()
 
 class SAFplusFrame(wx.Frame):
@@ -192,7 +193,11 @@ class SAFplusFrame(wx.Frame):
         # add recent projects menu items
         self.menu.AppendSeparator()
         self.recentPrjMenu = wx.Menu()
-        self.menu.Append(wx.NewId(), "Recent", self.recentPrjMenu, "Recent projects")
+        #self.menu.Append(wx.NewId(), "Recent", self.recentPrjMenu, "Recent projects")
+
+        #self.menu.Append(wx.Window.NewControlId(), "Recent", self.recentPrjMenu, "Recent projects")
+        self.menu.AppendSubMenu(self.recentPrjMenu,"Recent projects")
+        
         self.loadRecentProjects()
         self.loadInfoPanel()
         self.Bind(wx.EVT_CLOSE, self.OnCloseFrame)
@@ -433,7 +438,7 @@ class SAFplusFrame(wx.Frame):
     def loadRecentProjects(self):
       recentPrjs = common.getRecentPrjs()
       for i in recentPrjs[::-1]:
-        itemId = wx.NewId()
+        itemId = wx.NewIdRef().GetId()
         self.recentPrjMenu.Append(itemId, i.replace('\n',''))
         self.recentPrjMenu.Bind(wx.EVT_MENU, self.onRecentPrjMenu, id=itemId)
 

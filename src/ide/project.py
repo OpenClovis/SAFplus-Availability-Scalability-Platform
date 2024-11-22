@@ -941,7 +941,7 @@ class ProjectTreePanel(wx.Panel):
       if index >= 0:
         label = self.guiPlaces.frame.tab.GetPageText(index)
         if '*' in label:
-          label = re.sub("\*", "", label)
+          label = re.sub(r"\*", "", label)
           self.guiPlaces.frame.tab.SetPageText(index, label)
 
   def OnSave(self,event):
