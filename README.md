@@ -27,7 +27,7 @@
    
    Please access the materials below for step by step demo how to get the installation package, install and use it:
    - In PDF document: https://ftp.openclovis.com/files/documents/OpenClovisSoftwareInstallationManual.pdf
-   - In video: https://ftp.openclovis.com/files/documents/OpenClovisSoftwareInstallationManual.pdf
+   - In video: https://ftp.openclovis.com/files/documents/oc_demonstration.mp4
   
 
 ## Support
