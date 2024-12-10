@@ -8,6 +8,7 @@
    SAFplus is middleware that provides High Availability (HA),
    System Management, and other common carrier grade services, primarily
    addressing the infrastructure needs of complex communication devices.
+   
    Implements SA-Forum APIs where applicable.  Used anywhere reliability is a must -- like telecom, wireless, defense and enterprise computing.
    
    If you're unfamiliar with HA, please access https://help.openclovis.com/index.php/Doc:latest/sdkguide
