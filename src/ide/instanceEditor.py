@@ -1235,6 +1235,13 @@ class Panel(scrolled.ScrolledPanel):
       for t in toolEvents:
         self.Bind(t, self.OnToolEvent)
 
+      self.assignInstances()
+      self.addTools(True)
+      self.UpdateVirtualSize()
+      self.layout()
+      self.loadGrayCells()
+
+    def assignInstances(self):
       # Building flatten instance from model.xml
       for entInstance in list(self.model.instances.values()):
         """Create a new instance of this entity type at this position"""
@@ -1249,11 +1256,15 @@ class Panel(scrolled.ScrolledPanel):
             self.rows.append(entInstance)  # TODO: calculate an insertion position based on the mouse position and the positions of the other entities
           if placement == "column":
             self.columns.append(entInstance)  # TODO: calculate an insertion position based on the mouse position and the positions of the other entities
-      self.addTools(True)
-      self.UpdateVirtualSize()
+
+    def refreshTab(self):
+      self.rows.clear()
+      self.columns.clear()
+
+      self.assignInstances()
       self.layout()
-      self.loadGrayCells()
-    
+      self.deleteMyTools()
+      self.addTools()
 
     def addCommonTools(self):
       tsize = self.toolBar.GetToolBitmapSize()
@@ -1373,20 +1384,7 @@ class Panel(scrolled.ScrolledPanel):
 
       self.selectedEntities = None
 
-      # Building flatten instance from model.xml
-      for entInstance in list(self.model.instances.values()):
-        """Create a new instance of this entity type at this position"""
-        placement = None
-        if entInstance.et.name in self.columnTypes:
-          placement = "column"
-        if entInstance.et.name in self.rowTypes:
-          placement = "row"
-
-        if placement:
-          if placement == "row":
-            self.rows.append(entInstance)  # TODO: calculate an insertion position based on the mouse position and the positions of the other entities
-          if placement == "column":
-            self.columns.append(entInstance)  # TODO: calculate an insertion position based on the mouse position and the positions of the other entities
+      self.assignInstances()
       self.UpdateVirtualSize()
       self.layout()
       self.loadGrayCells()
@@ -2098,7 +2096,7 @@ class Panel(scrolled.ScrolledPanel):
         # Now draw the entites
 
         # Draw the baseline row and column entities
-        for e in [entInt for entInt in list(self.model.instances.values()) if entInt.et.name in (self.columnTypes + self.rowTypes)]:
+        for e in (self.rows + self.columns):
           svg.blit(
           ctx,
           e.bmp,

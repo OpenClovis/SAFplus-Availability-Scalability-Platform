@@ -138,7 +138,8 @@ class MicroDom:
 
   def __setitem__(self,name,value):
     if not isMicroDom(value):
-      value = MicroDom({"tag_":name},[value],None)
+      #value = MicroDom({"tag_":name},[value],None)
+      value = MicroDom({"tag_":name},[value],value) #value is always a single string, assign it to "data_" field like when the tag is loaded from file via Model.load()
     if name in self.child_:
       self.delChild(name)
     self.addChild(value,name)

@@ -113,6 +113,7 @@ class EntityTypeTool(Tool):
         if size[0] < 15 or size[1] < 15:  # its so small it was probably an accidental drag rather then a deliberate sizing
           size = None
         ret = self.CreateNewInstance(panel,(rect[0],rect[1]),size)
+        share.umlEditorPanel.redoData.clear()
       # in pointer mode scroll wheel zooms
       #elif event.GetWheelRotation() > 0:
       #  panel.SetScale(panel.scale*1.1,pos)
@@ -658,8 +659,10 @@ class DeleteTool(Tool):
           print("Delete(s): %s" % ", ".join([ e.data["name"] for e in self.touching]))
           self.deleteEntities(self.touching)
           self.touching.clear()
+          share.umlEditorPanel.redoData.clear()
         elif self.wireCheck:
           self.wireDelete(pos)
+          share.umlEditorPanel.redoData.clear()
         panel.Refresh()
 
   def deleteEntities(self, ents):
@@ -768,8 +771,7 @@ class Panel(scrolled.ScrolledPanel):
       frame = share.umlEditorPanel.guiPlaces.frame
       model = frame.model
       model.uml.setModelData(model.model)
-      model.instance.deleteMyTools()
-      model.instance.addTools()
+      model.instance.refreshTab()
       self.entities = share.detailsPanel.model.entities
       self.refresh()
       self.modellingChange()
@@ -787,8 +789,7 @@ class Panel(scrolled.ScrolledPanel):
       frame = share.umlEditorPanel.guiPlaces.frame
       model = frame.model
       model.uml.setModelData(model.model)
-      model.instance.deleteMyTools()
-      model.instance.addTools()
+      model.instance.refreshTab()
       self.entities = share.detailsPanel.model.entities
       self.refresh()
       self.modellingChange()
