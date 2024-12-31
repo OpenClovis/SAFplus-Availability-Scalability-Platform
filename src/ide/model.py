@@ -253,6 +253,7 @@ instantiated  <instances>     instances                         instances     (e
 
     instances = self.data.find("instances")
     if instances:
+      orphanInstances = []
       for (path, obj) in instances:
         fileEntLst = []
         for entityType in list(self.entityTypes.keys()):
@@ -262,14 +263,17 @@ instantiated  <instances>     instances                         instances     (e
 
               # Entity of this instance
               entityParent = self.entities.get(entityTypeName)
+              instanceName = instance.child_.get("name").data_
               if not entityParent:
+                instanceObj = self.instances.get(instanceName)
+                orphanInstances.append(instanceObj)
                 continue
-              entityInstance = entity.Instance(entityParent, instance, (0,0), (10,10), instance.name.data_)
+              entityInstance = entity.Instance(entityParent, instance, (0,0), (10,10), instanceName)
               entityInstance.updateDataFields(instance)
     
               # Copy instance locked, then bind to readonly wxwidget
               entityInstance.instanceLocked = entityParent.instanceLocked.copy()
-              self.instances[instance.name.data_] = entityInstance
+              self.instances[instanceName] = entityInstance
               fileEntLst.append((instance,entityInstance))
   
       for (ed,eo) in fileEntLst:
@@ -288,6 +292,9 @@ instantiated  <instances>     instances                         instances     (e
               # TODO: create some kind of warning/audit log in share.py that we can post messages to.
               pass
     
+      for inst in orphanInstances:
+        self.delete(inst)
+      self.updateMicrodom()
     entity.updateNamelyDict(self)
     
 
@@ -674,7 +681,8 @@ instantiated  <instances>     instances                         instances     (e
       for (key, vals) in list(contains.items()):
         if key in instance.child_: instance.delChild(key)
         for val in vals:
-          instance.addChild(microdom.MicroDom({"tag_":key},[val],""))  # TODO: do we really need to pluralize?  Also validate comma separation is ok
+          # instance.addChild(microdom.MicroDom({"tag_":key},[val],""))  # TODO: do we really need to pluralize?  Also validate comma separation is ok
+          instance.addChild(microdom.MicroDom({"tag_":key},[val],val))
 
       if "csiTypes" in instance.child_: instance.delChild("csiTypes")
       if e.entity.et.name == "Component":
@@ -685,7 +693,8 @@ instantiated  <instances>     instances                         instances     (e
       entityParentVal = e.entity.data["name"]
       entityParentKey = "%sType"%e.et.name
       if entityParentKey in instance.child_: instance.delChild(entityParentKey)
-      instance.addChild(microdom.MicroDom({"tag_":entityParentKey},[entityParentVal],""))
+      # instance.addChild(microdom.MicroDom({"tag_":entityParentKey},[entityParentVal],""))
+      instance.addChild(microdom.MicroDom({"tag_":entityParentKey},[entityParentVal], entityParentVal))
 
   def createChild(self, parent, childName):
     name = childName
