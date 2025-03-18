@@ -132,6 +132,10 @@ PROTOC ?= $(TMP)
 PROTOBUFVER ?= p$(word 2,$(shell $(PROTOC) --version))
 $(info protoc is $(PROTOC). Protobuf version is $(PROTOBUFVER))
 
+# NO GDBM and BerkeleyDB
+SAFPLUS_WITH_GDBM:=false
+SAFPLUS_WITH_BERKELEYDB:=false
+
 $(info SAFplus libraries: $(LIB_DIR))
 $(info )
 ifeq ($(BUILD_SAFPLUS),1)
