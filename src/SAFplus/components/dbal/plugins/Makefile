@@ -31,15 +31,15 @@
 # Subdirectories having Makefiles and need recursive escalation:
 # common should always be before client and server
 
-ifeq ($(TARGET_QNX), 1)
-SUBDIRS          =  berkeley
-else
-ifeq ($(TARGET_VXWORKS), 1)
-SUBDIRS = berkeley
-else
-SUBDIRS          =  berkeley gdbm sqlite
-endif
-endif
+#ifeq ($(TARGET_QNX), 1)
+#SUBDIRS          =  berkeley
+#else
+#ifeq ($(TARGET_VXWORKS), 1)
+#SUBDIRS = berkeley
+#else
+SUBDIRS          =  sqlite
+#endif
+#endif
 
 #
 # If you have any ordering dependence among subdirectories, list them as
