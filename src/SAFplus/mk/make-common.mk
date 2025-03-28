@@ -121,7 +121,7 @@ endif
 # To verify gcc
 GCCVERSIONGTEQ4 := $(shell expr `gcc -dumpversion | cut -f1 -d.` \>= 7)
 ifeq "$(GCCVERSIONGTEQ4)" "1"
-    CFLAGS += -Wno-error=format-truncation -Wno-error=format-overflow -Wno-error=restrict -Wno-error=address-of-packed-member -Wno-error=array-bounds -Wno-error=stringop-truncation -Wno-error=stringop-overflow -Wno-error=misleading-indentation -Wno-error=enum-int-mismatch -Wno-error=address
+    CFLAGS += -Wno-error=format-truncation -Wno-error=format-overflow -Wno-error=restrict -Wno-error=address-of-packed-member -Wno-error=array-bounds -Wno-error=stringop-truncation -Wno-error=stringop-overflow -Wno-error=misleading-indentation -Wno-error=address
 #    $(warning Greater than or equal to GCCVERSION g: $(CFLAGS))
 endif
 
