@@ -9,6 +9,7 @@ This software needs some dependencies to be installed first. You can install the
 Installing by apt: build-essential, gettext, libglib2.0-dev, libperl-dev
 ### For Debian (11 or newer)
 Installing by apt: build-essential, gettext, libglib2.0-dev, libperl-dev, tclsh, gawk, ed
+
 In case of debian server version: to run the SAFplus-IDE, you need to install more dependencies like cups, libgtk-3-dev and libgtk2.0-0
 ### For Fedora and CentOS:
 Installing by yum install: TBD
@@ -17,7 +18,7 @@ Installing by yum install: TBD
 Run ./install and follow the instructions
 
 When the installation completes, please download the Java Runtime Environment (JRE) version 8 (jre-8u181-linux-x64.tar.gz). Then move it to 
-the buildtool directory of the installed SDK (gotten from the Installation step above). For example, if the installed SDK is /home/<user_name>/opt/clovis/sdk-6.0, then it's /home/<user_name>/opt/clovis/buildtool/local and extract it here.
+the buildtool directory of the installed SDK (gotten from the Installation step above). For example, if the installed SDK is /home/<user_name>/opt/clovis/sdk-6.0, then it's /home/<user_name>/opt/clovis/buildtools/local and extract it here.
 
 ## Support
 
