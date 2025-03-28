@@ -97,7 +97,7 @@ THIRDPARTY_LIBS	:= -L$(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable/ -lezxml \
                    
 ifeq ($(TARGET_QNX), 0)
 ifeq ($(TARGET_VXWORKS), 0)
-THIRDPARTY_LIBS += -ldl -lgdbm
+THIRDPARTY_LIBS += -ldl #-lgdbm
 endif
 endif
 

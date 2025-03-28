@@ -87,7 +87,7 @@ THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
 ifeq ($(TARGET_POSIX), 1)
 	DB_LIBS := -db
 else
-	DB_LIBS := -lgdbm -ldb -lsqlite3
+	DB_LIBS := -lsqlite3 #-lgdbm -ldb -lsqlite3
 endif
 SYS_LIBS        += $(DB_LIBS)
 CPPFLAGS        = -I ../common/idl/xdr

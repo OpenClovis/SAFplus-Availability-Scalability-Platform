@@ -24,12 +24,12 @@ include $(CLOVIS_ROOT)/SAFplus/mk/preface.mk
 LD_LIBS		:= -L$(MODEL_LIB) -L$(ASP_LIBDIR) -lClMain -lClConfig -lmw
 
 ifdef SOLARIS_BUILD
-   SYS_LIBS	:= -lpthread -lrt  -L/usr/local/BerkeleyDB.4.2/lib -ldb -lm 
+   SYS_LIBS	:= -lpthread -lrt -lm # -L/usr/local/BerkeleyDB.4.2/lib -ldb -lm 
 else
     ifeq ($(TARGET_QNX), 1)
         SYS_LIBS := -lm
     else
-        SYS_LIBS := -lpthread -lrt -ldb -lm
+        SYS_LIBS := -lpthread -lrt -lm #-ldb -lm
     endif
 endif
 
@@ -40,7 +40,7 @@ endif
 ifeq ($(TARGET_QNX), 1)
     THIRD_PARTY_LIBS := -lezxml -l3rdpartyutils 
 else
-    THIRD_PARTY_LIBS := -lezxml -lgdbm -l3rdpartyutils -ldl
+    THIRD_PARTY_LIBS := -lezxml -l3rdpartyutils -ldl #-lgdbm
 endif
 
 

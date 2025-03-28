@@ -56,12 +56,12 @@ CPPFLAGS += -I$(LOG_PATH)idl/Log/xdr/ -I$(LOG_PATH)idl/logEo/xdr/
 # System libraries needed to get asp_logd built:
 
 ifdef SOLARIS_BUILD
-   SYS_LIBS	:= -lpthread -ldl -L/usr/local/BerkeleyDB.4.2/lib -ldb
+   SYS_LIBS	:= -lpthread -ldl -L/usr/local/BerkeleyDB.4.2/lib #-ldb
 else 
  ifeq ($(TARGET_QNX),1)
    SYS_LIBS	:=
  else
-   SYS_LIBS	:= -lpthread  -ldl -ldb
+   SYS_LIBS	:= -lpthread  -ldl #-ldb
  endif
 endif
 

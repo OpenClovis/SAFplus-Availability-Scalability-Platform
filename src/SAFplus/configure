@@ -7499,7 +7499,7 @@ if test "${ac_cv_lib_gdbm_gdbm_open+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lgdbm  $LIBS"
+#LIBS="-lgdbm  $LIBS"
 cat >conftest.$ac_ext <<_ACEOF
 #line $LINENO "configure"
 /* confdefs.h.  */
@@ -7552,7 +7552,7 @@ if test $ac_cv_lib_gdbm_gdbm_open = yes; then
 #define HAVE_LIBGDBM 1
 _ACEOF
 
-  LIBS="-lgdbm $LIBS"
+  #LIBS="-lgdbm $LIBS"
 
 fi
 

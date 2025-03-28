@@ -32,15 +32,15 @@ except ImportError:
 # Settings
 # ------------------------------------------------------------------------------
 
-THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.30'                # Look for PKG starting with this name
-THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.30.tar'            # search this package if no 3rdPartyPkg found
+THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.31'                # Look for PKG starting with this name
+THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.31.tar'            # search this package if no 3rdPartyPkg found
 PSP_NAME_STARTS_WITH  = 'openclovis-safplus-psp'                # Look for PKG starting with this name
 PSPPKG_DEFAULT        = 'openclovis-safplus-psp-6.1-private.tar.gz'            # search this package if no 3rdPartyPkg found
 PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6.x_32'
 PRE_INSTALL_PKG = 'preinstall_CentOs_6.x_32.tar.gz'
 if determine_bit() == 64:
-  THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.30-x86_64'       # Look for PKG starting with this name
-  THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.30-x86_64.tar'
+  THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.31-x86_64'       # Look for PKG starting with this name
+  THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.31-x86_64.tar'
   PRE_INSTALL_PKG = 'preinstall_CentOs_6.x_64.tar.gz'
   PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6.x_64'
 SUPPORT_EMAIL                = 'support@openclovis.com'            # email for script maintainer
@@ -134,7 +134,7 @@ class ASPInstaller:
         
         
         # set some flags that may have been passed from command line
-        self.parse_cl_options()
+        #self.parse_cl_options()
         
         
         # make sure os is supported
@@ -568,41 +568,14 @@ class ASPInstaller:
             self.feedback('Please press <enter> to continue or <ctrl-c> to quit this installer')
             
             self.get_user_feedback()
-            
+                       
             # ------------------------------------------------------------------------------
             # Selection of installation type
             # ------------------------------------------------------------------------------
             
-            if not (self.STANDARD_ONLY or self.CUSTOM_ONLY):
-                
-                # Show this picker unless they already specified
-                
-                self.print_install_header()
-                
-                self.feedback('Installation Type:\n')
-                self.feedback('    1) Standard          -  Select all default options')
-                self.feedback('    2) Custom            -  Recommended')
-                self.feedback('    3) Preinstall Only   -  Uses your distro package manager to install needed\n                            prerequisites (must be root).')
-                self.feedback('    4) Install Only      -  Installs SAFplus code, IDE, and prerequisites not\n                            supplied with your linux distro.')
-                
-                strin = self.get_user_feedback('\nPlease choose an installation option [default: 2]: ')
-                
-                if strin == '1':
-                    # default install (fast install)
-                    # go_to_standard_install # fix
-                    self.STANDARD_ONLY = True
-                    self.debug('Standard Install Selected')
-                elif strin == '3':
-                    self.PREINSTALL_ONLY = True
-                    self.debug('Preinstall Only Selected')
-                elif strin == '4':
-                    self.INSTALL_ONLY = True
-                    self.debug('Install Only Selected')
-                else: # nothing or 2
-                    # Custom install
-                    self.CUSTOM_ONLY = True
-                    self.debug('Custom Install Selected')
-                
+            self.STANDARD_ONLY = self.PREINSTALL_ONLY = self.CUSTOM_ONLY = False
+            self.INSTALL_ONLY = True            
+            
         # ------------------------------------------------------------------------------   
         # Begin prompting for various installation options
         # ------------------------------------------------------------------------------
@@ -837,7 +810,7 @@ class ASPInstaller:
             self.print_install_header()
             self.feedback('Error: Cannot find \'%s\' in directory \'%s\'\n' % (thirdPartyPkg, WORKING_ROOT))
             
-            THIRDPARTYPKG_FTPURL = os.path.join('http://ftp.openclovis.com/files/', thirdPartyPkg)
+            THIRDPARTYPKG_FTPURL = os.path.join('https://ftp.openclovis.com/files/', thirdPartyPkg)
             #THIRDPARTYMD5_FTPURL = os.path.join('ftp://ftp.openclovis.com/pub/release/', THIRDPARTYMD5)        
             #THIRDPARTYPKG_FTPURL = os.path.join("https://github.com/downloads/OpenClovis/SAFplus-Availability-Scalability-Platform/", thirdPartyPkg) 
             # attempt to download the package. Requires wget
@@ -1476,26 +1449,26 @@ class ASPInstaller:
               pass
 
 
-        for dirname, dirnames, filenames in os.walk(self.BIN_ROOT):
-          for filename in filenames:
-            if filename == 'cl-log-viewer': continue
+           for dirname, dirnames, filenames in os.walk(self.BIN_ROOT):
+             for filename in filenames:
+               if filename == 'cl-log-viewer': continue
             
-            src = os.path.join(dirname, filename)
-            dst = os.path.join(self.DEFAULT_SYM_LINK, filename)
-            #self.feedback("%s -> %s" % (src,dst))
-            try:
-              os.remove(dst)  # remove it since it may point to another SDK version
-            except OSError as e:
-              pass # its ok if the file does not exist
-            try:
-              os.symlink(src,dst)
-            except OSError as e:  
-              if e.errno == errno.EPERM or e.errno == errno.EEXIST:  # EEXIST means that os.remove() failed for some reason
-                self.feedback('No permission to change %s' % dst)
-              else:
-                self.feedback('Cannot create symlink %s, error %s' % (dst,str(e)))  
+               src = os.path.join(dirname, filename)
+               dst = os.path.join(self.DEFAULT_SYM_LINK, filename)
+               #self.feedback("%s -> %s" % (src,dst))
+               try:
+                 os.remove(dst)  # remove it since it may point to another SDK version
+               except OSError as e:
+                 pass # its ok if the file does not exist
+               try:
+                 os.symlink(src,dst)
+               except OSError as e:  
+                 if e.errno == errno.EPERM or e.errno == errno.EEXIST:  # EEXIST means that os.remove() failed for some reason
+                   self.feedback('No permission to change %s' % dst)
+                 else:
+                   self.feedback('Cannot create symlink %s, error %s' % (dst,str(e)))  
 
-        self.feedback('Symbolic links for the  binaries are created in %s\n' % self.DEFAULT_SYM_LINK)
+           self.feedback('Symbolic links for the  binaries are created in %s\n' % self.DEFAULT_SYM_LINK)
 
 
     def read_file(self, filepath):

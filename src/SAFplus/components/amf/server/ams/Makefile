@@ -99,9 +99,9 @@ EXTRA_CPPFLAGS  += -DCL_AMS_RANK_LIST
 ##### System libraries needed to get this server built (or None)
 
 ifdef SOLARIS_BUILD
-   SYS_LIBS	:= -lpthread -L/usr/local/lib -lgdbm
+   SYS_LIBS	:= -lpthread #-L/usr/local/lib -lgdbm
 else
-   SYS_LIBS	:= -lpthread -lgdbm
+   SYS_LIBS	:= -lpthread #-lgdbm
 endif
 
 
