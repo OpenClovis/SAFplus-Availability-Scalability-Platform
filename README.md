@@ -1,9 +1,9 @@
 
-# OpenClovis SAFplus Software Development Kit
+# SAFplus Software Development Kit
 ## Overview
 
-   This distribution contains OpenClovis SDK, a development and run-time
-   environment for the OpenClovis SAFplus Availability/Scalability Platform.
+   This distribution contains SAFplus SDK, a development and run-time
+   environment for the SAFplus Availability/Scalability Platform.
   
    SAFplus is middleware that provides High Availability (HA),
    System Management, and other common carrier grade services, primarily
@@ -23,7 +23,7 @@
 
    - For Download: https://openclovis.org/next-steps/software-signup/
    - For more information on software prerequisites and the complete procedure
-   to install OpenClovis SDK, refer to the installation guide located at:
+   to install SAFplus SDK, refer to the installation guide located at:
    http://help.openclovis.com/index.php/Doc:latest/installguide.
    
 ## Step by step to use the product
