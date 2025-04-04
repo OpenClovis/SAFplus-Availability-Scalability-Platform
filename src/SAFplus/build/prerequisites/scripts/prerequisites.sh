@@ -126,20 +126,6 @@ populate_prereqs() {
         declare -a res_array
         declare -a op_array
         set -o pipefail
-        # db
-        echo -n "db "
-        ls lib/libdb* > /dev/null 2> /dev/null
-        if [ $? -eq 0 ]; then
-            tar cfh - lib/libdb* | tar xf - -C $imagedir
-            res_array[${#res_array[@]}]=$?
-            op_array[${#op_array[@]}]="copy in db"
-        else
-            cd $TARGET
-            tar cfh - lib/libdb* | tar xf - -C $imagedir
-            res_array[${#res_array[@]}]=$?
-            op_array[${#op_array[@]}]="copy in db"
-            cd ..
-        fi
 
         # sqlite3
         echo -n "sqlite3 "
@@ -154,10 +140,10 @@ populate_prereqs() {
         op_array[${#op_array[@]}]="copy in sqlite3"
 
         # gdbm
-        echo -n "gdbm "
-        tar cfh - lib/libgdbm* | tar xf - -C $imagedir
-        res_array[${#res_array[@]}]=$?
-        op_array[${#op_array[@]}]="copy in gdbm"
+        #echo -n "gdbm "
+        #tar cfh - lib/libgdbm* | tar xf - -C $imagedir
+        #res_array[${#res_array[@]}]=$?
+        #op_array[${#op_array[@]}]="copy in gdbm"
 
         if [ $SNMP_BUILD == "1" ]; then
         # net-snmp
@@ -383,85 +369,7 @@ populate_prereqs() {
         declare -a op_array
         set -o pipefail
 
-        # db
-        echo -n "db "
-        if [ -f $toolchaindir/lib/libdb.so ]; then
-            cd $toolchaindir
-            tar cfh - lib/libdb* | tar xf - -C $imagedir
-            res_array[${#res_array[@]}]=$?
-            op_array[${#op_array[@]}]="copy in db"
-            cd - >/dev/null 2>&1
-        elif [ -f /usr/lib64/libdb.so ]; then
-            cd /usr/lib64
-            tar cfh - libdb[.-]* | tar xf - -C $imagedir/lib
-            res_array[${#res_array[@]}]=$?
-            op_array[${#op_array[@]}]="copy in db"
-            cd - >/dev/null 2>&1
-        elif [ -f /usr/lib/${MACH}-linux-gnu/libdb.so ]; then
-            cd /usr/lib/${MACH}-linux-gnu
-            tar cfh - libdb[.-]* | tar xf - -C $imagedir/lib
-            res_array[${#res_array[@]}]=$?
-            op_array[${#op_array[@]}]="copy in db"
-            cd - >/dev/null 2>&1
-        elif [ -f /usr/lib/${MACH2}-linux-gnu/libdb.so ]; then
-            cd /usr/lib/${MACH2}-linux-gnu
-            tar cfh - libdb[.-]* | tar xf - -C $imagedir/lib
-            res_array[${#res_array[@]}]=$?
-            op_array[${#op_array[@]}]="copy in db"
-            cd - >/dev/null 2>&1
-        elif [ -f /usr/lib/`uname -i`-linux-gnu/libdb.so ]; then
-            cd /usr/lib/`uname -i`-linux-gnu
-            tar cfh - libdb[.-]* | tar xf - -C $imagedir/lib
-            res_array[${#res_array[@]}]=$?
-            op_array[${#op_array[@]}]="copy in db"
-            cd - >/dev/null 2>&1
-        else
-            cd /usr/lib
-            tar cfh - libdb[.-]* | tar xf - -C $imagedir/lib
-            res_array[${#res_array[@]}]=$?
-            op_array[${#op_array[@]}]="copy in db"
-            cd - >/dev/null 2>&1
-        fi
 
-        # gdbm
-        echo -n "gdbm "
-        if [ -f $toolchaindir/lib/libgdbm.so ]; then
-            cd $toolchaindir
-            tar cfh - lib/libgdbm* | tar xf - -C $imagedir
-            res_array[${#res_array[@]}]=$?
-            op_array[${#op_array[@]}]="copy in gdbm"
-            cd - >/dev/null 2>&1
-        elif [ -f /usr/lib64/libgdbm.so ]; then
-            cd /usr/lib64
-            tar cfh - libgdbm.* | tar xf - -C $imagedir/lib
-            res_array[${#res_array[@]}]=$?
-            op_array[${#op_array[@]}]="copy in gdbm"
-            cd - >/dev/null 2>&1
-        elif [ -f /usr/lib/${MACH}-linux-gnu/libgdbm.so ]; then
-            cd /usr/lib/${MACH}-linux-gnu
-            tar cfh - libgdbm.* | tar xf - -C $imagedir/lib
-            res_array[${#res_array[@]}]=$?
-            op_array[${#op_array[@]}]="copy in gdbm"
-            cd - >/dev/null 2>&1
-        elif [ -f /usr/lib/${MACH2}-linux-gnu/libgdbm.so ]; then
-            cd /usr/lib/${MACH2}-linux-gnu
-            tar cfh - libgdbm.* | tar xf - -C $imagedir/lib
-            res_array[${#res_array[@]}]=$?
-            op_array[${#op_array[@]}]="copy in gdbm"
-            cd - >/dev/null 2>&1
-        elif [ -f /usr/lib/`uname -i`-linux-gnu/libgdbm.so.3 ]; then
-            cd /usr/lib/`uname -i`-linux-gnu
-            tar cfh - libgdbm.* | tar xf - -C $imagedir/lib
-            res_array[${#res_array[@]}]=$?
-            op_array[${#op_array[@]}]="copy in gdbm"
-            cd - >/dev/null 2>&1
-        else
-            cd /usr/lib
-            tar cfh - libgdbm.* | tar xf - -C $imagedir/lib
-            res_array[${#res_array[@]}]=$?
-            op_array[${#op_array[@]}]="copy in gdbm"
-            cd - >/dev/null 2>&1
-        fi
 
         # net-snmp
         if [ $SNMP_BUILD == "1" ]; then
