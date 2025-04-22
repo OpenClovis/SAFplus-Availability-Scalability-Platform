@@ -57,6 +57,10 @@ import re
 import subprocess
 from functools import cmp_to_key
 
+windowed = False
+wxInstalled = False
+cli = None
+
 try:
     from lxml import etree as et
     import xml.dom.minidom as minidom
@@ -64,6 +68,13 @@ try:
 except ImportError:
     import xml.dom.minidom as minidom
     hasLxml = False
+
+try:
+    import wx
+    wxInstalled = True
+except ImportError:
+    #print ('Running safplus_info in commandline mode')
+    pass
 
 def on_platform(p):
   return p in sys.platform
@@ -561,7 +572,7 @@ def asp_console_execute(cmds, use_file=False):
         if output.find('instance is already running') >= 0:
             raise DebugCliError('Another safplus_console is already running on this node')
         else:
-            raise DebugCliError('Could run safplus_console: %s' % output)
+            raise DebugCliError('Could not run safplus_console: %s' % output)
     
     if use_file:
         f = open(out_file, 'r')
@@ -905,7 +916,7 @@ def get_comps_info(nodeaddr, do_ps=True):
             if not pid:
               c.pid = '-'
             assert len(cells)>=11, 'Expected >=11 fields for running component, got: %s' % str(cells)
-            c.healthy = (cells[10] == 'ALIVE' and 'Y' or 'N')
+            c.healthy = (cells[9] == 'ALIVE' and 'Y' or 'N')
 
             # get extra process information if on local node
             if pid > 0 and do_ps and nodeaddr == get_status_info().nodeaddr:
@@ -2246,11 +2257,1673 @@ echo_cmd = '/bin/echo'
       raise AspError('Module name [%s] could not be created'%modeName)
     return d
 
+if wxInstalled:
+    import wx
+    import wx.lib.mixins.listctrl as listmix
+    import wx.lib.agw.ultimatelistctrl as ULC
+    import wx.lib.scrolledpanel as scrolled
+    import wx.richtext as rt
+    import wx.lib.agw.pygauge as pg
+    import threading
+    import math
+
+    kSplitterId = -1
+
+    def get_setup():
+        """Show various information on this SAFplus installation (does not need SAFplus running)"""
+       
+        d={}
+        install = check_install()       
+        d['installation'] = install
+               
+        # FIXME: implement build number retrieval [I'm on it -M.S.]
+        
+        info = get_node_info_from_cpm()
+        d['node instance name']=info.nodename
+        d['node class']=info.nodeclass
+        d['node type']=info.nodetype
+        
+        #conf = load_asp_conf()
+        d['default node address']=info.defnodeaddr
+        d['node address assignment']=info.assignmode
+        d['tipc netid']=info.netid
+        d['tipc address']=info.addr
+        d['cluster interface(s)']='\n                         '.join(info.ifaces)
+
+        try: info = get_gms_info()
+        except AspError as e:
+            MessageBox(str(e),"Error", wx.OK|wx.ICON_ERROR)
+            return {}
+        d['gms multicast ip']=info['mip']
+        d['gms multicast port']=info['mport']
+        return d
+
+    def get_status():
+        try:
+            info = get_status_info()
+        except AspError as e:
+            wx.MessageBox(str(e), "Error when getting SAFplus info", wx.OK | wx.ICON_ERROR)
+            return {}
+        nodeStatus = {}
+        nodeStatus["SAFplus run status"] = info.status
+        nodeStatus["pid of safplus_amf"] = info.pid
+        nodeStatus["actual node address"] = info.nodeaddr
+        try: tipc = get_tipc_live_node_info()
+        except AspError as e:
+            wx.MessageBox(str(e), "Error when getting tipc info", wx.OK | wx.ICON_ERROR)
+            return nodeStatus
+        nodeStatus["tipc kernel module"] = tipc["module"]
+        nodeStatus["tipc network id"] = tipc["netid"]
+        nodeStatus["tipc node address"] = tipc["addr"]
+        nodeStatus["tipc interface(s)"] = ', '.join(tipc["ifaces"])
+
+        localConsoleStatus = "available"
+        masterConsoleStatus = "available"
+        try:
+            s, output = asp_console_execute(['setc %(nodeaddr)s' % info])
+        except AspError:
+            localConsoleStatus = "not available"
+        else:
+            if s: localConsoleStatus = "not available"
+        nodeStatus["SAFplus local console"] = localConsoleStatus
+
+        if info.status == "down":
+            return nodeStatus
+        s, output = asp_console_execute(['setc master'])
+        if s: masterConsoleStatus = "not available"
+        nodeStatus["SAFplus master console"] = masterConsoleStatus
+        return nodeStatus
+
+    def clear_db_cache():
+        global _amf_db
+        _amf_db = None
+
+    from io import StringIO 
+    import sys
+
+    class Capturing(list):
+        def __enter__(self):
+            self._stdout = sys.stdout
+            sys.stdout = self._stringio = StringIO()
+            return self
+        def __exit__(self, *args):
+            self.extend(self._stringio.getvalue().splitlines())
+            del self._stringio    # free up some memory
+            sys.stdout = self._stdout
+
+    class MyTreeCtrl(wx.TreeCtrl):
+        def __init__(self, parent, id, pos, size, style):
+            wx.TreeCtrl.__init__(self, parent, id, pos, size, style)
+        
+    def OnCompareItems(self, item1, item2):
+        t1 = self.GetItemText(item1)
+        t2 = self.GetItemText(item2)
+        self.log.WriteText('compare: ' + t1 + ' <> ' + t2 + '\n')
+        if t1 < t2: return -1
+        if t1 == t2: return 0
+        return 1
+
+    class StatusCmdPanel(wx.Panel):
+        def __init__(self, parent):
+            super().__init__(parent, wx.ID_ANY, style=wx.WANTS_CHARS)
+            self.box = wx.BoxSizer(wx.HORIZONTAL)
+            data = get_status()
+            headers = ["Status", "Value"]
+            self.StatusInfo = ListCtrlPanel(self, headers, data)
+            self.StatusInfo.list.SetItemTextColour(0, wx.RED)
+
+            self.box.Add(self.StatusInfo, 1, wx.ALL | wx.EXPAND, 0)
+            self.SetSizer(self.box)
+
+    class NodesCmdPanel(wx.Panel):
+        def __init__(self, parent):
+            super().__init__(parent, wx.ID_ANY, style=wx.WANTS_CHARS)
+            self.box = wx.BoxSizer(wx.HORIZONTAL)
+            data = self.getNodesData()
+            headers = ["NODE", "CLASS", "AS", "CAS", "PS", "OS", "INSTANTIABLE", "CLUSTER-MEMBER", "ISU", "ASU"]
+            self.nodeList = ListCtrlPanel(self, headers, data, True, False)
+
+            for column in range(0, len(headers)):
+                self.nodeList.list.SetColumnWidth(column, wx.LIST_AUTOSIZE_USEHEADER)
+
+            for rowIdx in range(0, len(data)):
+                CAS_IDX = 3
+                NEMBER_IDX = 7
+                isMember = self.nodeList.list.GetItem(rowIdx, NEMBER_IDX).GetText()
+                computedAdminState = self.nodeList.list.GetItem(rowIdx, CAS_IDX).GetText()
+                if isMember != 'Y':
+                    continue
+                else:
+                    if computedAdminState == 'UL':
+                        self.nodeList.list.SetItemTextColour(rowIdx, wx.RED)
+                    elif computedAdminState == 'LA':
+                        self.nodeList.list.SetItemTextColour(rowIdx, wx.YELLOW)
+
+            self.box.Add(self.nodeList, 1, wx.ALL | wx.EXPAND, 0)
+            self.SetSizer(self.box)
+
+        def getNodesData(self):
+            # Turn node info dot obj into a dict suitable for ListCtrlPanel
+            result = {}
+            try:
+                nodeInfo = get_nodes_info()
+            except DebugCliError as e:
+                wx.MessageBox(str(e), "Error in debug cli", wx.OK | wx.ICON_ERROR, self)
+                return result
+            clear_db_cache()
+            for node in nodeInfo:
+                result[node.nodename] = [value for attrib, value in node.items() if attrib != "nodename"]
+            return result
+
+    class ClusterCmdPanel(wx.Panel):
+        def __init__(self, parent):
+            super().__init__(parent, wx.ID_ANY, style=wx.WANTS_CHARS)
+            self.box = wx.BoxSizer(wx.HORIZONTAL)
+            data = self.getClusterData()
+            headers = ["NODE-NAME", "NODE-ADDR", "NODE-TYPE", "HA-STATE", "NOTE"]
+            self.clusterInfo = ListCtrlPanel(self, headers, data, True, False)
+
+            for column in range(0, len(headers)):
+                self.clusterInfo.list.SetColumnWidth(column, wx.LIST_AUTOSIZE_USEHEADER)
+
+            for rowIdx in range(0, len(data)):
+                HA_STATE_IDX = 3
+                haState = self.clusterInfo.list.GetItem(rowIdx, HA_STATE_IDX).GetText()
+                if haState == "active":
+                    self.clusterInfo.list.SetItemTextColour(rowIdx, wx.RED)
+
+            self.box.Add(self.clusterInfo, 1, wx.ALL | wx.EXPAND, 0)
+            self.SetSizer(self.box)
+
+        def getClusterData(self):
+            # Turn cluster info dot obj into a dict suitable for ListCtrlPanel
+            result = {}
+            try:
+                clusterInfo = get_cluster_info()
+            except DebugCliError as e:
+                wx.MessageBox(str(e), "Error in debug cli", wx.OK | wx.ICON_ERROR, self)
+                return result
+            clear_db_cache()
+            for node in clusterInfo:
+                nodeData = [value for attrib, value in node.items() if attrib != "nodename"]
+                if node.nodename == get_node_info_from_cpm().nodename:
+                    nodeData.append("This node")
+                result[node.nodename] = nodeData
+            return result
+
+    class ForestCmdPanel(wx.Panel):
+        def __init__(self, parent):
+            super().__init__(parent, wx.ID_ANY, style=wx.WANTS_CHARS)
+            self.box = wx.BoxSizer(wx.VERTICAL)
+            self.forest = ForestScrolledPanel(self)
+            self.amfDb = None
+
+            self.LoadDb()
+            if not self.amfDb:
+                return
+
+            sgNames = [sg.value for sg in self.amfDb.ams[0].entities[0].sgs[0].sg]
+            self.forest.LoadManySgAsync(sgNames, self.amfDb)
+
+            self.box.Add(self.forest, 1, wx.ALL | wx.EXPAND, 0)
+            self.SetSizer(self.box)
+
+        def LoadDb(self):
+            try:
+                self.amfDb = load_amf_db()
+            except DebugCliError as e:
+                wx.MessageBox(str(e), "Error in debug cli", wx.OK | wx.ICON_ERROR, self)
+                return
+            clear_db_cache()
+
+    class TreeCmdPanel(wx.Panel):
+        def __init__(self, parent):
+            super().__init__(parent, wx.ID_ANY, style=wx.WANTS_CHARS)
+            self.box = wx.BoxSizer(wx.VERTICAL)
+            self.forest = ForestScrolledPanel(self)
+            self.currentSg = None
+            self.amfDb = None
+
+            self.LoadDb()
+            if not self.amfDb:
+                return
+
+            sgNames = [sg.value for sg in self.amfDb.ams[0].entities[0].sgs[0].sg]
+            self.sgChoice = wx.Choice(self, wx.ID_ANY, size = (300, 40),  choices = sgNames)
+            self.sgText = wx.StaticText(self, wx.ID_ANY)
+            self.sgText.SetLabel("Tree view for service group: ")
+
+            self.sgBox = wx.BoxSizer(wx.HORIZONTAL)
+            self.sgBox.Add(self.sgText, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 10)
+            self.sgBox.Add(self.sgChoice, 0, wx.TOP | wx.BOTTOM | wx.EXPAND, 10)
+
+            self.box.Add(self.sgBox, 0, wx.ALL | wx.EXPAND, 0)
+            self.box.Add(self.forest, 1, wx.ALL | wx.EXPAND, 0)
+
+            self.SetSizer(self.box)
+            self.Bind(wx.EVT_CHOICE, self.OnChoose)
+
+        def LoadDb(self):
+            try:
+                self.amfDb = load_amf_db()
+            except DebugCliError as e:
+                wx.MessageBox(str(e), "Error in debug cli", wx.OK | wx.ICON_ERROR, self)
+                return
+            clear_db_cache()
+
+        def OnChoose(self, event):
+            chosenSg = event.GetString()
+            if chosenSg != self.currentSg:
+                self.currentSg = chosenSg
+                self.LoadDb()
+                self.forest.LoadSgAsync(sgName = chosenSg, amfDb = self.amfDb)
+
+    class ForestScrolledPanel(scrolled.ScrolledPanel):
+        def __init__(self, parent):
+            super().__init__(parent, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize)
+            self.vBox = wx.BoxSizer(wx.VERTICAL)    # To manage the size of each tree's children's richTextCtrl widgets
+            self.SetSizer(self.vBox)
+            self.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_DESKTOP))
+
+            self.gauge = None
+            self.gaugeBox = None
+            self.gaugeCreated = False
+            self.gaugeUpdating = False
+            self.gaugeFinished = False
+            self.gaugeMut = threading.Lock()
+            self.gaugeCreateConVar = threading.Condition(self.gaugeMut)
+            self.gaugeUpdateConVar = threading.Condition(self.gaugeMut)
+            self.gaugeFinishConVar = threading.Condition(self.gaugeMut)
+
+            self.loadThread = None
+            self.shouldAbort = False
+
+            global kSplitterId
+            splitter = wx.FindWindowById(kSplitterId)
+            cmdTreePanel = splitter.GetWindow1()
+            self.cmdTree = cmdTreePanel.tree
+            self.cmdTree.Bind(wx.EVT_LEFT_DCLICK, self.OnWindowClose)
+
+            self.Bind(wx.EVT_MOUSEWHEEL, self.OnMouseScroll)
+            self.SetupScrolling()
+
+        def LoadManyCallback(self, sgNames, amfDb):
+            entCountAccum = 0
+            hierarchies = []
+
+            try:
+                wx.CallAfter(self.ShowGauge)
+                for sgName in sgNames:
+                    (hierarchy, count) = self.GetSgHierarchy(sgName, amfDb)
+                    hierarchies.append(hierarchy)
+                    entCountAccum += count
+                wx.CallAfter(self.gauge.SetRange, entCountAccum)
+                for hierarchy in hierarchies:
+                    self.AddSg(hierarchy)
+            except self.AbortException:
+                return
+
+            with self.gaugeMut:
+                if not self.gaugeFinished:
+                    self.gaugeFinishConVar.wait()
+                wx.CallAfter(self.DestroyGauge)
+            wx.CallAfter(self.RefreshDisplay)
+            wx.CallAfter(self.ShowChildren)
+            self.loadThread = None
+
+        def LoadSgCallback(self, sgName, amfDb):
+            wx.CallAfter(self.vBox.Clear, delete_windows = True)
+
+            try:
+                wx.CallAfter(self.ShowGauge)
+                (hierarchy, count) = self.GetSgHierarchy(sgName, amfDb)
+                wx.CallAfter(self.gauge.SetRange, count)
+                self.AddSg(hierarchy)
+            except self.AbortException:
+                return
+
+            with self.gaugeMut:
+                if not self.gaugeFinished:
+                    self.gaugeFinishConVar.wait()
+                wx.CallAfter(self.DestroyGauge)
+            wx.CallAfter(self.RefreshDisplay)
+            wx.CallAfter(self.ShowChildren)
+            self.loadThread = None
+
+        def LoadManySgAsync(self, sgNames, amfDb):
+            self.loadThread = threading.Thread(target = self.LoadManyCallback, args = (sgNames, amfDb))
+            self.loadThread.start()
+
+        def LoadSgAsync(self, sgName, amfDb):
+            self.loadThread = threading.Thread(target = self.LoadSgCallback, args = (sgName, amfDb))
+            self.loadThread.start()
+
+        def AddSg(self, sgHierarchy):
+            self.CreateEntityTc(
+                self.SgTextCtrl,
+                parentWidget = self,
+                sgName = sgHierarchy.sgName,
+                redundancy = sgHierarchy.redundancy,
+                adminState = sgHierarchy.adminState,
+                computedAdminState = sgHierarchy.computedAdminState
+            )
+
+            dotNodes = sgHierarchy.nodes
+            for dotNode in dotNodes:
+                self.CreateEntityTc(self.NodeTextCtrl, parentWidget = self, nodeName = dotNode.nodeName)
+
+                dotSus = dotNode.sus
+                for dotSu in dotSus:
+                    self.CreateEntityTc(
+                        self.SuTextCtrl,
+                        parentWidget = self,
+                        suName = dotSu.suName,
+                        adminState = dotSu.adminState,
+                        computedAdminState = dotSu.computedAdminState
+                    )
+
+                    dotSis = dotSu.assignedSis
+                    for dotSi in dotSis:
+                        self.CreateEntityTc(
+                            self.SiTextCtrl,
+                            parentWidget = self,
+                            siName = dotSi.siName,
+                            haState = dotSi.haState
+                        )
+
+                    dotComps = dotSu.comps
+                    for dotComp in dotComps:
+                        self.CreateEntityTc(
+                            self.CompTextCtrl,
+                            parentWidget = self,
+                            compName = dotComp.compName,
+                            presenceState = dotComp.presenceState,
+                            operState = dotComp.operState,
+                            readinessState = dotComp.readinessState,
+                            pid = dotComp.pid
+                        )
+
+                        dotCis = dotComp.assignedCsis
+                        for dotCsi in dotCis:
+                            self.CreateEntityTc(
+                                self.CsiTextCtrl,
+                                parentWidget = self,
+                                csiName = dotCsi.csiName,
+                                haState = dotCsi.haState
+                            )
+
+        def GetSgHierarchy(self, sgName, amfDb):
+            entCount = 1
+            sgEnt = self.NameToEntity(sgName, amfDb.ams[0].entities[0].sgs[0].sg)
+
+            sgHierarchy = Dot({
+                "sgName": sgEnt.value,
+                "redundancy": sgEnt.config[0].redundancy_model[0],
+                "adminState": sgEnt.config[0].admin_state[0],
+                "computedAdminState": sgEnt.config[0].computed_admin_state[0],
+                "nodes": []
+            })
+
+            sgStatus = sgEnt.status[0]
+            suTypes = ["instantiable_sus", "instantiated_sus", "inservice_spare_sus", "assigned_sus"]
+            allSus = []
+            for suType in suTypes:
+                sgSuStatus = getattr(sgStatus, suType)
+                allSus += sgSuStatus[0].su if sgSuStatus[0] != "0" else []
+
+            nodeSuLut = {}  # nodeName - su entity dict
+            for su in amfDb.ams[0].entities[0].sus[0].su:
+                if su.value in allSus:
+                    nodeName = su.config[0].member_of_node[0]
+                    suList = nodeSuLut.get(nodeName)
+                    if suList:
+                        suList.append(su)
+                    else:
+                        nodeSuLut[nodeName] = [su]
+
+            nodeAddrs = self.GetNodeAddresses()
+
+            for node, suList in nodeSuLut.items():
+                dotNode = Dot({"nodeName": node, "sus": []})
+                sgHierarchy.nodes.append(dotNode)
+                entCount += 1
+
+                pids = self.GetCompPids(nodeAddrs[node])
+                if not pids: continue
+
+                for suEnt in suList:
+                    dotSu = Dot({
+                        "suName": suEnt.value,
+                        "adminState": suEnt.config[0].admin_state[0],
+                        "computedAdminState": suEnt.config[0].computed_admin_state[0],
+                        "assignedSis": [],
+                        "comps": []
+                    })
+                    dotNode.sus.append(dotSu)
+                    entCount += 1
+
+                    assignedSis = []
+                    suSisStatus = suEnt.status[0].sis[0]
+                    if suSisStatus != "0":
+                        assignedSis += suSisStatus.si
+
+                    for si in assignedSis:
+                        dotSi = Dot({"siName": si.value, "haState": si.ha_state[0]})
+                        dotSu.assignedSis.append(dotSi)
+                        entCount += 1
+
+                    compNameList = []
+                    compConfig = suEnt.config[0].components[0]
+                    if compConfig.value != "0":
+                        compNameList += compConfig.comp
+
+                    for compName in compNameList:
+                        compEnt = self.NameToEntity(compName, amfDb.ams[0].entities[0].comps[0].comp)
+
+                        dotComp = Dot({
+                            "compName": compName,
+                            "presenceState": compEnt.status[0].presence_state[0],
+                            "operState": compEnt.status[0].operational_state[0],
+                            "readinessState": compEnt.status[0].readiness_state[0],
+                            "pid": pids[compName],
+                            "assignedCsis": []
+                        })
+                        dotSu.comps.append(dotComp)
+                        entCount += 1
+
+                        assignedCsi = []
+                        compCsiStatus = compEnt.status[0].csis[0]
+                        if compCsiStatus != "0":
+                            assignedCsi += compCsiStatus.csi
+
+                        for csi in assignedCsi:
+                            DotCsi = Dot({"csiName": csi.value, "haState": csi.ha_state[0]})
+                            dotComp.assignedCsis.append(DotCsi)
+                            entCount += 1
+
+            return (sgHierarchy, entCount)
+
+        def CreateEntityTc(self, tcClass, **kwargs):
+            if self.shouldAbort:
+                raise self.AbortException
+
+            with self.gaugeMut:
+                if not self.gaugeCreated:
+                    self.gaugeCreateConVar.wait()
+                if self.gaugeUpdating:
+                    self.gaugeUpdateConVar.wait()
+
+                wx.CallAfter(tcClass, **kwargs)
+                wx.CallAfter(self.AdvanceGauge)
+                self.gaugeUpdating = True
+
+        def ShowChildren(self):
+            children = self.GetChildren()
+            for child in children:
+                child.Thaw()
+
+        def GetNodeAddresses(self):
+            if self.shouldAbort:
+                raise self.AbortException
+
+            clusterInfo = get_cluster_info()
+            nodeAddrs = dict([(entry.nodename, entry.nodeaddr) for entry in clusterInfo])
+            return nodeAddrs
+
+        def GetCompPids(self, nodeAddr):
+            if self.shouldAbort:
+                raise self.AbortException
+
+            try:
+                cpmCompList = get_comps_info(nodeAddr, do_ps=False)
+            except AspError as e:
+                error = """Command is not available while SAFplus is down (run "status"),
+                or if another safplus_console is running."""
+                wx.CallAfter(wx.MessageBox, error, "Error", wx.OK | wx.ICON_ERROR, self)
+                raise self.AbortException
+            except KeyError as e:
+                return None
+
+            pids = dict([(entry.compname, entry.pid) for entry in cpmCompList])
+            return pids
+
+        def NameToEntity(self, name, entities):
+            for ent in entities:
+                if ent.value == name:
+                    return ent
+            return None
+
+        def RefreshDisplay(self):
+            self.vBox.Layout()   # force the sizer to reposition children
+            self.SetupScrolling()   # refresh scroll bar
+
+        def ShowGauge(self):
+            with self.gaugeMut:
+                self.gauge = pg.PyGauge(self, wx.ID_ANY, style = wx.GA_TEXT)
+                self.gauge.SetDrawValue(draw=True, drawPercent=True, font=None, colour=wx.BLACK, formatString=None)
+                self.gauge.SetBackgroundColour(wx.WHITE)
+                gradient = (wx.TheColourDatabase.Find("CADET BLUE"), wx.TheColourDatabase.Find("LIGHT BLUE"))
+                self.gauge.SetBarGradient(gradient)
+
+                self.gaugeBox = wx.BoxSizer(wx.HORIZONTAL)
+                self.gaugeBox.AddStretchSpacer()
+                self.gaugeBox.Add(self.gauge, 1, wx.ALIGN_CENTER, 0)
+                self.gaugeBox.AddStretchSpacer()
+
+                self.gauge.Bind(wx.EVT_PAINT, self.OnGaugePaint)
+
+                self.vBox.Add(self.gaugeBox, 1, wx.EXPAND, 0)
+                self.vBox.Layout()
+                self.gaugeCreated = True
+                self.gaugeCreateConVar.notify()
+
+        def AdvanceGauge(self):
+            with self.gaugeMut:
+                curr = self.gauge.GetValue()
+                self.gauge.SetValue(curr + 1)
+                self.gaugeUpdating = False
+                self.gaugeUpdateConVar.notify()
+
+        def DestroyGauge(self):
+            self.gauge.Destroy()
+            self.vBox.Remove(self.gaugeBox)
+            self.gauge = None
+            self.gaugeBox = None
+            self.gaugeCreated = False
+
+        def OnMouseScroll(self, event):
+            rotation = event.GetWheelRotation()
+            direction = - int(rotation / abs(rotation))
+            self.ScrollLines(direction)
+
+        def OnWindowClose(self, event):
+            # Abort my thread
+            if self.loadThread:
+                self.shouldAbort = True
+                self.loadThread.join()
+            self.cmdTree.Unbind(wx.EVT_LEFT_DCLICK, handler = self.OnWindowClose)
+            event.Skip()
+
+        def OnGaugePaint(self, event):
+            with self.gaugeMut:
+                if self.gauge.GetValue() == self.gauge.GetRange():
+                    self.gaugeFinished = True
+                    self.gaugeFinishConVar.notify()
+            event.Skip()
+
+        ##
+        ##  Inner classes
+        ##
+
+        class AbortException(Exception):
+            pass
+
+        class GenericForestTc(rt.RichTextCtrl):
+            def __init__(self, parentWidget, indentLevel):
+                self.parent = parentWidget
+                super().__init__(parentWidget, wx.ID_ANY, size = (1000, 30), style = wx.NO_BORDER | rt.RE_READONLY)
+
+                parentWidget.vBox.Add(self, 0, wx.LEFT | wx.EXPAND, 50 * indentLevel) # vBox of ForestScrolledPanel
+                self.SetBackgroundColour(wx.Colour(0, 0, 0, 0)) # transparent textCtrl background
+                self.EnableVerticalScrollbar(False)
+                self.Freeze()   # Show widget later
+                self.Bind(wx.EVT_MOUSEWHEEL, self.parent.OnMouseScroll) # redirect event to the ForestScrolledPanel
+
+            def WriteAdminState(self, adminState, computedAdminState):
+                self.WriteText("state: ")
+                self.BeginTextColour(wx.RED)
+                self.WriteText("{0}/{1}".format(_state_map[adminState], _state_map[computedAdminState]))
+                self.EndTextColour()
+
+            def WriteHaState(self, haState):
+                self.WriteText("state: ")
+                colour = wx.RED if haState == "active" else wx.YELLOW
+                self.BeginTextColour(colour)
+                self.WriteText(haState)
+                self.EndTextColour()
+
+            def WritePid(self, pid):
+                pid = str(pid)
+                self.WriteText("PID: ")
+                self.BeginTextColour(wx.TheColourDatabase.Find("FOREST GREEN"))
+                self.WriteText(pid)
+                self.EndTextColour()
+
+            def WriteBold(self, text):
+                self.BeginBold()
+                self.WriteText(text)
+                self.EndBold()
+
+            def WriteItalic(self, text):
+                self.BeginItalic()
+                self.WriteText(text)
+                self.EndItalic()
+
+        class SgTextCtrl(GenericForestTc):
+            def __init__(self, parentWidget, sgName, redundancy, adminState, computedAdminState):
+                super().__init__(parentWidget, indentLevel = 0)
+                try: outRedundancy = _redundancy_map[redundancy]
+                except KeyError: outRedundancy = redundancy
+                self.WriteText("SG ")
+                self.WriteBold(sgName)
+                self.WriteText("(redundancy: {0}, ".format(outRedundancy))
+                self.WriteAdminState(adminState, computedAdminState)
+                self.WriteText(")")
+
+        class NodeTextCtrl(GenericForestTc):
+            def __init__(self, parentWidget, nodeName):
+                super().__init__(parentWidget, indentLevel = 1)
+                self.WriteText("Node ")
+                self.WriteBold(nodeName)
+
+        class SuTextCtrl(GenericForestTc):
+            def __init__(self, parentWidget, suName, adminState, computedAdminState):
+                super().__init__(parentWidget, indentLevel = 2)
+                self.WriteText("SU ")
+                self.WriteBold(suName)
+                self.WriteText(" (")
+                self.WriteAdminState(adminState, computedAdminState)
+                self.WriteText(")")
+
+        class SiTextCtrl(GenericForestTc):
+            def __init__(self, parentWidget, siName, haState):
+                super().__init__(parentWidget, indentLevel = 3)
+                self.WriteText("SI {0}(".format(siName))
+                self.WriteHaState(haState)
+                self.WriteText(")")
+
+        class CompTextCtrl(GenericForestTc):
+            def __init__(self, parentWidget, compName, presenceState, operState, readinessState, pid):
+                super().__init__(parentWidget, indentLevel = 3)
+                self.WriteText("Comp ")
+                self.WriteBold(compName)
+                self.WriteText(" (PS: ")
+                self.WriteItalic(presenceState)
+                self.WriteText(", OS: ")
+                self.WriteItalic(operState)
+                self.WriteText(", RS: ")
+                self.WriteItalic(_readiness_map[readinessState])
+                self.WriteText(", ")
+                self.WritePid(pid)
+                self.WriteText(")")
+
+        class CsiTextCtrl(GenericForestTc):
+            def __init__(self, parentWidget, csiName, haState):
+                super().__init__(parentWidget, indentLevel = 4)
+                self.WriteText("CSI {0}(".format(csiName))
+                self.WriteHaState(haState)
+                self.WriteText(")")
+
+    class RoleCmdPanel(wx.Panel):
+        def __init__(self, parent):
+            super().__init__(parent, wx.ID_ANY, style=wx.WANTS_CHARS)
+            self.box = wx.BoxSizer(wx.HORIZONTAL)
+            data = self.GetMyRole()
+            headers = ["Status", "Value"]
+            self.myStatus = ListCtrlPanel(self, headers, data, False)
+            haState = data["controller ha state"]
+            if haState == "active":
+                self.myStatus.list.SetItemTextColour(0, wx.RED)
+            elif haState == "standby":
+                self.myStatus.list.SetItemTextColour(0, wx.YELLOW)
+
+            self.box.Add(self.myStatus, 1, wx.ALL | wx.EXPAND, 0)
+            self.SetSizer(self.box)
+
+        def GetMyRole(self):
+            result = {}
+            try:
+                info = get_status_info()
+            except AspError as e:
+                error(str(e))
+                return 0
+
+            nodetype = get_node_info_from_cpm().nodetype
+            haState = "n/a"
+
+            if nodetype == 'controller' and info.status == 'up':
+                amf_db = load_amf_db()
+                clear_db_cache()
+                thisNode = None
+                for node in amf_db.cpm[0].node:
+                    if node.value == info.nodename:
+                        thisNode = node
+                if not thisNode:
+                    wx.MessageBox("could not find own name [{0}] in amf xml dump file".format(info.nodename), "Error", wx.OK | wx.ICON_ERROR, self)
+                    return result
+                haState = node.ha_state[0]
+
+            result["node instance name"] = info.nodename
+            result["node type"] = nodetype
+            result["controller ha state"] = haState
+            return result
+
+    class SgsCmdPanel(wx.Panel):
+        def __init__(self, parent):
+            super().__init__(parent, wx.ID_ANY, style=wx.WANTS_CHARS)
+            self.box = wx.BoxSizer(wx.HORIZONTAL)
+            data = self.getSgsData()
+            headers = ["SG-NAME", "REDUND", "AS", "CAS", "A-SUS", "S-SUS", "STARTED"]
+            self.sgList = ListCtrlPanel(self, headers, data, True, False)
+
+            self.sgList.list.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+            for column in range(1, len(headers)):
+                self.sgList.list.SetColumnWidth(column, wx.LIST_AUTOSIZE_USEHEADER)
+
+            for rowIdx in range(0, len(data)):
+                CAS_IDX = 3
+                computedAdminState = self.sgList.list.GetItem(rowIdx, CAS_IDX).GetText()
+                if computedAdminState == 'UL':
+                    self.sgList.list.SetItemTextColour(rowIdx, wx.RED)
+                elif computedAdminState == 'LA':
+                    self.sgList.list.SetItemTextColour(rowIdx, wx.YELLOW)
+            self.sgList.list.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onItemClicked)
+            self.box.Add(self.sgList, 1, wx.ALL | wx.EXPAND, 0)
+            self.SetSizer(self.box)
+            
+        def onItemClicked(self, event):
+            treePanel = self.Parent.GetWindow1()
+            itemToSelect = treePanel.getItemByLabel('sg')
+            if itemToSelect:
+                tree = self.Parent.GetWindow1().tree
+                treePanel.sgToSelect = event.GetText()
+                wx.PostEvent(tree, wx.TreeEvent(wx.wxEVT_TREE_ITEM_ACTIVATED, tree, itemToSelect))
+
+
+        def getSgsData(self):
+            result = {}
+            try:
+                sgs = get_sgs_info()
+            except DebugCliError as e:
+                wx.MessageBox(str(e), "Error in debug cli", wx.OK | wx.ICON_ERROR, self)
+                return result
+            except AspError as e:
+                wx.MessageBox("Command is not available while SAFplus is down (run 'status'), or if another safplus_console is running", "Error", wx.OK | wx.ICON_ERROR, self)
+                return result
+            clear_db_cache()
+            for sg in sgs:
+                result[sg.sgname] = [value for attrib, value in sg.items() if attrib != "sgname"]
+            return result
+
+    class SgCmdPanel(wx.Panel):
+        def __init__(self, parent, itemToSelect=None):
+            super().__init__(parent, wx.ID_ANY, style=wx.WANTS_CHARS)
+            self.amfDb = None
+            self.LoadDb()
+
+            self.box = wx.BoxSizer(wx.VERTICAL)
+            headers = ["Status", "Value"]
+            self.sgInfo = ListCtrlPanel(self, headers, {})
+            self.currentSg = None
+
+            sgNames = [sg.value for sg in self.amfDb.ams[0].entities[0].sgs[0].sg] if self.amfDb else []
+            self.sgChoice = wx.Choice(self, wx.ID_ANY, size = (300, 40),  choices = sgNames)
+            self.sgText = wx.StaticText(self, wx.ID_ANY)
+            self.sgText.SetLabel("Details for service group: ")
+
+            self.sgBox = wx.BoxSizer(wx.HORIZONTAL)
+            self.sgBox.Add(self.sgText, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 10)
+            self.sgBox.Add(self.sgChoice, 0, wx.TOP | wx.BOTTOM | wx.EXPAND, 10)
+
+            self.box.Add(self.sgBox, 0, wx.ALL | wx.EXPAND, 0)
+            self.box.Add(self.sgInfo, 1, wx.ALL | wx.EXPAND, 0)
+
+            self.SetSizer(self.box)
+            #self.Bind(wx.EVT_COMBOBOX, self.OnChoose)
+            self.sgChoice.Bind(wx.EVT_CHOICE, self.OnChoose)
+
+            if itemToSelect:
+                idx = self.sgChoice.FindString(itemToSelect)
+                if idx != wx.NOT_FOUND:
+                    self.sgChoice.Selection = idx
+                    wx.PostEvent(self.sgChoice, wx.CommandEvent(wx.wxEVT_CHOICE))
+
+        def LoadDb(self):
+            try:
+                self.amfDb = load_amf_db()
+            except DebugCliError as e:
+                wx.MessageBox(str(e), "Error in debug cli", wx.OK | wx.ICON_ERROR, self)
+                return
+            clear_db_cache()
+
+        def GetSgEntity(self, sgName):
+            for sg in self.amfDb.ams[0].entities[0].sgs[0].sg:
+                if sgName == sg.value:
+                    return sg
+            return None
+
+        def GetSgInfo(self, sgName):
+            self.LoadDb()
+            sg = self.GetSgEntity(sgName)
+            if not sg:
+                wx.MessageBox("Entity: %s not found"%sgName, "Error", wx.OK | wx.ICON_ERROR, self)
+                return
+                
+            sus = sg.status[0].instantiable_sus[0]
+            if sus == '0':  sus = ['-']
+            else:           sus = sus.su
+            instantiableSUs ='\n'.join(sus)
+            
+            sus = sg.status[0].instantiated_sus[0]
+            if sus == '0':  sus = ['-']
+            else:           sus = sus.su
+            instantiatedSUs = '\n'.join(sus)
+            
+            sus = sg.status[0].inservice_spare_sus[0]
+            if sus == '0':  sus = ['-']
+            else:           sus = sus.su
+            inserviceSpareSUs ='\n'.join(sus)
+            
+            sus = sg.status[0].assigned_sus[0]
+            if sus == '0':  sus = ['-']
+            else:           sus = sus.su
+            assignedSUs ='\n'.join(sus)
+
+            data = {
+                "sg name" : sg.value,
+                "admin state" : sg.config[0].admin_state[0],
+                "computed admin state" : sg.config[0].computed_admin_state[0],
+                "redundancy model" : sg.config[0].redundancy_model[0],
+                "failback option" : sg.config[0].failback_option[0],
+                "autorepair" : sg.config[0].autorepair[0],
+                "preferred active SUs" : sg.config[0].preferred_active_sus[0],
+                "preferred standby SUs" : sg.config[0].preferred_standby_sus[0],
+                "preferred inservice SUs" : sg.config[0].preferred_inservice_sus[0],
+                "preferred assigned SUs" : sg.config[0].preferred_assigned_sus[0],
+                "collocation allowed" : sg.config[0].collocation_allowed[0],
+                "started" : sg.status[0].is_started[0],
+                "instantiable SUs":instantiableSUs,
+                "instantiated SUs":instantiatedSUs,
+                "inservice spare SUs":inserviceSpareSUs,
+                "assigned SUs":assignedSUs
+            }
+
+            #suLut = [
+            #    ("instantiable SUs", sg.status[0].instantiable_sus[0]),
+            #    ("instantiated SUs", sg.status[0].instantiated_sus[0]),
+            #    ("inservice spare SUs", sg.status[0].inservice_spare_sus[0]),
+            #    ("assigned SUs", sg.status[0].assigned_sus[0])
+            #]
+
+            #for entry in suLut:
+            #    (suType, suList) = entry
+            #    if suList != "0":
+            #        data[suType] = suList.su[0]
+            #        for otherSu in suList.su[1:]:
+            #            data[""] = otherSu  # put other sus in diffrent rows
+            #    else:
+            #        data[suType] = "-"
+
+            data["current active SUs"] = sg.status[0].current_active_sus[0]
+            data["current standby SUs"] = sg.status[0].current_standby_sus[0]
+            return data
+
+        def DisplaySgInfo(self, sgData):
+            self.sgInfo.data.clear()
+            self.sgInfo.list.DeleteAllItems()
+            self.sgInfo.data = sgData
+            self.sgInfo.PopulateList()
+
+            for rowIdx in range(0, len(sgData)):
+                attrib = self.sgInfo.list.GetItem(rowIdx, 0).GetText()
+                if "admin state" in attrib:
+                    self.sgInfo.list.SetItemTextColour(rowIdx, wx.RED)
+                elif attrib == "sg name":
+                    self.sgInfo.list.SetItemFont(rowIdx, wx.Font(wx.FontInfo(12).Bold()))
+                elif attrib == "started":
+                    value = self.sgInfo.list.GetItem(rowIdx, 1).GetText()
+                    if value == "True":
+                        self.sgInfo.list.SetItemTextColour(rowIdx, wx.RED)
+
+            valColWidth = self.sgInfo.list.GetColumnWidth(1)
+            self.sgInfo.list.SetColumnWidth(1, math.ceil(valColWidth + valColWidth * 0.3))
+            self.sgInfo.list.Update()
+
+        def OnChoose(self, event):
+            chosenSg = self.sgChoice.GetStringSelection()
+            if chosenSg != self.currentSg:
+                self.currentSg = chosenSg
+                data = self.GetSgInfo(chosenSg)
+                self.DisplaySgInfo(data)
+
+    class TreeCtrlPanel(wx.Panel):
+        def __init__(self, parent, rightPane):
+            # Use the WANTS_CHARS style so the panel doesn't eat the Return key.
+            wx.Panel.__init__(self, parent, -1, style=wx.WANTS_CHARS)
+            self.Bind(wx.EVT_SIZE, self.OnSize)
+            self.rightPane = rightPane
+            self.splitter = parent
+            tID = wx.NewIdRef()
+
+            self.tree = MyTreeCtrl(self, tID, wx.DefaultPosition, wx.DefaultSize,
+                               wx.TR_HAS_BUTTONS
+                               #| wx.TR_EDIT_LABELS
+                               #| wx.TR_MULTIPLE
+                               #| wx.TR_HIDE_ROOT
+                               )
+
+            isz = (16,16)
+            il = wx.ImageList(isz[0], isz[1])
+            fldridx     = il.Add(wx.ArtProvider.GetBitmap(wx.ART_FOLDER,      wx.ART_OTHER, isz))
+            fldropenidx = il.Add(wx.ArtProvider.GetBitmap(wx.ART_FOLDER_OPEN, wx.ART_OTHER, isz))
+            fileidx     = il.Add(wx.ArtProvider.GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, isz))
+            #smileidx    = il.Add(images.Smiles.GetBitmap())
+
+            self.tree.SetImageList(il)
+            self.il = il
+
+            # NOTE:  For some reason tree items have to have a data object in
+            #        order to be sorted.  Since our compare just uses the labels
+            #        we don't need any real data, so we'll just use None below for
+            #        the item data.
+
+            self.root = self.tree.AddRoot("Safplus commands")
+            self.tree.SetItemData(self.root, None)
+            self.tree.SetItemImage(self.root, fldridx, wx.TreeItemIcon_Normal)
+            self.tree.SetItemImage(self.root, fldropenidx, wx.TreeItemIcon_Expanded)
+
+            cmds = ['status','nodes','cluster','forest','role','sg','sgs','su','sus','tree','safplus','components','lock_i','lock_a','unlock','host','setup','uptime','shell']
+            for c in cmds:
+                child = self.tree.AppendItem(self.root, c)
+                self.tree.SetItemData(child, None)
+                self.tree.SetItemImage(child, fldridx, wx.TreeItemIcon_Normal)
+                self.tree.SetItemImage(child, fldropenidx, wx.TreeItemIcon_Expanded)
+
+            self.tree.Expand(self.root)
+
+            #self.tree.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
+            self.tree.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnLeftDClick)
+            self.sgToSelect = None
+            self.suToSelect = None          
+
+        def getItemByLabel(self, label):
+            item,cookie = self.tree.GetFirstChild(self.root)
+            while item.IsOk():
+                if self.tree.GetItemText(item) == label:
+                    return item
+                item,cookie = self.tree.GetNextChild(self.root, cookie)
+            return None
+
+        def OnSize(self, event):
+            w,h = self.GetClientSize()
+            self.tree.SetSize(0, 0, w, h)
+
+        def OnLeftDClick(self, event):
+            #pt = event.GetPosition();
+            #item, flags = self.tree.HitTest(pt)
+            item = event.GetItem()
+            if item:
+                itemText = self.tree.GetItemText(item)
+                p = None
+                if itemText == 'setup':
+                    data = get_setup()
+                    headers = ['Name','Value']
+                    p = ListCtrlPanel(self.splitter, headers, data)                    
+                elif itemText=='host':
+                    p = HostPanel(self.splitter)
+                elif itemText=='uptime':
+                    try:
+                        uptime = get_uptime()
+                        wx.MessageBox(uptime,"Uptime", wx.OK|wx.ICON_INFORMATION)
+                    except AspError as e:
+                        wx.MessageBox('Error getting uptime: %s'%str(e),"Error", wx.OK|wx.ICON_ERROR)
+                elif itemText in ['lock_a','lock_i','unlock']:  
+                    p = AdminCmdsPanel(self.splitter, itemText)
+                elif itemText=='forest':
+                    p = ForestCmdPanel(self.splitter)
+                elif itemText=='tree':
+                    p = TreeCmdPanel(self.splitter)
+                elif itemText in ['components','safplus']:  
+                    p = ComponentsPanel(self.splitter, itemText)
+                elif itemText =='shell':  
+                    p = ShellPanel(self.splitter)
+                elif itemText =='sus':  
+                    p = SusPanel(self.splitter, itemText)
+                elif itemText =='status':
+                    p = StatusCmdPanel(self.splitter)
+                elif itemText =='nodes':
+                    p = NodesCmdPanel(self.splitter)
+                elif itemText =='cluster':
+                    p = ClusterCmdPanel(self.splitter)
+                elif itemText =='role':
+                    p = RoleCmdPanel(self.splitter)
+                elif itemText =='sgs':
+                    p = SgsCmdPanel(self.splitter)
+                elif itemText =='sg':
+                    p = SgCmdPanel(self.splitter, self.sgToSelect)
+                    self.sgToSelect = None
+                elif itemText =='su':  
+                    p = SuPanel(self.splitter, itemText, self.suToSelect)
+                    self.suToSelect = None
+                if p:
+                    self.splitter.ReplaceWindow(self.rightPane, p)
+                    self.rightPane.Destroy()
+                    self.rightPane = p
+            event.Skip()
+
+    #class MyListCtrl(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin):
+    #    def __init__(self, parent, ID, agwStyle=0):
+    #        super().__init__(self, parent, ID, agwStyle)
+    #        listmix.ListCtrlAutoWidthMixin.__init__(self)
+
+
+    class ListCtrlPanel(wx.Panel, listmix.ColumnSorterMixin):
+        def __init__(self, parent, headers=[], data={}, noAutoColSize=False, noSort=True):
+            wx.Panel.__init__(self, parent, -1, style=wx.WANTS_CHARS)
+            self.noAutoColSize = noAutoColSize
+            self.noSort = noSort
+            #scrolled.ScrolledPanel.__init__(self, parent, -1)
+            #tID = wx.NewIdRef()
+
+            sizer = wx.BoxSizer(wx.VERTICAL)
+
+            #self.list = MyListCtrl(self, tID,
+            #                     agwStyle=ULC.ULC_REPORT | ULC.ULC_VRULES | ULC.ULC_HRULES | ULC.ULC_SINGLE_SEL | ULC.ULC_HAS_VARIABLE_ROW_HEIGHT
+                                 #| wx.BORDER_SUNKEN
+                                 #| ULC.ULC_BORDER_NONE
+                                 #| wx.LC_EDIT_LABELS
+                                 #| wx.LC_SORT_ASCENDING    # disabling initial auto sort gives a
+                                 #| wx.LC_NO_HEADER         # better illustration of col-click sorting
+                                 #| wx.LC_VRULES
+                                 #| wx.LC_HRULES
+                                 #| wx.LC_SINGLE_SEL
+            #                     )
+            self.list = ULC.UltimateListCtrl(self, wx.ID_ANY, agwStyle=ULC.ULC_REPORT | ULC.ULC_VRULES | ULC.ULC_HRULES | ULC.ULC_SINGLE_SEL | ULC.ULC_HAS_VARIABLE_ROW_HEIGHT)
+            self.headers = headers
+            self.data = data
+            sizer.Add(self.list, 1, wx.EXPAND)
+            self.populateHeaders()
+            if len(self.data)>0:
+                self.PopulateList()
+
+            # Now that the list exists we can init the other base class,
+            # see wx/lib/mixins/listctrl.py
+            self.SetSizer(sizer)
+            self.SetAutoLayout(True)            
+            #self.SetupScrolling()
+            #self.SetVirtualSize(self.GetBestSize())
+            #self.SetScrollRate(5,5)
+            
+        def populateHeaders(self):
+            #for normal, simple columns, you can add them like this:
+            i=0
+            for col in self.headers:
+                self.list.InsertColumn(i, col)
+                i+=1
+                #self.list.InsertColumn(1, e", wx.LIST_FORMAT_LEFT)
+                #self.list.InsertColumn(2, "Genre")
+
+        def PopulateList(self):           
+            dictKeys = list(self.data.keys())
+            if not self.noSort:
+                dictKeys.sort()
+            _data = {i: self.data[i] for i in dictKeys}
+ 
+            items = _data.items()
+            for key, data in items:
+                index = self.list.InsertStringItem(sys.maxsize, key)
+                if isinstance(data,list):
+                    i=1
+                    for item in data:
+                        self.list.SetStringItem(index, i, item)
+                        i+=1
+                else:
+                    self.list.SetStringItem(index, 1, data)
+                if index%2:
+                    self.list.SetItemBackgroundColour(index,wx.LIGHT_GREY)
+            if not self.noAutoColSize:
+                for j in range(self.list.GetColumnCount()):
+                    self.list.SetColumnWidth(j, wx.LIST_AUTOSIZE)           
+        
+    class HostPanel(scrolled.ScrolledPanel):
+        def __init__(self, parent):
+            #wx.Panel.__init__(self, parent, -1, style=wx.WANTS_CHARS)
+            scrolled.ScrolledPanel.__init__(self, parent,-1, #size=(350, 100),
+                                 style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER, name="hostPanel")
+            sizer = wx.BoxSizer(wx.VERTICAL)
+            #1. Host info ListCtrl
+            hostInfoBox = wx.StaticBox(self, -1, "Host Info")
+            (ec, res, s, c) = system('hostid')
+            d = {}
+            if ec:
+                wx.MessageBox('hostid command exited with error',"Error", wx.OK|wx.ICON_ERROR)                
+            else:
+                d['hostid'] = ''.join(res)
+            (ec, res, s, c) = system('hostname')            
+            if ec:
+                wx.MessageBox('hostname command exited with error',"Error", wx.OK|wx.ICON_ERROR)
+            else:
+                d['hostname'] = ''.join(res)
+            headers = ['Name','Value']
+            hostInfoListCtrl = ListCtrlPanel(hostInfoBox, headers,d)
+            sizer.Add(hostInfoListCtrl, 1, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT)
+            hostInfoBox.SetSizer(sizer)
+            border = wx.BoxSizer(wx.VERTICAL)
+            border.Add(hostInfoBox, 0, wx.EXPAND|wx.ALL, 5)
+            #2. CPU info ListCtrl
+            d.clear()
+            (ec, res, s, c) = system('uname')
+            _os = res
+            if _os != 'SunOS':
+                f = open('/proc/cpuinfo','r')
+                if f:
+                    cinfo = f.read()
+                    f.close()
+                    clines = cinfo.split('\n')
+                    for l in clines:
+                        l.strip()
+                        if l: 
+                            ll = l.split(':')
+                            d[ll[0]] = ll[1]
+                    cinfoBox = wx.StaticBox(self, -1, "CPU Info")
+                    cpuInfoListCtrl = ListCtrlPanel(cinfoBox, headers,d)
+                    cpuSizer = wx.BoxSizer(wx.VERTICAL)
+                    cpuSizer.Add(cpuInfoListCtrl, 1, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT)
+                    cinfoBox.SetSizer(cpuSizer)
+                    border.Add(cinfoBox, 4, wx.EXPAND|wx.ALL, 5)
+            #3. Kernel Info ListCtrl
+            d.clear()
+            (ec, res, s, c) = system('uname -a')
+            if ec:
+                wx.MessageBox('uname command exited with error',"Error", wx.OK|wx.ICON_ERROR)                
+            else:
+                d['uname'] = ''.join(res)
+            f = open('/proc/cmdline','r')
+            if f:
+                cmdline = f.read()
+                f.close()
+                d['cmdline'] = cmdline.split('\n')[0]
+                kernelInfoBox = wx.StaticBox(self, -1, "Kernel Info")
+                kernelInfoListCtrl = ListCtrlPanel(kernelInfoBox, headers,d)
+                kernelInfoSizer = wx.BoxSizer(wx.VERTICAL)
+                kernelInfoSizer.Add(kernelInfoListCtrl, 1, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT)
+                kernelInfoBox.SetSizer(kernelInfoSizer)
+                border.Add(kernelInfoBox, 0, wx.EXPAND|wx.ALL, 5)
+                
+            #4. Misc system info
+            d.clear()
+            if os.path.exists('/etc/motd'):
+                f = open('/etc/motd','r')
+                if f:
+                    motd = f.read()
+                    f.close()
+                    d['motd'] = motd
+                    miscInfoBox = wx.StaticBox(self, -1, "Misc System Info")
+                    miscInfoListCtrl = ListCtrlPanel(miscInfoBox, headers,d)
+                    miscInfoSizer = wx.BoxSizer(wx.VERTICAL)
+                    miscInfoSizer.Add(miscInfoListCtrl, 1, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT)
+                    miscInfoBox.SetSizer(miscInfoSizer)
+                    border.Add(miscInfoBox, 0, wx.EXPAND|wx.ALL, 5)
+            
+            #5. meminfo
+            d.clear()            
+            if _os != 'SunOS':
+                f = open('/proc/meminfo','r')
+                if f:
+                    meminfo = f.read()
+                    f.close()
+                    mlines = meminfo.split('\n')
+                    for l in mlines:
+                        l.strip()
+                        if l: 
+                            ll = l.split(':')
+                            d[ll[0].strip()] = ll[1].strip()
+                    memInfoBox = wx.StaticBox(self, -1, "Memory Info")
+                    memInfoListCtrl = ListCtrlPanel(memInfoBox, headers,d)
+                    memInfoSizer = wx.BoxSizer(wx.VERTICAL)
+                    memInfoSizer.Add(memInfoListCtrl, 1, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT)
+                    memInfoBox.SetSizer(memInfoSizer)
+                    border.Add(memInfoBox, 4, wx.EXPAND|wx.ALL, 5)
+            
+            #6. Disk info
+            d.clear()
+            if _os != 'SunOS':
+                ec2 = -1  # unknown error
+                (ec, res, s, c) = system('fdisk -l')            
+                if ec == 127:
+                    (ec2, res, s, c) = system('/usr/sbin/fdisk -l')
+                    if ec2:
+                        wx.MessageBox('/usr/sbin/fdisk command exited with error %d'%ec2,"Error", wx.OK|wx.ICON_ERROR)                    
+                if ec==0 or ec2==0:
+                    diskInfoBox = wx.StaticBox(self, -1, "Disk Info")
+                    diskInfoText = wx.StaticText(diskInfoBox,-1,''.join(res))
+                    diskInfoSizer = wx.BoxSizer(wx.VERTICAL)
+                    diskInfoSizer.Add(diskInfoText, 1, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT)
+                    diskInfoBox.SetSizer(diskInfoSizer)
+                    border.Add(diskInfoBox, 2, wx.EXPAND|wx.ALL, 5)
+                elif ec:
+                    wx.MessageBox('fdisk command exited with error %d'%ec,"Error", wx.OK|wx.ICON_ERROR)
+                    
+            #7. Filesystem info
+            d.clear()
+            (ec, res, s, c) = system('df -h')
+            _os = res
+            if not ec:                
+                if 1:
+                    dflines = ''.join(res).split('\n')
+                    i=0
+                    for l in dflines:
+                        l.strip()
+                        if l:
+                            if i==0: # first line is the header
+                                temp = l.split() #Filesystem      Size  Used Avail Use% Mounted on
+                                headers = temp[:len(temp)-2]                                
+                                headers.append(' '.join(temp[-2:]))
+                            else:
+                                ll = l.split() #tmpfs           1,6G  2,1M  1,6G   1% /run                                
+                                d[ll[0]] = ll[1:]
+                        i+=1
+                    fsInfoBox = wx.StaticBox(self, -1, "Filesystem Info")
+                    fsInfoListCtrl = ListCtrlPanel(fsInfoBox, headers,d)
+                    fsInfoSizer = wx.BoxSizer(wx.VERTICAL)
+                    fsInfoSizer.Add(fsInfoListCtrl, 1, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT)
+                    fsInfoBox.SetSizer(fsInfoSizer)
+                    border.Add(fsInfoBox, 2, wx.EXPAND|wx.ALL, 5)
+            
+            #8. Network info
+            d.clear()
+            ec2 = -1 # Unknown error
+            if _os == 'SunOS':
+                (ec, res, s, c) = system('ifconfig -a')
+            else:
+                 (ec, res, s, c) = system('ifconfig')
+            if ec == 127:
+               (ec2, res, s, c) = system('ip a')
+               if ec2:
+                   wx.MessageBox('ip command exited with error %d'%ec2,"Error", wx.OK|wx.ICON_ERROR)
+            if ec==0 or ec2 ==0:
+                networkInfoBox = wx.StaticBox(self, -1, "Network Info")
+                networkInfoText = wx.StaticText(networkInfoBox,-1,''.join(res))
+                networkInfoSizer = wx.BoxSizer(wx.VERTICAL)
+                networkInfoSizer.Add(networkInfoText, 1, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT)
+                networkInfoBox.SetSizer(networkInfoSizer)
+                border.Add(networkInfoBox, 2, wx.EXPAND|wx.ALL, 5)
+            elif ec:
+                wx.MessageBox('ifconfig command exited with error %d'%ec,"Error", wx.OK|wx.ICON_ERROR)   
+                
+            #9. Blade info
+            d.clear()
+            bladeInfoPath = _asp_dir+'/bin/bladeinfo'
+            if os.path.exists(bladeInfoPath):
+                (ec, res, s, c) = system(bladeInfoPath+' -c')
+                if not ec:
+                    (ec, res, s, c) = system(bladeInfoPath+' -a')
+                    bladeInfoBox = wx.StaticBox(self, -1, "Blade Info")
+                    bladeInfoText = wx.StaticText(bladeInfoBox,-1,''.join(res))
+                    bladeInfoSizer = wx.BoxSizer(wx.VERTICAL)
+                    bladeInfoSizer.Add(bladeInfoText, 1, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT)
+                    bladeInfoBox.SetSizer(bladeInfoSizer)
+                    border.Add(bladeInfoBox, 1, wx.EXPAND|wx.ALL, 5)
+                else:
+                    wx.MessageBox('Note: no IPMI driver, so we cannot gather blade info',"Error", wx.OK|wx.ICON_ERROR)
+            else:
+                wx.MessageBox('Note: cannot find bladeinfo script, so cannot extract blade info',"Error", wx.OK|wx.ICON_ERROR)
+                
+            self.SetSizer(border)
+            self.SetAutoLayout(True)            
+            #self.SetupScrolling()
+            self.SetVirtualSize(self.GetBestSize())
+            self.SetScrollRate(10,10)
+
+    class AdminCmdsPanel(scrolled.ScrolledPanel):
+        def __init__(self, parent, panelName):
+            scrolled.ScrolledPanel.__init__(self, parent,-1,
+                                 style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER, name=panelName)
+            border = wx.BoxSizer(wx.VERTICAL)
+            entTypeSizer = wx.BoxSizer(wx.HORIZONTAL)
+            entTypeText = wx.StaticText(self,-1,'Entity type')
+            if self.Name == 'lock_a' or self.Name == 'unlock':
+                entTypeList = ['sg', 'su', 'node', 'si']
+            else: #lock_i
+                entTypeList = ['sg', 'su', 'node']                            
+            self.entTypesCb = wx.ComboBox(self, choices=entTypeList, style=wx.CB_DROPDOWN|wx.CB_READONLY)
+            entNameSizer = wx.BoxSizer(wx.HORIZONTAL)
+            entNameText = wx.StaticText(self,-1,'Entity name')
+            self.entNamesCb = wx.ComboBox(self,style=wx.CB_DROPDOWN|wx.CB_READONLY)
+            self.btnOK = wx.Button(self,label='OK')
+            entTypeSizer.Add(entTypeText, 1, wx.EXPAND|wx.ALL, 5)
+            entTypeSizer.Add(self.entTypesCb, 3, wx.EXPAND|wx.ALL, 5)
+            entNameSizer.Add(entNameText, 1, wx.EXPAND|wx.ALL, 5)
+            entNameSizer.Add(self.entNamesCb, 3, wx.EXPAND|wx.ALL, 5)
+                        
+            self.Bind(wx.EVT_COMBOBOX, self.evtComboBox, self.entTypesCb)
+            self.Bind(wx.EVT_BUTTON, self.OnClick, self.btnOK)
+            
+            border.Add(entTypeSizer, 0, wx.EXPAND|wx.ALL, 5)
+            border.Add(entNameSizer, 0, wx.EXPAND|wx.ALL, 5)
+            border.AddStretchSpacer()
+            border.Add(self.btnOK, 0, wx.RIGHT|wx.ALIGN_RIGHT, 10)
+            border.AddSpacer(10)
+            
+            self.SetSizer(border)
+            self.SetAutoLayout(True)            
+            self.SetVirtualSize(self.GetBestSize())
+            self.SetScrollRate(10,10)
+        
+        def fillEntNames(self,ents):
+            self.entNamesCb.Clear()
+            for e in ents:
+                self.entNamesCb.Append(e)
+                
+        def evtComboBox(self, evt):
+            #cb = evt.GetEventObject()
+            #data = cb.GetClientData(evt.GetSelection())
+            #self.log.WriteText('EvtComboBox: %s\nClientData: %s\n' % (evt.GetString(), data))
+            try:
+                if evt.GetString() == 'sg':
+                    ents = get_sg_names()                
+                elif evt.GetString() == 'node':
+                    ents = get_node_names().copy()           
+                elif evt.GetString() == 'su':                
+                    ents = get_su_names()
+                elif evt.GetString() == 'si':
+                    ents = get_si_names()                   
+            except DebugCliError as ex:
+                wx.MessageBox(str(ex),self.Name, wx.OK|wx.ICON_ERROR)
+                ents = []
+            self.fillEntNames(ents)
+                
+                
+        def OnClick(self, event):
+            global cli, _exit_code
+            entName = self.entNamesCb.GetStringSelection()
+            if entName and cli:                
+                funcName = 'do_%s'%self.Name
+                args = self.entTypesCb.GetStringSelection()+' '+entName
+                with Capturing() as output:
+                    getattr(cli,funcName)(args)
+                msgIcon = wx.ICON_INFORMATION
+                if _exit_code!=0:
+                    msgIcon = wx.ICON_ERROR
+                wx.MessageBox(''.join(output),self.Name, wx.OK|msgIcon)
+ 
+    class ComponentsPanel(scrolled.ScrolledPanel):
+        def __init__(self, parent, panelName):
+            scrolled.ScrolledPanel.__init__(self, parent,-1,
+                                 style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER, name=panelName)
+            sizer = wx.BoxSizer(wx.VERTICAL)
+            headers = ['COMPNAME','RUNNING','PID','HEALTHY','COMMAND','%CPU','THREADS','RSS','VSZ']            
+            try:
+                comps = get_comps_info(get_status_info().nodeaddr)
+            except AspError as e:
+                wx.MessageBox('Command is not available while SAFplus is down (run "status")\n or if another safplus_console is running', 'Error', wx.OK|wx.ICON_ERROR)
+                return
+            asp_comps = ['corServer', 'faultServer', 'eventServer',
+                     'nameServer', 'txnServer', 'gmsServer',
+                     'alarmServer', 'logServer', 'ckptServer',
+                     'cmServer', 'msgServer']
+            node_name = load_asp_conf().NODENAME
+            asp_comps = ['_'.join([e, node_name]) for e in asp_comps]
+            if self.Name == 'safplus':
+                comps = [c for c in comps if c.compname in asp_comps]
+            else:
+                comps = [c for c in comps if not c.compname in asp_comps]
+            d={}
+            for c in comps:
+                d[c.compname]=[c.running,c.pid,c.healthy,c.command,c.cpu,c.threads,c.rss,c.vsz]
+            compsInfoListCtrl = ListCtrlPanel(self, headers,d,True,False)
+            self.formatListCtrl(compsInfoListCtrl.list)
+            sizer.Add(compsInfoListCtrl, 5, wx.EXPAND|wx.ALL, 5)
+            self.SetSizer(sizer)
+            self.SetAutoLayout(True)            
+            self.SetVirtualSize(self.GetBestSize())
+            self.SetScrollRate(10,10)
+        
+        def formatListCtrl(self, listCtrl):
+            #print('DBG: items count:%d, col count:%d'%(listCtrl.GetItemCount(), listCtrl.GetColumnCount()))
+            #font_bold = wx.Font(wx.FontInfo(12).Bold())
+            #head_txt_colr = wx.Colour('BLACK')
+            #head_bac_colr = wx.Colour('DARK GREY')
+   
+            # Currently it is implemented only for wxMSW and
+            # does nothing in the other ports       
+            #listCtrl.SetHeaderAttr(wx.ItemAttr(head_txt_colr,
+            #                                   head_bac_colr,
+            #                                   font_bold))
+            #hdrAttr = wx.ItemAttr()
+            #hdrAttr.SetFont(wx.Font(wx.FontInfo(12).Bold()))
+            #listCtrl.SetHeaderAttr(hdrAttr)
+            for i in range(0, listCtrl.GetColumnCount()):
+                if i==0 or i==4:
+                    listCtrl.SetColumnWidth(i, 250)
+                else:
+                    listCtrl.SetColumnWidth(i, 100)                            
+            for i in range(0,listCtrl.GetItemCount()):
+                listItem = listCtrl.GetItem(i)
+                #print(listCtrl.GetItem(i,1).GetText())
+                if listCtrl.GetItem(i,1).GetText()=='Y':
+                    #print('comp is running')
+                    #font = listItem.GetFont()
+                    #listItem.SetFont(font.Bold)
+                    listCtrl.SetItemFont(i, wx.Font(wx.FontInfo(12).Bold()))
+                    listCtrl.SetItemTextColour(i, wx.RED)
+                  
+    class SusPanel(wx.Panel):
+        def __init__(self, parent, panelName):
+            wx.Panel.__init__(self, parent, -1, style=wx.WANTS_CHARS, name=panelName)
+            sizer = wx.BoxSizer(wx.VERTICAL)
+            nodeSizer = wx.BoxSizer(wx.HORIZONTAL)
+            nodeText = wx.StaticText(self,-1,'Node')
+            self.nodesCb = wx.ComboBox(self, style=wx.CB_DROPDOWN|wx.CB_READONLY)
+            nodeSizer.Add(nodeText, 1, wx.EXPAND|wx.ALL, 5)
+            nodeSizer.Add(self.nodesCb, 3, wx.EXPAND|wx.ALL, 5)
+            sizer.Add(nodeSizer, 0, wx.EXPAND|wx.ALL, 5)
+            self.fillNodes()
+            self.nodesCb.Bind(wx.EVT_COMBOBOX, self.evtComboBox)
+            
+            headers = ['SU NAME','MEMBER OF SG','ON NODE','ADMIN STATE','COMPUTED ADMIN STATE','PRESENCE STATE','OPERATIONAL STATE','READINESS STATE','# OF INSTANTIATED COMP','ASSIGNED SIS']
+            self.susListCtrl = ListCtrlPanel(self, headers,{},True,False)
+            self.formatListCtrl(self.susListCtrl.list, False)
+            self.susListCtrl.list.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onItemClicked)
+            sizer.Add(self.susListCtrl, 3, wx.EXPAND|wx.ALL, 5)
+            self.SetSizer(sizer)
+            
+        def onItemClicked(self, event):
+            treePanel = self.Parent.GetWindow1()
+            itemToSelect = treePanel.getItemByLabel('su')
+            if itemToSelect:
+                tree = self.Parent.GetWindow1().tree
+                treePanel.suToSelect = event.GetText()
+                wx.PostEvent(tree, wx.TreeEvent(wx.wxEVT_TREE_ITEM_ACTIVATED, tree, itemToSelect))
+            
+        def fillNodes(self):
+            try:
+                ents = get_node_names().copy()
+                ents.append('all')
+            except DebugCliError as ex:
+                wx.MessageBox(str(ex),self.Name, wx.OK|wx.ICON_ERROR)
+                ents = []
+            for e in ents:
+                self.nodesCb.Append(e)
+            idx = self.nodesCb.FindString(get_node_info_from_cpm().nodename)
+            if idx != wx.NOT_FOUND:
+                self.nodesCb.Selection = idx
+                wx.PostEvent(self.nodesCb, wx.CommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED)) 
+                
+        def evtComboBox(self, evt):
+            nodeName = self.nodesCb.GetStringSelection()
+            if nodeName == 'all':
+                nodeName = None
+            try:
+                sus = get_sus_info(nodename=nodeName)
+            except AspError as e:
+                wx.MessageBox('Command is not available while SAFplus is down (run "status"),\nor if another safplus_console is running', self.Name, wx.OK|wx.ICON_ERROR)
+                return
+            self.susListCtrl.data.clear()
+            for su in sus:
+                self.susListCtrl.data[su.suname]=[su.sgname,su.nodename,su.astate,su.castate,su.presence,su.operstate,su.readiness,su.comps,su.sis]
+            self.susListCtrl.list.DeleteAllItems()
+            self.susListCtrl.PopulateList()
+            self.formatListCtrl(self.susListCtrl.list, True)
+
+        def formatListCtrl(self, listCtrl, colorOnly):
+            if not colorOnly:
+                for i in range(0, listCtrl.GetColumnCount()):
+                    if i in [0,1,2]:
+                        listCtrl.SetColumnWidth(i, 250)
+                    else:
+                        listCtrl.SetColumnWidth(i, 150)
+            if colorOnly:
+                for i in range(0,listCtrl.GetItemCount()):
+                    listItem = listCtrl.GetItem(i)
+                    #print(listCtrl.GetItem(i,1).GetText())
+                    if listCtrl.GetItem(i,4).GetText()=='UL':
+                        #print('comp is running')
+                        #font = listItem.GetFont()
+                        #listItem.SetFont(font.Bold)
+                        listCtrl.SetItemFont(i, wx.Font(wx.FontInfo(12).Bold()))
+                        listCtrl.SetItemTextColour(i, wx.RED)
+                    elif listCtrl.GetItem(i,4).GetText()=='LA':
+                        listCtrl.SetItemFont(i, wx.Font(wx.FontInfo(12).Bold()))
+                        listCtrl.SetItemTextColour(i, wx.YELLOW)
+
+    class SuPanel(wx.Panel):
+        def __init__(self, parent, panelName, itemToSelect=None):
+            wx.Panel.__init__(self, parent, -1, style=wx.WANTS_CHARS, name=panelName)
+            sizer = wx.BoxSizer(wx.VERTICAL)
+            suSizer = wx.BoxSizer(wx.HORIZONTAL)
+            suText = wx.StaticText(self,-1,'Su')
+            self.susCb = wx.ComboBox(self, style=wx.CB_DROPDOWN|wx.CB_READONLY)
+            suSizer.Add(suText, 1, wx.EXPAND|wx.ALL, 5)
+            suSizer.Add(self.susCb, 3, wx.EXPAND|wx.ALL, 5)
+            sizer.Add(suSizer, 0, wx.EXPAND|wx.ALL, 5)
+            self.fillSus()
+            self.susCb.Bind(wx.EVT_COMBOBOX, self.evtComboBox)
+            
+            headers = ['Name','Value']
+            self.susListCtrl = ListCtrlPanel(self, headers,{},False,True)
+            self.formatListCtrl(self.susListCtrl.list, False)
+            sizer.Add(self.susListCtrl, 3, wx.EXPAND|wx.ALL, 5)
+            self.SetSizer(sizer)
+            
+            if itemToSelect:
+                idx = self.susCb.FindString(itemToSelect)
+                if idx != wx.NOT_FOUND:
+                    self.susCb.Selection = idx
+                    wx.PostEvent(self.susCb, wx.CommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED))
+            
+        def fillSus(self):
+            try:
+                ents = get_su_names().copy()                
+            except DebugCliError as ex:
+                wx.MessageBox(str(ex),self.Name, wx.OK|wx.ICON_ERROR)
+                ents = []
+            for e in ents:
+                self.susCb.Append(e)
+            #idx = self.susCb.FindString(get_node_info_from_cpm().nodename)
+            #if idx != wx.NOT_FOUND:
+            #    self.nodesCb.Selection = idx
+            #    wx.PostEvent(self.nodesCb, wx.CommandEvent(wx.wxEVT_COMMAND_COMBOBOX_SELECTED)) 
+                
+        def evtComboBox(self, evt):
+            suName = self.susCb.GetStringSelection()
+            try:
+                su = get_su_info(suName)
+            except  AspError as e:
+                wx.MessageBox('Command is not available while SAFplus is down (run "status"),\nor if another safplus_console is running', self.Name, wx.OK|wx.ICON_ERROR)
+                return        
+            if not su:
+                wx.MessageBox('Could not find SU [%s] in AMF database' % suName, self.Name, wx.OK|wx.ICON_ERROR)
+                return       
+        
+            comps = su.config[0].components[0]
+            if comps == '0': comps = ['-']
+            else:            comps = comps.comp
+            
+            self.susListCtrl.data.clear()
+            self.susListCtrl.data={'su name':su.value,
+                                   'admin state':su.config[0].admin_state[0],
+                                   'computed admin state':su.config[0].computed_admin_state[0],
+                                   'member of sg':su.config[0].member_of_sg[0],
+                                   'member of node':su.config[0].member_of_node[0],
+                                   'restartable':su.config[0].is_restartable[0],
+                                   'presence state':su.status[0].presence_state[0],
+                                   'readiness state':su.status[0].readiness_state[0],
+                                   'operational state':su.status[0].operational_state[0],
+                                   'number of active SIs':su.status[0].num_active_sis[0],
+                                   'number of standby SIs':su.status[0].num_standby_sis[0],
+                                   'number of quiesced SIs':su.status[0].num_quiesced_sis[0], 
+                                   'SU restart count':su.status[0].su_restart_count[0],
+                                   'component restart count':su.status[0].comp_restart_count[0],
+                                   'component list':'\n'.join(comps)
+                                  }
+            self.susListCtrl.list.DeleteAllItems()
+            self.susListCtrl.PopulateList()
+            self.formatListCtrl(self.susListCtrl.list, True)
+
+        def formatListCtrl(self, listCtrl, colorOnly):
+            if not colorOnly:
+                for i in range(0, listCtrl.GetColumnCount()):
+                    if i in [0,1,2]:
+                        listCtrl.SetColumnWidth(i, 250)
+                    else:
+                        listCtrl.SetColumnWidth(i, 150)
+            if colorOnly:
+                for i in range(0,listCtrl.GetItemCount()):
+                    listItem = listCtrl.GetItem(i)                    
+                    if listCtrl.GetItem(i,0).GetText()=='admin state' or listCtrl.GetItem(i,0).GetText()=='computed admin state':
+                        #listCtrl.SetItemFont(i, wx.Font(wx.FontInfo(12).Bold()))
+                        listCtrl.SetItemTextColour(i, wx.RED)
+                    
+
+    class ShellPanel(wx.Panel):
+        def __init__(self, parent):
+            wx.Panel.__init__(self, parent, -1, style=wx.WANTS_CHARS)
+            sizer = wx.BoxSizer(wx.VERTICAL)
+            #prompt = ''
+            self.shellText = wx.TextCtrl(self,-1,style=wx.TE_MULTILINE|wx.TE_PROCESS_ENTER)
+            self.Bind(wx.EVT_TEXT_ENTER, self.EvtTextEnter, self.shellText)
+            sizer.Add(self.shellText, 5, wx.EXPAND|wx.ALL, 5)
+            self.fromSel = 0# len(prompt)
+            self.toSel = 0
+            self.SetSizer(sizer)
+            
+        def EvtTextEnter(self, event):            
+            global cli
+            self.toSel = self.shellText.GetLastPosition()            
+            funcName = 'do_shell'
+            args = self.shellText.GetRange(self.fromSel,self.toSel)
+            with Capturing() as output:
+                getattr(cli,funcName)(args)           
+            self.shellText.AppendText('\n'+'\n'.join(output))
+            self.fromSel = self.shellText.GetLastPosition()
+            event.Skip()
+    
+
+    class MainFrame(wx.Frame):
+        def __init__(self, *args, **kwargs):
+            wx.Frame.__init__(self, *args, **kwargs)
+            global kSplitterId
+
+            #Adding the SplitterWindow
+            splitter = wx.SplitterWindow(self, id = wx.ID_ANY, style=wx.SP_LIVE_UPDATE|wx.SP_3D, size = (1000,600))
+            kSplitterId = splitter.GetId()
+            rightPane = wx.Panel(splitter)
+            # add the left Panel
+            cmdsTreePanel = TreeCtrlPanel(splitter, rightPane)
+
+            # set up the Splitter
+            sash_Position = 300
+            splitter.SplitVertically(cmdsTreePanel, rightPane, sash_Position)
+            min_Pan_size = 40
+            splitter.SetMinimumPaneSize(min_Pan_size)
+
+            self.Fit()
+
+    class MainApp(wx.App):
+        def OnInit(self):
+            frame = MainFrame(None, title='Safplus commands')
+            frame.Show(True)
+            self.SetTopWindow(frame)
+            return True
+
+#app = MyApp(0)
+#app.MainLoop()
 ##
 ## main function
 ##
 def main(argv):
-    global _interactive_shell
+    global _interactive_shell, wxInstalled, windowed, cli
     extend_path()
     
     cli = Cli(HISTORY_FILE)
@@ -2262,7 +3935,7 @@ def main(argv):
 
     import getopt
     try:
-        opts, args = getopt.getopt(argv[1:],'hvc',['help', 'verbose', 'no-colors'])
+        opts, args = getopt.getopt(argv[1:],'hvc',['help', 'verbose', 'no-colors','ui'])
     except getopt.GetoptError:
         usage(1)
     
@@ -2275,20 +3948,29 @@ def main(argv):
         if o in ("-c", "--no-colors"):
             global _do_colors
             _do_colors = False
-            
-    if len(args):
-        t = ' '.join(args)
-        cmds = t.split(",")
-        for c in cmds:
-          cli.onecmd(c)
-        sys.exit(_exit_code)
+        if o in ('-u', '--ui'):
+            if not wxInstalled:
+                print ('wxPython(Phoenix) is not installed. Please install it to run safplus_info in the UI mode')
+            else:
+                windowed = True
+    if not windowed:
+        if len(args):
+            t = ' '.join(args)
+            cmds = t.split(",")
+            for c in cmds:
+                cli.onecmd(c)
+            sys.exit(_exit_code)
+        else:
+            _interactive_shell = True
+            try:
+                cli.cmdloop("Starting interactive prompt (type 'help' for help)")
+            except KeyboardInterrupt:
+                print('Exiting on Ctrl-C')
+        sys.exit(0)
     else:
         _interactive_shell = True
-        try:
-            cli.cmdloop("Starting interactive prompt (type 'help' for help)")
-        except KeyboardInterrupt:
-            print('Exiting on Ctrl-C')
-    sys.exit(0)
+        app = MainApp(0)
+        app.MainLoop()
 
 asp_run_env = load_asp_run_env()
 sys_asp = init_sys_asp()
