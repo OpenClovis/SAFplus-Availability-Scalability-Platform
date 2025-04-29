@@ -176,7 +176,7 @@ class XmlResolver:
           print ("Unknown command [%s]" % sp)
 
 def indent(elem,depth=0):
-  if type(elem) in types.StringTypes:
+  if isinstance(elem,str):
     try:
       elem = ET.fromstring(elem)
     except ET.ParseError as e: # Its bad XML so just do something simple that breaks up lines

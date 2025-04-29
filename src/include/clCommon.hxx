@@ -5,6 +5,8 @@
 
 #include <cltypes.h>
 #include <string>
+#include <list>
+#include <vector>
 #include <clDbg.hxx>
 #include <saAis.h>
 

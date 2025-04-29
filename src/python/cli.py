@@ -2,7 +2,7 @@
 import sys, os, os.path, time, types
 import traceback,pdb
 import argparse
-import ConfigParser
+import configparser
 
 #command completion
 import clicompletion, readline
@@ -220,7 +220,7 @@ def defaultTextHandler(elem,resolver,context):
   name = formatTag(name) # Get rid of the namespace indicator b/c that's ugly
   fore = None
 
-  if elem._children:  # it will either have child nodes or a "more" child node if it has children
+  if list(elem):  # it will either have child nodes or a "more" child node if it has children
     fore = NodeColor
   else:
     fore = LeafColor
@@ -856,7 +856,7 @@ class RunScript:
     self.env["argv"] = args
     if ext[1] == ".py":
       try:
-        exec f in self.env
+        exec (f in self.env)
       except Exception as e:
         if DropToDebugger:
           type, value, tb = sys.exc_info()
@@ -875,9 +875,11 @@ def main(argLst):
   global access, CliName
   global xmlterm, windowed
 
+  print ('Starting %s'% CliName)
+
   cmds,handlers = access.Initialize()
 
-  config = ConfigParser.SafeConfigParser()
+  config = configparser.ConfigParser()
   config.read(".safplus_cli.cfg")  
 
   if windowed:
