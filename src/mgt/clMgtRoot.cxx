@@ -896,7 +896,7 @@ namespace SAFplus
           break;
       }
       ClRcT *rcOut = static_cast<ClRcT *>(cookie);
-      *rcOut = rc;
+      if (rcOut)   *rcOut = rc;
     }
     else
     {
