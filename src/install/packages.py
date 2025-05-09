@@ -2,7 +2,6 @@ import pdb
 import os
 import objects
 from common import *
-from distutils.version import *
 
 cmp_version = lambda x, y: LooseVersion(x).__cmp__(y) #Equal 0, greater 1, lesser -1
 
@@ -349,10 +348,10 @@ class OS:
         
         ECLIPSE = objects.BuildDep()
         ECLIPSE.name           = 'eclipse'
-        ECLIPSE.version        = '3.7.1'
-        ECLIPSE.pkg_name       = 'eclipse-SDK-3.7.1-linux-gtk.tar.gz'
+        ECLIPSE.version        = '4.35'
+        ECLIPSE.pkg_name       = 'eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz'
         if self.bit == 64:
-            ECLIPSE.pkg_name       = 'eclipse-SDK-3.7.1-linux-gtk-x86_64.tar.gz'
+            ECLIPSE.pkg_name       = 'eclipse-SDK-4.35-linux-gtk-x86_64.tar.gz'
        
         log = self.log_string_for_dep(ECLIPSE.name)
         
@@ -365,6 +364,30 @@ class OS:
 
         ECLIPSE.build_cmds = [';'.join(initial_commands)]
 
+
+        # ------------------------------------------------------------------------------
+        # CDT
+        # ------------------------------------------------------------------------------
+        EXPORT = ''
+
+        CDT = objects.BuildDep()
+        CDT.name           = 'CDT'
+        CDT.version        = '12.0.0'
+        CDT.pkg_name       = 'cdt-12.0.0.zip'
+
+        log = self.log_string_for_dep(CDT.name)
+
+        CDT.extract_install = True
+
+        initial_commands = ['cd ${PREFIX}',
+                          'tar xvf ${THIRDPARTYPKG} %s' % CDT.pkg_name,
+                          'unzip -qq -o %s -d %s-%s' % (CDT.pkg_name, CDT.name, CDT.version),
+                          'eclipse/eclipse -noSplash  -application org.eclipse.equinox.p2.director -repository file:./%s-%s/ -installIU org.eclipse.cdt.feature.group -tag AddCDT -destination ./eclipse/ -profile SDKProfile' % (CDT.name, CDT.version),
+                          'rm -rf %s-%s' % (CDT.name, CDT.version),
+                          'rm -f %s' % CDT.pkg_name,]
+
+        CDT.build_cmds = [';'.join(initial_commands)]
+
             
         # ------------------------------------------------------------------------------
         # EMF
@@ -373,8 +396,8 @@ class OS:
         
         EMF = objects.BuildDep()
         EMF.name           = 'EMF'
-        EMF.version        = '2.7.1'
-        EMF.pkg_name       = 'emf-runtime-2.7.1.zip'
+        EMF.version        = '2.41.0'
+        EMF.pkg_name       = 'EMF-Updates-2.41.0.zip'
         
         log = self.log_string_for_dep(EMF.name)
 
@@ -382,7 +405,9 @@ class OS:
 
         initial_commands = ['cd ${PREFIX}',
                           'tar xf ${THIRDPARTYPKG} %s' % EMF.pkg_name,
-                          'unzip -qq -o -u %s' % EMF.pkg_name,                            
+                          'unzip -qq -o %s -d %s-%s' % (EMF.pkg_name, EMF.name, EMF.version),
+                          'eclipse/eclipse -noSplash  -application org.eclipse.equinox.p2.director -repository file:./%s-%s/ -installIU org.eclipse.emf.feature.group -tag AddEMF -destination ./eclipse/ -profile SDKProfile' % (EMF.name, EMF.version),
+                          'rm -rf %s-%s' % (EMF.name, EMF.version),
                           'rm -f %s' % EMF.pkg_name]
 
         EMF.build_cmds = [';'.join(initial_commands)]
@@ -395,8 +420,8 @@ class OS:
         
         GEF = objects.BuildDep()
         GEF.name           = 'GEF'
-        GEF.version        = '3.7.2'
-        GEF.pkg_name       = 'GEF-runtime-3.7.2.zip'
+        GEF.version        = '3.20.0'
+        GEF.pkg_name       = 'GEF-Updates-3.20.0.zip'
         
         log = self.log_string_for_dep(GEF.name)
 
@@ -404,36 +429,12 @@ class OS:
         
         initial_commands = ['cd ${PREFIX}',
                           'tar xf ${THIRDPARTYPKG} %s' % GEF.pkg_name,
-                          'unzip -qq -o -u %s' % GEF.pkg_name,  
-                          'rm -f %s' % GEF.pkg_name]
+                          'unzip -qq -o %s -d %s-%s' % (GEF.pkg_name, GEF.name, GEF.version),
+                          'eclipse/eclipse -noSplash  -application org.eclipse.equinox.p2.director -repository file:./%s-%s/ -installIU org.eclipse.gef.feature.group -tag AddGEF -destination ./eclipse/ -profile SDKProfile' % (GEF.name, GEF.version),
+                          'rm -rf %s-%s' % (GEF.name, GEF.version),
+                          'rm -f %s' % GEF.pkg_name,]
 
         GEF.build_cmds = [';'.join(initial_commands)]
-
-
-        # ------------------------------------------------------------------------------
-        # CDT
-        # ------------------------------------------------------------------------------
-        EXPORT = ''
-        
-        CDT = objects.BuildDep()
-        CDT.name           = 'CDT'
-        CDT.version        = '8.0.1'
-        CDT.pkg_name       = 'cdt-master-8.0.1.zip'
-        
-        log = self.log_string_for_dep(CDT.name)
-
-        CDT.extract_install = True
-        
-        initial_commands = ['cd ${PREFIX}',
-                          'mkdir -p eclipse/cdt/eclipse',
-                          'mkdir -p eclipse/links',
-                          'cd eclipse/cdt/eclipse',
-                          'echo "path=$PREFIX/eclipse/cdt" > $PREFIX/eclipse/links/cdt.link',
-                          'tar xvf ${THIRDPARTYPKG} %s' % CDT.pkg_name,
-                          'unzip -qq -o -u %s' % CDT.pkg_name,
-                          'rm -f %s' % CDT.pkg_name]
-
-        CDT.build_cmds = [';'.join(initial_commands)]
         
         # ------------------------------------------------------------------------------
         # sqlite
@@ -554,6 +555,46 @@ class Ubuntu22(OS):
             D = objects.RepoDep(name)
             self.pre_dep_list.append(D)
             
+#-------------------------------------------------------------------------------
+
+
+# ------------------------------------------------------------------------------
+class Ubuntu24(OS):
+    """ Ubuntu Distro class """
+    def pre_init(self):
+        self.name = 'Ubuntu'
+        self.apt = True
+
+    def load_preinstall_deps(self):
+
+        deps =  ['build-essential',
+                 'linux-headers-' + self.kernelVerString,
+                 'gettext',
+                 'uuid-dev',
+                 'bison',
+                 'flex',
+                 'gawk',
+                 'pkg-config',
+                 'libglib2.0-dev',
+                 'libgdbm-dev',
+                 'libdb-dev',
+                 'libsqlite3-0',
+                 'libsqlite3-dev',
+                 'e2fsprogs',
+                 'libperl-dev',
+                 'libltdl3-dev',
+                 'e2fslibs-dev',
+                 'libsnmp-dev',
+                 'zlib1g-dev',
+                 'tcl',
+                 'python3',
+                 'cargo',
+                 'openjdk-21-jdk']
+
+        for name in deps:
+            D = objects.RepoDep(name)
+            self.pre_dep_list.append(D)
+
 #-------------------------------------------------------------------------------
 
 class RedHat4(OS):
@@ -1080,6 +1121,9 @@ def determine_os():
                 return None
             
             if 'jammy' in fdata or '22.' in fdata: return Ubuntu22()
+
+            if 'noble' in fdata or '24.' in fdata: return Ubuntu24()
+
             if 'ubuntu' in fdata:
                 return Ubuntu()
 

@@ -32,15 +32,15 @@ except ImportError:
 # Settings
 # ------------------------------------------------------------------------------
 
-THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.30'                # Look for PKG starting with this name
-THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.30.tar'            # search this package if no 3rdPartyPkg found
+THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-6.1.0'                # Look for PKG starting with this name
+THIRDPARTYPKG_DEFAULT        = '3rdparty-base-6.1.0.tar'            # search this package if no 3rdPartyPkg found
 PSP_NAME_STARTS_WITH  = 'openclovis-safplus-psp'                # Look for PKG starting with this name
 PSPPKG_DEFAULT        = 'openclovis-safplus-psp-6.1-private.tar.gz'            # search this package if no 3rdPartyPkg found
 PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6.x_32'
 PRE_INSTALL_PKG = 'preinstall_CentOs_6.x_32.tar.gz'
 if determine_bit() == 64:
-  THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.30-x86_64'       # Look for PKG starting with this name
-  THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.30-x86_64.tar'
+  THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-6.1.0-x86_64'       # Look for PKG starting with this name
+  THIRDPARTYPKG_DEFAULT        = '3rdparty-base-6.1.0-x86_64.tar'
   PRE_INSTALL_PKG = 'preinstall_CentOs_6.x_64.tar.gz'
   PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6.x_64'
 SUPPORT_EMAIL                = 'support@openclovis.com'            # email for script maintainer
@@ -1333,13 +1333,8 @@ class ASPInstaller:
 
         cmds.append('rm -rf $PACKAGE_ROOT/eclipse/plugins/*clovis*') # remove redundant clovis plugins if any
         cmds.append('cp -rl $ECLIPSE_ROOT $PACKAGE_ROOT')
-        cmds.append("sed -e '/-showsplash\|org.eclipse.platform/d' $PACKAGE_ROOT/eclipse/eclipse.ini > $PACKAGE_ROOT/eclipse/eclipse_ini.tmp")
-        cmds.append('rm $PACKAGE_ROOT/eclipse/eclipse.ini')
-        cmds.append('mv $PACKAGE_ROOT/eclipse/eclipse_ini.tmp $PACKAGE_ROOT/eclipse/eclipse.ini')
         cmds.append('mv -f %s/plugins/* $PACKAGE_ROOT/eclipse/plugins' % self.IDE_ROOT)
         cmds.append('rm -rf %s/plugins' % self.IDE_ROOT)
-        # update config.ini        
-        cmds.append('cp -rf %s/scripts/config.ini $ECLIPSE/configuration' % self.IDE_ROOT)
 
         self.run_each_command_in_list(cmds)
 

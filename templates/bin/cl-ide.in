@@ -143,15 +143,14 @@ fi
 # If we've installed Java, use that instead of a potentially incompatible
 # local copy
 
-if [ -d $CL_BUILDTOOLS/local/jre1.8.0_181 ]; then
-	export PATH=$CL_BUILDTOOLS/local/jre1.8.0_181/bin:$PATH
-fi
 
 export PATH=$CL_BUILDTOOLS/local/bin:$PATH
 
 APPLICATION_NAME=org.eclipse.ui.ide.workbench
 PERSPECTIVE=com.clovis.cw.ui.CWPerspective
-CMD_ARGS="-application $APPLICATION_NAME -perspective $PERSPECTIVE -configuration $DOTDIR/$CL_SDK/eclipse"
+PRODUCT=com.clovis.cw.data.ClovisWorks
+SPLASH=com.clovis.cw.data
+CMD_ARGS="-application $APPLICATION_NAME -perspective $PERSPECTIVE -product $PRODUCT -showSplash $SPLASH -configuration $DOTDIR/$CL_SDK/eclipse"
 
 feedback 1 "Staring eclipse as:"
 feedback 1 "    $ECLIPSE/eclipse $CMD_ARGS $@"
