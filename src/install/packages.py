@@ -471,9 +471,10 @@ class OS:
         #  self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, JRE, ECLIPSE, EMF, GEF, CDT, sqlite]
         #  print "For Fedora OS, it is necessary for you to build and install TIPC yourself."
         #else:
-        self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, TIPC, TIPC_CONFIG, JRE, ECLIPSE, EMF, GEF, CDT, sqlite]
+        #self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, TIPC, TIPC_CONFIG, JRE, ECLIPSE, EMF, GEF, CDT, sqlite]
         #self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, JRE, ECLIPSE, EMF, GEF, CDT, sqlite]        
     
+        self.dep_list = [openhpi, netsnmp, openhpisubagent, ECLIPSE, EMF, GEF, CDT, sqlite]
     
     def load_install_specific_deps(self):
         """ override this per OS to custom define 
@@ -788,6 +789,41 @@ class CentOS6(OS):
 
 
 # ------------------------------------------------------------------------------
+
+class CentOS9(OS):
+    
+    def pre_init(self):
+        self.name = 'CentOS 9'
+        self.yum = True
+    
+    def load_preinstall_deps(self):
+        deps =  ['libtool','gcc-c++','perl-devel','libuuid-devel', 'tcl']
+                        
+        for name in deps:
+            D = objects.RepoDep(name)
+            self.pre_dep_list.append(D)
+
+        # Add a repo dependency that allows either package to be installed
+        #D = objects.RepoDep(name)
+        #self.pre_dep_list.append(D)
+        
+#-------------------------------------------------------------------------------
+
+class CentOS10(OS):
+    
+    def pre_init(self):
+        self.name = 'CentOS 10'
+        self.yum = True
+    
+    def load_preinstall_deps(self):
+        deps =  ['libtool','gcc-c++','perl-devel', 'libuuid-devel', 'tcl']
+                        
+        for name in deps:
+            D = objects.RepoDep(name)
+            self.pre_dep_list.append(D)
+
+#-------------------------------------------------------------------------------
+
 class Fedora(OS):
 
     def __init__(self):
@@ -826,6 +862,28 @@ class Fedora(OS):
 
 
 # ------------------------------------------------------------------------------
+
+class Fedora40(OS):
+
+    def __init__(self):
+      self.name = 'Fedora 40'
+      OS.__init__(self)
+    
+    def pre_init(self):
+        self.name = 'Fedora'
+        self.yum = True
+    
+    def load_preinstall_deps(self):
+        deps =  ['libtool', 'gcc-c++', 'perl-devel', 'glib2-devel.x86_64', 'libuuid-devel', 'tcl']
+
+                    
+        for name in deps:
+            D = objects.RepoDep(name)
+            self.pre_dep_list.append(D)
+
+
+# ------------------------------------------------------------------------------
+
 class SUSE(OS): # uses YAST #fixme
     
     # SUSE is not supported as of 4/8/2011
@@ -1095,12 +1153,17 @@ def determine_os():
             except:
                 return None
             
-            if 'fedora' in fdata: return Fedora()
+            if 'fedora' or 'Fedora' in fdata:
+                if 'release 40' in fdata: return Fedora40()
+                else:
+                    return Fedora()
             
-            if 'centos' in fdata:
+            if 'centos' or 'CentOS' in fdata:
                 if 'release 4' in fdata: return CentOS4()
                 if 'release 5' in fdata: return CentOS5()
                 if 'release 6' in fdata: return CentOS6()
+                if 'release 9' in fdata: return CentOS9()
+                if 'release 10' in fdata: return CentOS10()
             else: 
                 # must be redhat
                 if 'release 4' in fdata: return RedHat4()

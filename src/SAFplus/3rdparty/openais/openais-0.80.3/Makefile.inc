@@ -150,3 +150,8 @@ ifeq (${OPENAIS_TIPC}, 1)
     override CFLAGS += -DOPENAIS_TIPC
     override CFLAGS += $(TIPC_CFLAGS)
 endif
+
+GCCVERSION14 := $(shell expr `gcc -dumpversion | cut -f1 -d.` \>= 14)
+ifeq ("$(GCCVERSION14)","1")
+    override CFLAGS += -Wno-error=implicit-function-declaration
+endif
