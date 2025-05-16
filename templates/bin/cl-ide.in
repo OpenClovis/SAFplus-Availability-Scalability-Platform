@@ -143,6 +143,9 @@ fi
 # If we've installed Java, use that instead of a potentially incompatible
 # local copy
 
+if [ -d $CL_BUILDTOOLS/local/jdk-21 ]; then
+	export PATH=$CL_BUILDTOOLS/local/jdk-21/bin:$PATH
+fi
 
 export PATH=$CL_BUILDTOOLS/local/bin:$PATH
 

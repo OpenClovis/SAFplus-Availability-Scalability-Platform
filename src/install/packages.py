@@ -318,27 +318,27 @@ class OS:
         
 
         # ------------------------------------------------------------------------------
-        # JRE
+        # OPENJDK 21
         # ------------------------------------------------------------------------------
         EXPORT = ''
         
-        JRE = objects.BuildDep()
-        JRE.name           = 'JRE'
-        JRE.version        = '1.8.0'
-        JRE.pkg_name       = 'jre-8u181-linux-i586.tar.gz'
+        JDK = objects.BuildDep()
+        JDK.name           = 'JDK'
+        JDK.version        = '21'
+        JDK.pkg_name       = 'openjdk-21_linux-x64_bin.tar.gz'
         if self.bit == 64:
-            JRE.pkg_name       = 'jre-8u181-linux-x64.tar.gz'
+            JDK.pkg_name       = 'openjdk-21_linux-x64_bin.tar.gz'
         
-        log = self.log_string_for_dep(JRE.name)
+        log = self.log_string_for_dep(JDK.name)
        
-        JRE.extract_install = True
+        JDK.extract_install = True
 
         initial_commands = ['cd ${PREFIX}',
-                          'tar xf ${THIRDPARTYPKG} %s' % JRE.pkg_name,
-                          'tar zxf %s' % JRE.pkg_name,
-                          'rm -f %s' % JRE.pkg_name]
+                          'tar xf ${THIRDPARTYPKG} %s' % JDK.pkg_name,
+                          'tar zxf %s' % JDK.pkg_name,
+                          'rm -f %s' % JDK.pkg_name]
 
-        JRE.build_cmds = [';'.join(initial_commands)]
+        JDK.build_cmds = [';'.join(initial_commands)]
 
 
         # ------------------------------------------------------------------------------
@@ -382,7 +382,7 @@ class OS:
         initial_commands = ['cd ${PREFIX}',
                           'tar xvf ${THIRDPARTYPKG} %s' % CDT.pkg_name,
                           'unzip -qq -o %s -d %s-%s' % (CDT.pkg_name, CDT.name, CDT.version),
-                          'eclipse/eclipse -noSplash  -application org.eclipse.equinox.p2.director -repository file:./%s-%s/ -installIU org.eclipse.cdt.feature.group -tag AddCDT -destination ./eclipse/ -profile SDKProfile' % (CDT.name, CDT.version),
+                          'eclipse/eclipse -vm ./jdk-21/bin -noSplash  -application org.eclipse.equinox.p2.director -repository file:./%s-%s/ -installIU org.eclipse.cdt.feature.group -tag AddCDT -destination ./eclipse/ -profile SDKProfile' % (CDT.name, CDT.version),
                           'rm -rf %s-%s' % (CDT.name, CDT.version),
                           'rm -f %s' % CDT.pkg_name,]
 
@@ -406,7 +406,7 @@ class OS:
         initial_commands = ['cd ${PREFIX}',
                           'tar xf ${THIRDPARTYPKG} %s' % EMF.pkg_name,
                           'unzip -qq -o %s -d %s-%s' % (EMF.pkg_name, EMF.name, EMF.version),
-                          'eclipse/eclipse -noSplash  -application org.eclipse.equinox.p2.director -repository file:./%s-%s/ -installIU org.eclipse.emf.feature.group -tag AddEMF -destination ./eclipse/ -profile SDKProfile' % (EMF.name, EMF.version),
+                          'eclipse/eclipse -vm ./jdk-21/bin -noSplash  -application org.eclipse.equinox.p2.director -repository file:./%s-%s/ -installIU org.eclipse.emf.feature.group -tag AddEMF -destination ./eclipse/ -profile SDKProfile' % (EMF.name, EMF.version),
                           'rm -rf %s-%s' % (EMF.name, EMF.version),
                           'rm -f %s' % EMF.pkg_name]
 
@@ -430,7 +430,7 @@ class OS:
         initial_commands = ['cd ${PREFIX}',
                           'tar xf ${THIRDPARTYPKG} %s' % GEF.pkg_name,
                           'unzip -qq -o %s -d %s-%s' % (GEF.pkg_name, GEF.name, GEF.version),
-                          'eclipse/eclipse -noSplash  -application org.eclipse.equinox.p2.director -repository file:./%s-%s/ -installIU org.eclipse.gef.feature.group -tag AddGEF -destination ./eclipse/ -profile SDKProfile' % (GEF.name, GEF.version),
+                          'eclipse/eclipse -vm ./jdk-21/bin -noSplash  -application org.eclipse.equinox.p2.director -repository file:./%s-%s/ -installIU org.eclipse.gef.feature.group -tag AddGEF -destination ./eclipse/ -profile SDKProfile' % (GEF.name, GEF.version),
                           'rm -rf %s-%s' % (GEF.name, GEF.version),
                           'rm -f %s' % GEF.pkg_name,]
 
@@ -468,13 +468,13 @@ class OS:
         
         # this list defines the order of installation
         #if self.name == "Fedora":
-        #  self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, JRE, ECLIPSE, EMF, GEF, CDT, sqlite]
+        #  self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, JDK, ECLIPSE, CDT, EMF, GEF, sqlite]
         #  print "For Fedora OS, it is necessary for you to build and install TIPC yourself."
         #else:
-        #self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, TIPC, TIPC_CONFIG, JRE, ECLIPSE, EMF, GEF, CDT, sqlite]
-        #self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, JRE, ECLIPSE, EMF, GEF, CDT, sqlite]        
+        #self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, TIPC, TIPC_CONFIG, JDK, ECLIPSE, CDT, EMF, GEF, sqlite]
+        #self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, JDK, ECLIPSE, CDT, EMF, GEF, sqlite]
     
-        self.dep_list = [openhpi, netsnmp, openhpisubagent, ECLIPSE, EMF, GEF, CDT, sqlite]
+        self.dep_list = [openhpi, netsnmp, openhpisubagent, JDK, ECLIPSE, CDT, EMF, GEF, sqlite]
     
     def load_install_specific_deps(self):
         """ override this per OS to custom define 
@@ -589,8 +589,7 @@ class Ubuntu24(OS):
                  'zlib1g-dev',
                  'tcl',
                  'python3',
-                 'cargo',
-                 'openjdk-21-jdk']
+                 'cargo']
 
         for name in deps:
             D = objects.RepoDep(name)
@@ -1069,6 +1068,49 @@ class Debian11(OS):
             D = objects.RepoDep(name)
             self.pre_dep_list.append(D)
 
+#-------------------------------------------------------------------------------
+
+class Debian12(OS):
+
+    def pre_init(self):
+        self.name = 'Debian'
+        self.apt = True
+        self.apt_force_yes = ''
+
+    def load_preinstall_deps(self):
+
+        deps =  ['build-essential',
+                 'linux-headers-' + self.kernelVerString,
+                 'gettext',
+                 'openhpi',
+                 'uuid-dev',
+                 'bison',
+                 'flex',
+                 'gawk',
+                 'tclsh',
+                 'libglib2.0-dev',
+                 'libgdbm-dev',
+                 'libdb-dev',
+                 'libsqlite3-0',
+                 'libsqlite3-dev',
+                 'e2fsprogs',
+                 'libperl-dev',
+                 'libltdl3-dev',
+                 'e2fslibs-dev',
+                 'unzip',
+                 'libsnmp-dev',
+                 'zlib1g-dev',
+                 'psmisc',
+                 'ed',
+                 'cups',
+                 'libgtk-3-dev',
+                 'libgtk2.0-0',
+                 'cargo']
+
+        for name in deps:
+            D = objects.RepoDep(name)
+            self.pre_dep_list.append(D)
+
 # ------------------------------------------------------------------------------
 class Debian8(OS):
     
@@ -1202,6 +1244,7 @@ def determine_os():
                 if 'buster' in fdata or '10.' in fdata: return Debian9() # no change in Debian10 comparing to Debian9
                 if 'stretch' in fdata or '9.' in fdata: return Debian9()
                 if 'bullseye' in fdata or '11.' in fdata: return Debian11()
+                if 'bookworm' in fdata or '12.' in fdata: return Debian12()
                 if '8.' in fdata: return Debian8()
                 if cmp_version(fdata, "7.0") >= 0:
                     print("For Debian OS 7")
