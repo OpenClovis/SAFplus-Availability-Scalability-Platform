@@ -20,6 +20,7 @@ class OS:
         self.yum                    = False
         self.pwd                    = syscall('pwd')
         self.apt_force_yes          = '--force-yes'
+        self.yum_enablerepo_crb     = ''
 
 
         try:
@@ -794,9 +795,11 @@ class CentOS9(OS):
     def pre_init(self):
         self.name = 'CentOS 9'
         self.yum = True
+        self.yum_enablerepo_crb = '--enablerepo=crb'
     
     def load_preinstall_deps(self):
-        deps =  ['libtool','gcc-c++','perl-devel','libuuid-devel', 'tcl']
+        deps =  ['libtool','gcc-c++','perl-devel','libuuid-devel', 'tcl', 'glib2-devel',
+        'libdb-devel', 'gdbm-devel', 'sqlite-devel', 'cargo']
                         
         for name in deps:
             D = objects.RepoDep(name)
@@ -873,7 +876,8 @@ class Fedora40(OS):
         self.yum = True
     
     def load_preinstall_deps(self):
-        deps =  ['libtool', 'gcc-c++', 'perl-devel', 'glib2-devel.x86_64', 'libuuid-devel', 'tcl']
+        deps =  ['libtool', 'gcc-c++', 'perl-devel', 'glib2-devel.x86_64', 'libuuid-devel', 'tcl',
+        'libdb-devel','gdbm-devel', 'sqlite-devel', 'ed', 'cargo']
 
                     
         for name in deps:
@@ -1195,12 +1199,12 @@ def determine_os():
             except:
                 return None
             
-            if 'fedora' or 'Fedora' in fdata:
+            if 'fedora' in fdata:
                 if 'release 40' in fdata: return Fedora40()
                 else:
                     return Fedora()
             
-            if 'centos' or 'CentOS' in fdata:
+            if 'centos' in fdata:
                 if 'release 4' in fdata: return CentOS4()
                 if 'release 5' in fdata: return CentOS5()
                 if 'release 6' in fdata: return CentOS6()

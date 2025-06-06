@@ -964,8 +964,8 @@ class ASPInstaller:
         
         else:
             if self.INTERNET :
-                instCmd = 'yum -y install %s 2>&1'
-                cmd = instCmd % install_str
+                instCmd = 'yum %s -y install %s 2>&1'
+                cmd = instCmd % (self.OS.yum_enablerepo_crb, install_str)
                 self.debug('Yum Installing: ' + cmd)
                 result = syscall(cmd)            
                 self.debug(str(result))         
