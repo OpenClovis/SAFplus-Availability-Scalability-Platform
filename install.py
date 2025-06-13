@@ -414,7 +414,7 @@ class ASPInstaller:
                         #assert ret_code == 0
                         # self.feedback('retcode = %s' %ret_code)
                         self.NEED_TIPC_CONFIG = True                     
-                        dep.installedver = syscall('/sbin/modinfo tipc | grep \'^version\' | tr -s " " | cut -d\  -f 2') # fixme, does this work
+                        dep.installedver = syscall(r'/sbin/modinfo tipc | grep \'^version\' | tr -s " " | cut -d\  -f 2') # fixme, does this work
 
                     
                 elif dep.name == 'tipc-config' and self.NEED_TIPC_CONFIG and self.TIPC==True:
@@ -433,7 +433,7 @@ class ASPInstaller:
                             self.installQueue.append(dep)                            
                             continue
 
-                        TIPC_MODULE_VERSION = syscall('/sbin/modinfo tipc | grep \'^version\' | tr -s " " | cut -d\  -f 2')
+                        TIPC_MODULE_VERSION = syscall(r'/sbin/modinfo tipc | grep \'^version\' | tr -s " " | cut -d\  -f 2')
                         TIPC_MAJOR_VERSION = int(TIPC_MODULE_VERSION.split('.')[0])
                         TIPC_MINOR_VERSION = int(TIPC_MODULE_VERSION.split('.')[1])
                         self.feedback('tipc major : %s - tipc minor : %s '%(TIPC_MAJOR_VERSION,TIPC_MINOR_VERSION))
@@ -650,7 +650,7 @@ class ASPInstaller:
             self.MODULES         = os.path.join(self.PREFIX, 'modules')
             self.ECLIPSE         = os.path.join(self.PACKAGE_ROOT, 'eclipse')
             self.ECLIPSE_ROOT    = os.path.join(self.PREFIX, 'eclipse')
-            self.ESC_ECLIPSE_DIR = syscall("echo %s/eclipse | sed -e 's;/;\\\/;g'" % self.PACKAGE_ROOT)
+            self.ESC_ECLIPSE_DIR = syscall(r"echo %s/eclipse | sed -e 's;/;\\\/;g'" % self.PACKAGE_ROOT)
  
             # check for GPL
             if self.INSTALL_IDE and os.path.isdir('src/IDE'):
@@ -819,7 +819,7 @@ class ASPInstaller:
         else:
            Pkg_Found = 1
            for ThirdParty in ThirdPartyList:
-               sub_vers = re.sub("\D", "", re.sub (THIRDPARTY_NAME_STARTS_WITH, "", ThirdParty))
+               sub_vers = re.sub(r"\D", "", re.sub (THIRDPARTY_NAME_STARTS_WITH, "", ThirdParty))
                if sub_vers:
                   sub_vers = int (sub_vers)
                   if sub_vers > max_ver:
@@ -1209,7 +1209,7 @@ class ASPInstaller:
         else:
            Pkg_Found = 1
            for psp in pspList:
-               sub_vers = re.sub("\D", "", re.sub (PSP_NAME_STARTS_WITH, "", psp))               
+               sub_vers = re.sub(r"\D", "", re.sub (PSP_NAME_STARTS_WITH, "", psp))
                if sub_vers:
                   sub_vers = int (sub_vers)
                   if sub_vers > max_ver:
@@ -1262,14 +1262,14 @@ class ASPInstaller:
                cmds.append('tar cf - src/logviewer |(cd $PACKAGE_ROOT; tar xfm -)') 
 
             cmds.append('cd $PACKAGE_ROOT')
-            cmds.append('sed -i "s;\$PWD;$PACKAGE_ROOT\/logviewer;" logviewer/logViewer.sh')
+            cmds.append(r'sed -i "s;\$PWD;$PACKAGE_ROOT\/logviewer;" logviewer/logViewer.sh')
             
             self.run_command_list(cmds)
 
         self.feedback('Copying documents...')
 
-        self.ESC_PKG_ROOT = syscall("echo %s | sed -e 's;/;\\\/;g'" % self.PACKAGE_ROOT)
-        self.ESC_PKG_NAME = syscall("echo %s | sed -e 's/\./\\\./g'" % self.PACKAGE_NAME)
+        self.ESC_PKG_ROOT = syscall(r"echo %s | sed -e 's;/;\\\/;g'" % self.PACKAGE_ROOT)
+        self.ESC_PKG_NAME = syscall(r"echo %s | sed -e 's/\./\\\./g'" % self.PACKAGE_NAME)
 
         cmds = ['export ESC_PKG_ROOT=%s' % self.ESC_PKG_ROOT,
                 'export ESC_PKG_NAME=%s' % self.ESC_PKG_NAME,
@@ -1424,7 +1424,7 @@ class ASPInstaller:
            if strin == None or strin == "":
                strin = "local"
 
-           builds = re.split('\W+', strin)
+           builds = re.split(r'\W+', strin)
            no_tipc_build = ''
            if self.TIPC == False :
                no_tipc_build='--with-tipc-build=no --with-default-template=udp'
@@ -1551,8 +1551,8 @@ class ASPInstaller:
         if '$' not in line:
             return line
         
-        self.ESC_PKG_ROOT = syscall("echo %s | sed -e 's;/;\\\/;g'" % self.PACKAGE_ROOT)
-        self.ESC_PKG_NAME = syscall("echo %s | sed -e 's/\./\\\./g'" % self.PACKAGE_NAME)
+        self.ESC_PKG_ROOT = syscall(r"echo %s | sed -e 's;/;\\\/;g'" % self.PACKAGE_ROOT)
+        self.ESC_PKG_NAME = syscall(r"echo %s | sed -e 's/\./\\\./g'" % self.PACKAGE_NAME)
         #self.ESC_ECLIPSE_DIR = syscall("echo %s/eclipse | sed -e 's;/;\\\/;g'" % self.PACKAGE_ROOT)
         olist = ['PREFIX', 'thirdPartyPkg', 'BUILDTOOLS', 'NET_SNMP_CONFIG', 'PACKAGE_ROOT', 'BIN_ROOT', 'LIB_ROOT', 'WORKING_DIR', 'ESC_PKG_ROOT', 'ESC_PKG_NAME', 'IDE', 'ASP', 'PACKAGE_NAME', 'HOME', 'CACHE_DIR', 'IDE_ROOT', 'ECLIPSE_ROOT', 'ECLIPSE', 'ESC_ECLIPSE_DIR', 'PATH']
         rlist = [self.PREFIX, self.THIRDPARTYPKG_PATH, self.BUILDTOOLS, self.NET_SNMP_CONFIG, self.PACKAGE_ROOT, self.BIN_ROOT, self.LIB_ROOT, self.WORKING_DIR, self.ESC_PKG_ROOT, self.ESC_PKG_NAME, 'IDE', 'ASP', self.PACKAGE_NAME, self.HOME, self.CACHE_DIR, self.IDE_ROOT, self.ECLIPSE_ROOT, self.ECLIPSE, self.ESC_ECLIPSE_DIR, os.getenv('PATH') + os.defpath]
