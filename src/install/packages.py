@@ -590,7 +590,9 @@ class Ubuntu24(OS):
                  'zlib1g-dev',
                  'tcl',
                  'python3',
-                 'cargo']
+                 'cargo',
+                 'libgtk-3-0',
+                 'unzip']
 
         for name in deps:
             D = objects.RepoDep(name)
