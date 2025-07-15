@@ -2988,10 +2988,11 @@ if wxInstalled:
                 for node in amf_db.cpm[0].node:
                     if node.value == info.nodename:
                         thisNode = node
+                        break
                 if not thisNode:
                     wx.MessageBox("could not find own name [{0}] in amf xml dump file".format(info.nodename), "Error", wx.OK | wx.ICON_ERROR, self)
                     return result
-                haState = node.ha_state[0]
+                haState = thisNode.ha_state[0]
 
             result["node instance name"] = info.nodename
             result["node type"] = nodetype
