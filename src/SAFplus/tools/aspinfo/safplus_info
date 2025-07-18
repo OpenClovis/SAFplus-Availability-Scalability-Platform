@@ -675,6 +675,17 @@ def get_asp_status():
         return ('SAFplus is running with pid [%s], but it was not started from this sandbox [%s].' % (get_amf_pid(True), asp_run_env['ASP_DIR']))
     return ""
 
+def decode_tipc_addr(hex_addr_str):
+    # Convert hex string to integer
+    addr = int(hex_addr_str, 16)
+
+    # Extract zone (8 bits), cluster (12 bits), node (12 bits)
+    zone = (addr >> 24) & 0xFF
+    cluster = (addr >> 12) & 0xFFF
+    node = addr & 0xFFF
+
+    return f"{zone}.{cluster}.{node}"
+
 def get_status_info():
     """Returns with SAFplus running status, as a dict with following entries:
        Key:         Value(s):
@@ -781,7 +792,7 @@ def get_tipc_live_node_info():
         if ec or len(res)!=1:
             d['addr'] = 'unknown'
         else:
-            d['addr'] = res[0].strip().split()[-1].strip('<>')
+            d['addr'] = decode_tipc_addr(res[0])
 
         ec, res, s, c = system('tipc bearer list')
         if ec:
@@ -2962,10 +2973,15 @@ if wxInstalled:
             headers = ["Status", "Value"]
             self.myStatus = ListCtrlPanel(self, headers, data, False)
             haState = data["controller ha state"]
-            if haState == "active":
-                self.myStatus.list.SetItemTextColour(0, wx.RED)
-            elif haState == "standby":
-                self.myStatus.list.SetItemTextColour(0, wx.YELLOW)
+
+            item = self.myStatus.list.GetItem(2,1)
+            item.SetMask(ULC.ULC_MASK_TEXT|ULC.ULC_MASK_FONTCOLOUR)
+            if haState == "standby":
+                 item.SetTextColour(wx.YELLOW)
+            elif haState == "active":
+                 item.SetTextColour(wx.RED)
+            self.myStatus.list.SetItem(item)
+
 
             self.box.Add(self.myStatus, 1, wx.ALL | wx.EXPAND, 0)
             self.SetSizer(self.box)
