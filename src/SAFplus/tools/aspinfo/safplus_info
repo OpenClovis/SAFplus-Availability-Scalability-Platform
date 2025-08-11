@@ -2962,10 +2962,15 @@ if wxInstalled:
             headers = ["Status", "Value"]
             self.myStatus = ListCtrlPanel(self, headers, data, False)
             haState = data["controller ha state"]
-            if haState == "active":
-                self.myStatus.list.SetItemTextColour(0, wx.RED)
-            elif haState == "standby":
-                self.myStatus.list.SetItemTextColour(0, wx.YELLOW)
+
+            item = self.myStatus.list.GetItem(2,1)
+            item.SetMask(ULC.ULC_MASK_TEXT|ULC.ULC_MASK_FONTCOLOUR)
+            if haState == "standby":
+                 item.SetTextColour(wx.YELLOW)
+            elif haState == "active":
+                 item.SetTextColour(wx.RED)
+            self.myStatus.list.SetItem(item)
+
 
             self.box.Add(self.myStatus, 1, wx.ALL | wx.EXPAND, 0)
             self.SetSizer(self.box)
@@ -2988,10 +2993,11 @@ if wxInstalled:
                 for node in amf_db.cpm[0].node:
                     if node.value == info.nodename:
                         thisNode = node
+                        break
                 if not thisNode:
                     wx.MessageBox("could not find own name [{0}] in amf xml dump file".format(info.nodename), "Error", wx.OK | wx.ICON_ERROR, self)
                     return result
-                haState = node.ha_state[0]
+                haState = thisNode.ha_state[0]
 
             result["node instance name"] = info.nodename
             result["node type"] = nodetype
