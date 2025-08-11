@@ -1987,6 +1987,7 @@ static void  _ckptRemSvrWriteVectorCallback(ClHandleT              ckptIdlHdl,
     if(pCkpt)
     {
         CKPT_UNLOCK(pCkpt->ckptMutex);
+	clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
     }
     if(pIoVector)
     {
