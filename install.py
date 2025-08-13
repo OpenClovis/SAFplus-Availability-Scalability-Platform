@@ -964,8 +964,8 @@ class ASPInstaller:
         
         else:
             if self.INTERNET :
-                instCmd = 'yum -y install %s 2>&1'
-                cmd = instCmd % install_str
+                instCmd = 'yum %s -y install %s 2>&1'
+                cmd = instCmd % (self.OS.yum_enablerepo_crb, install_str)
                 self.debug('Yum Installing: ' + cmd)
                 result = syscall(cmd)            
                 self.debug(str(result))         
@@ -1475,27 +1475,29 @@ class ASPInstaller:
                 # accept default
               pass
 
-
-        for dirname, dirnames, filenames in os.walk(self.BIN_ROOT):
-          for filename in filenames:
-            if filename == 'cl-log-viewer': continue
+           ret = False
+           for dirname, dirnames, filenames in os.walk(self.BIN_ROOT):
+              for filename in filenames:
+                 if filename == 'cl-log-viewer': continue
             
-            src = os.path.join(dirname, filename)
-            dst = os.path.join(self.DEFAULT_SYM_LINK, filename)
-            #self.feedback("%s -> %s" % (src,dst))
-            try:
-              os.remove(dst)  # remove it since it may point to another SDK version
-            except OSError as e:
-              pass # its ok if the file does not exist
-            try:
-              os.symlink(src,dst)
-            except OSError as e:  
-              if e.errno == errno.EPERM or e.errno == errno.EEXIST:  # EEXIST means that os.remove() failed for some reason
-                self.feedback('No permission to change %s' % dst)
-              else:
-                self.feedback('Cannot create symlink %s, error %s' % (dst,str(e)))  
+                 src = os.path.join(dirname, filename)
+                 dst = os.path.join(self.DEFAULT_SYM_LINK, filename)
+                 #self.feedback("%s -> %s" % (src,dst))
+                 try:
+                    os.remove(dst)  # remove it since it may point to another SDK version
+                 except OSError as e:
+                    pass # its ok if the file does not exist
+                 try:
+                    os.symlink(src,dst)
+                    ret = True
+                 except OSError as e:  
+                    if e.errno == errno.EPERM or e.errno == errno.EEXIST:  # EEXIST means that os.remove() failed for some reason
+                       self.feedback('No permission to change %s' % dst)
+                    else:
+                       self.feedback('Cannot create symlink %s, error %s' % (dst,str(e)))  
 
-        self.feedback('Symbolic links for the  binaries are created in %s\n' % self.DEFAULT_SYM_LINK)
+           if ret:
+              self.feedback('Symbolic links for the  binaries are created in %s\n' % self.DEFAULT_SYM_LINK)
 
 
     def read_file(self, filepath):
