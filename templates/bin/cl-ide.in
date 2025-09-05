@@ -148,6 +148,7 @@ if [ -d $CL_BUILDTOOLS/local/jdk-21 ]; then
 fi
 
 export PATH=$CL_BUILDTOOLS/local/bin:$PATH
+export GDK_BACKEND=x11
 
 APPLICATION_NAME=org.eclipse.ui.ide.workbench
 PERSPECTIVE=com.clovis.cw.ui.CWPerspective
