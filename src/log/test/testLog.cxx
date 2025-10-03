@@ -40,6 +40,7 @@ void TestLog_basic(void)
 void TestLog_mgt(void)
 {
   int TEST_FILE_SIZE=4096;
+  clTestCaseStart(("LOG-MGT-FNC.TC001: logs mgt create"));
   std::string logFileName("testLog");
   char cwd[256];
   mgtCreate("/safplusLog/streamConfig/stream/test");
@@ -195,6 +196,9 @@ void TestLog_mgt(void)
       logMsgWrite(logHdl[i],LOG_SEV_CRITICAL,1,"TST","LOG",__FILE__,__LINE__,"loop %d", loop);
       }
     }
+
+  clTestSuccess(("mgt logs issued without failure"));
+  clTestCaseEnd((" "));
 
 }
 
