@@ -82,7 +82,7 @@ namespace SAFplus
     void invalidate(int sock, SndRecvSock* sockData);
 
     void sendAllOrThrow(int sd, void* buffer, int size,int flags);
-    int receiveAllOrThrow(int sock, void* buf, unsigned int amt, int flags);
+    int receiveAllOrThrow(int sock, void* buf, unsigned int amt, int flags, SndRecvSock* sockData);
     int receiveOrThrow(int sock, void* buf, unsigned int amt, int flags);
     void sendMsgs(int sd, struct msghdr* msgvec, int msgCount);
     int getAvailSocket(const SndRecvSock& srsock, bool sndSock);
@@ -105,7 +105,7 @@ namespace SAFplus
       nodeId = ntohl(client.sin_addr.s_addr) & (((Tcp*)transport)->nodeMask);
     }
     
-    port = ntohl(client.sin_port);
+    port = ntohs(client.sin_port);
     port -= SAFplusI::TcpTransportStartPort;
     
     return Handle(SAFplus::TransientHandle,0,port,nodeId);
@@ -306,10 +306,18 @@ namespace SAFplus
       throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
 
     /*Connect to server*/
+    char addrStr[INET_ADDRSTRLEN], *pAddrStr;
+    pAddrStr = (char*)inet_ntop(PF_INET, &addr.sin_addr, addrStr, sizeof(addrStr));
+    logDebug("TCP", "OPN", "connecting to server (%s,%d)", pAddrStr, ntohs(addr.sin_port));
     if(((ret = connect(sd, (struct sockaddr*)&addr, sizeof(struct sockaddr)))) < 0)
     {
       int err = errno;
-      throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+      if (err != ECONNREFUSED)
+      {
+         throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__); 
+      }
+      logError("TCP", "OPN", "can not connect to server (%s,%d), error=(%d,%s)", pAddrStr, ntohs(addr.sin_port),err, strerror(err));
+      sd = -1;
     }
     return sd;
   }
@@ -363,7 +371,8 @@ namespace SAFplus
    
     sd = openClientSocket(nodeId, port);
     assert(sd != INVALID_SOCK);
-    logTrace("TCP", "ADD", "Add client socket [%d]; endpoint [%d.%d] to map", sd, nodeId,port);
+    if (sd == -1) return sd;
+    logDebug("TCP", "ADD", "Add client socket [%d]; endpoint [%d.%d] to map", sd, nodeId,port);
     if (contents != clientSockMap.end())
     {
       SndRecvSock& srsock = contents->second;
@@ -407,21 +416,21 @@ namespace SAFplus
       assert(transport->clusterNodes);  // TCP must use cloud mode        
       for (ClusterNodes::Iterator it=transport->clusterNodes->begin();it != transport->clusterNodes->endSentinel;it++)
         {
-          int clientSock = getClientSocket(it.nodeId(), msg->port);
-	  try
+          int clientSock = getClientSocket(it.nodeId(), msg->port);          
+	  if (clientSock>0) 
+	  {
+	    try
 	    {
-	      if (clientSock)
-		{
-		  sendAllOrThrow(clientSock,&hdr, sizeof(uint32_t)*2,0);
+		  sendAllOrThrow(clientSock,&hdr, sizeof(uint32_t)*2,MSG_DONTWAIT);
 		  frag = msg->firstFragment;      
 		  while (frag)
 		    {
-		      sendAllOrThrow(clientSock,frag->data(0), frag->len,0);
+		      sendAllOrThrow(clientSock,frag->data(0), frag->len,MSG_DONTWAIT);
 		      frag = frag->nextFragment;
-		    }           
-		}
+		    }
+		
 	    }
-	  catch (SAFplus::Error& e)
+	    catch (SAFplus::Error& e)
 	    {
 	      if (e.osError == EPIPE)
 		{
@@ -429,16 +438,17 @@ namespace SAFplus
 		}
 	    }
         }
+        else logWarning("TCP","SND","There is no socket inited for node [%d], port [%d]", it.nodeId(), msg->port);
       }
+    }
     else
       {
 	int clientSock = getClientSocket(msg->node, msg->port);
 	assert(clientSock != INVALID_SOCK);
-	try
+	if (clientSock>0)
 	  {
-	    if (clientSock)
+	      try
 	      {
-	
 		sendAllOrThrow(clientSock,&hdr, sizeof(uint32_t)*2,0);
 		frag = msg->firstFragment;      
 		while (frag)
@@ -446,15 +456,17 @@ namespace SAFplus
 		    sendAllOrThrow(clientSock,frag->data(0), frag->len,0);
 		    frag = frag->nextFragment;
 		  }    
-	      }
-	  }
-	catch (SAFplus::Error& e)
-	  {
-	    if (e.osError == EPIPE)
+	      }	  
+	      catch (SAFplus::Error& e)
 	      {
-		closeClientSocket(clientSock, msg->node, msg->port);
-	      }
-	  }      
+	          if (e.osError == EPIPE)
+	          {
+		      closeClientSocket(clientSock, msg->node, msg->port);
+	          }
+              }
+	  } 
+	  else logWarning("TCP","SND","There is no socket inited for node [%d], port [%d]", msg->node, msg->port);
+	      
       msgCount++;
       }
     } while (next != NULL);
@@ -471,7 +483,7 @@ namespace SAFplus
         int retval = ::send(sd, buffer, size - sent,flags | MSG_NOSIGNAL);  
         if (retval == -1)
         {        
-          if (errno != EAGAIN) {
+          if (errno != EAGAIN && errno != EWOULDBLOCK) {
             //throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
             int err = errno;
             logError("TCP","SND","system error number [%d], error message [%s]", err, strerror(err));
@@ -670,7 +682,7 @@ namespace SAFplus
       {
 	int err = errno;
 	assert(!(err == EFAULT) || (err == EINVAL) || (err ==  ENOTCONN) || (err == ENOTSOCK));  // These programmatic errors should cause a core dump and fail over
-	if ((err != EINTR)&&(err != EAGAIN))  // EWOULDBLOCK?
+	if ((err != EINTR)&&(err != EAGAIN)&&(err!=ECONNRESET))  // EWOULDBLOCK?
 	  {
 	    throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
 	  }
@@ -680,17 +692,22 @@ namespace SAFplus
   }
   
   
-  int TcpSocket::receiveAllOrThrow(int sock, void* buf, unsigned int amt, int flags)
+  int TcpSocket::receiveAllOrThrow(int sock, void* buf, unsigned int amt, int flags, SndRecvSock* sockData)
   {
     unsigned int bytesReceived = 0;
     do 
       {                
-        int retval = recv(sock, ((unsigned char*)buf) + bytesReceived, amt-bytesReceived, flags);  
-        if (retval == -1)
+        int retval = recv(sock, ((unsigned char*)buf) + bytesReceived, amt-bytesReceived, flags);
+        if (retval == 0)
+        {
+           invalidate(sock, sockData);
+           return retval;
+        }
+        else if (retval == -1)
           {
             int err = errno;
             assert(!(err == EFAULT) || (err == EINVAL) || (err ==  ENOTCONN) || (err == ENOTSOCK));  // These programmatic errors should cause a core dump and fail over
-            if ((err != EINTR)&&(err != EAGAIN))  // EWOULDBLOCK?
+            if ((err != EINTR)&&(err != EAGAIN)&&(err != EWOULDBLOCK)&&(err!=ECONNREFUSED))
               {
               throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
               }
@@ -783,7 +800,7 @@ namespace SAFplus
 	    }	  
 	} while(max == 0);
       
-     logTrace("TCP", "RECV", "Waiting for messages. timeout [%u]s/[%u]ns", (unsigned int)timeout->tv_sec, (unsigned int)timeout->tv_nsec);
+     logTrace("TCP", "RECV", "Waiting for messages on max sockets [%d]. timeout [%u]s/[%u]ns", max, (unsigned int)timeout->tv_sec, (unsigned int)timeout->tv_nsec);
      fd_set excfds;
      memcpy(&excfds, &rdfds, sizeof(fd_set));
      retval = pselect(max+1, &rdfds, NULL, &excfds, timeout, NULL);
@@ -840,10 +857,11 @@ namespace SAFplus
 	     
 	     if (!sockData->msg) // Reading the header of the message to know how much msg body length can be read next
 	       {
-		 assert(sockData->curLen >= 0);
-		 sockData->curLen += receiveOrThrow(sock, &sockData->header[sockData->curLen], (sizeof(uint32_t)*2) - sockData->curLen, flags);
+		 assert(sockData->curLen >= 0);	 
+		 int bytes = receiveAllOrThrow(sock, &sockData->header[sockData->curLen], (sizeof(uint32_t)*2) - sockData->curLen, flags, sockData);
+		 if (!bytes) continue;
+		 sockData->curLen += bytes;
 		 assert(sockData->curLen <= sizeof(uint32_t)*2);
-		 
 		 if (sockData->curLen == sizeof(uint32_t)*2)  // Ok received all the header data.
 		   {
 	           sockData->msg = msgPool->allocMsg();
@@ -862,13 +880,15 @@ namespace SAFplus
 		   sockData->msg->append(sockData->msgLen);
 		   assert(sockData->msg->lastFragment->len == 0);
 		   }
-		 else continue;  // Cannot continue receiving on this socket because did not receive the full header
+		 else //continue;  // Cannot continue receiving on this socket because did not receive the full header
+		   assert(!"invalid message length received");
 	       }
 	     
 	     MsgFragment* frag = sockData->msg->lastFragment;
-             int bytesReceived = receiveOrThrow(sock, frag->data(frag->len), sockData->msgLen - frag->len , flags);  // TODO only works with 1 frag
+             int bytesReceived = receiveAllOrThrow(sock, frag->data(frag->len), sockData->msgLen - frag->len , flags, sockData);  // TODO only works with 1 frag
+             if (!bytesReceived) continue;
 	     assert((bytesReceived >= 0)&&(bytesReceived <= sockData->msgLen - frag->len));
-	     logDebug("TCP", "RECV", "msgLen [%u] received [%d]", sockData->msgLen, bytesReceived);            
+	     logTrace("TCP", "RECV", "msgLen [%u] received [%d]", sockData->msgLen, bytesReceived);            
 	     frag->used(bytesReceived);
 	     if (frag->len == sockData->msgLen)
 	       {

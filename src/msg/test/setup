@@ -26,7 +26,13 @@ echo "IP: $IP"
 ./bin/safplus_cloud --add "$IP"
 ./bin/safplus_cloud --list
 
+rmmod tipc
 # TIPC module loaded
 modprobe -a tipc
+
+sysctl -w net.tipc.tipc_rmem="20485760 20485760 20485760"
+
+tipc node set netid 222
+tipc node set address 1.1.1
 
 echo "msg setup complete"
