@@ -189,7 +189,12 @@ populate_image() {
     echo "  Copying binaries and scripts..."
     for each_exe in $MODEL_BIN/*
     do
-        ${INSTALL} $exe_flags $each_exe $imagedir/bin
+	base_name=$(basename "$each_exe")
+	if [ "$base_name" = "clPythonBindings" ]; then
+		rsync -a "$each_exe" "$imagedir/bin/"
+	else
+		${INSTALL} $exe_flags $each_exe $imagedir/bin
+	fi
     done
 
     if [ -d ${SOURCE_MODEL}/scripts ]; then
