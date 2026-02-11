@@ -32,7 +32,10 @@ class OS:
         self.kernelVer       = self.kernelVerString.split(".")
         self.kernelVer[0] = int(self.kernelVer[0])
         self.kernelVer[1] = int(self.kernelVer[1])
-        self.kernelVer[2] = int((self.kernelVer[2].split("-"))[0])
+        if "+" in self.kernelVer[2]:
+            self.kernelVer[2] = int((self.kernelVer[2].split("+"))[0])
+        elif "-" in self.kernelVer[2]:
+            self.kernelVer[2] = int((self.kernelVer[2].split("-"))[0])
 
 
         self.bit = determine_bit()
@@ -592,7 +595,8 @@ class Ubuntu24(OS):
                  'python3',
                  'cargo',
                  'libgtk-3-0',
-                 'unzip']
+                 'unzip',
+                 'default-jre']
 
         for name in deps:
             D = objects.RepoDep(name)
@@ -801,7 +805,7 @@ class CentOS9(OS):
     
     def load_preinstall_deps(self):
         deps =  ['libtool','gcc-c++','perl-devel','libuuid-devel', 'tcl', 'glib2-devel',
-        'libdb-devel', 'gdbm-devel', 'sqlite-devel', 'cargo']
+        'libdb-devel', 'gdbm-devel', 'sqlite-devel', 'cargo', 'default-jre']
                         
         for name in deps:
             D = objects.RepoDep(name)
@@ -879,7 +883,7 @@ class Fedora40(OS):
     
     def load_preinstall_deps(self):
         deps =  ['libtool', 'gcc-c++', 'perl-devel', 'glib2-devel.x86_64', 'libuuid-devel', 'tcl',
-        'libdb-devel','gdbm-devel', 'sqlite-devel', 'ed', 'cargo']
+        'libdb-devel','gdbm-devel', 'sqlite-devel', 'ed', 'cargo', 'default-jre']
 
                     
         for name in deps:
@@ -1111,7 +1115,9 @@ class Debian12(OS):
                  'cups',
                  'libgtk-3-dev',
                  'libgtk2.0-0',
-                 'cargo']
+                 'cargo',
+                 'rsync',
+                 'default-jre']
 
         for name in deps:
             D = objects.RepoDep(name)
@@ -1251,6 +1257,7 @@ def determine_os():
                 if 'stretch' in fdata or '9.' in fdata: return Debian9()
                 if 'bullseye' in fdata or '11.' in fdata: return Debian11()
                 if 'bookworm' in fdata or '12.' in fdata: return Debian12()
+                if 'trixie' in fdata or '13.' in fdata: return Debian12()
                 if '8.' in fdata: return Debian8()
                 if cmp_version(fdata, "7.0") >= 0:
                     print("For Debian OS 7")
