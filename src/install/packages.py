@@ -596,7 +596,7 @@ class Ubuntu24(OS):
                  'cargo',
                  'libgtk-3-0',
                  'unzip',
-                 'default-jre']
+                 'default-jdk']
 
         for name in deps:
             D = objects.RepoDep(name)
@@ -805,7 +805,7 @@ class CentOS9(OS):
     
     def load_preinstall_deps(self):
         deps =  ['libtool','gcc-c++','perl-devel','libuuid-devel', 'tcl', 'glib2-devel',
-        'libdb-devel', 'gdbm-devel', 'sqlite-devel', 'cargo', 'default-jre']
+        'libdb-devel', 'gdbm-devel', 'sqlite-devel', 'cargo', 'default-jdk']
                         
         for name in deps:
             D = objects.RepoDep(name)
@@ -883,7 +883,7 @@ class Fedora40(OS):
     
     def load_preinstall_deps(self):
         deps =  ['libtool', 'gcc-c++', 'perl-devel', 'glib2-devel.x86_64', 'libuuid-devel', 'tcl',
-        'libdb-devel','gdbm-devel', 'sqlite-devel', 'ed', 'cargo', 'default-jre']
+        'libdb-devel','gdbm-devel', 'sqlite-devel', 'ed', 'cargo', 'default-jdk']
 
                     
         for name in deps:
@@ -1117,7 +1117,7 @@ class Debian12(OS):
                  'libgtk2.0-0',
                  'cargo',
                  'rsync',
-                 'default-jre']
+                 'default-jdk']
 
         for name in deps:
             D = objects.RepoDep(name)
