@@ -883,7 +883,7 @@ class Fedora40(OS):
     
     def load_preinstall_deps(self):
         deps =  ['libtool', 'gcc-c++', 'perl-devel', 'glib2-devel.x86_64', 'libuuid-devel', 'tcl',
-        'libdb-devel','gdbm-devel', 'sqlite-devel', 'ed', 'cargo', 'default-jdk']
+        'libdb-devel','gdbm-devel', 'sqlite-devel', 'ed', 'cargo', 'java-devel']
 
                     
         for name in deps:
