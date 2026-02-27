@@ -1335,6 +1335,8 @@ class ASPInstaller:
         cmds.append('cp -rl $ECLIPSE_ROOT $PACKAGE_ROOT')
         cmds.append('mv -f %s/plugins/* $PACKAGE_ROOT/eclipse/plugins' % self.IDE_ROOT)
         cmds.append('rm -rf %s/plugins' % self.IDE_ROOT)
+        cmds.append('mv -f $PACKAGE_ROOT/eclipse/plugins/com.clovis.cw.workspace_6.1.0/codegen/openclovis/templates/clJavaBindings/Makefile.jmk $PACKAGE_ROOT/eclipse/plugins/com.clovis.cw.workspace_6.1.0/codegen/openclovis/templates/clJavaBindings/Makefile')
+        cmds.append('make -C $PACKAGE_ROOT/eclipse/plugins/com.clovis.cw.workspace_6.1.0/codegen/openclovis/templates/clJavaBindings/')
 
         self.run_each_command_in_list(cmds)
 
