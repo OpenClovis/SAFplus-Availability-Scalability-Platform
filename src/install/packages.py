@@ -805,7 +805,7 @@ class CentOS9(OS):
     
     def load_preinstall_deps(self):
         deps =  ['libtool','gcc-c++','perl-devel','libuuid-devel', 'tcl', 'glib2-devel',
-        'libdb-devel', 'gdbm-devel', 'sqlite-devel', 'cargo', 'default-jdk']
+        'libdb-devel', 'gdbm-devel', 'sqlite-devel', 'cargo', 'java-devel']
                         
         for name in deps:
             D = objects.RepoDep(name)
