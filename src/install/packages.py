@@ -706,6 +706,31 @@ class RedHat6(OS):
             self.pre_dep_list.append(D)
 
 # ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+
+class RedHat9(OS):
+
+    def pre_init(self):
+        self.name = 'RHEL 9'
+        self.yum = True
+        self.yum_enablerepo_crb = '--enablerepo=codeready-builder-for-rhel-9-x86_64-rpms'
+
+    def load_preinstall_deps(self):
+        deps =  ['libtool','gcc-c++','perl-devel','libuuid-devel', 'tcl', 'glib2-devel',
+        'libdb-devel', 'gdbm-devel', 'sqlite-devel', 'gtk2-devel.x86_64','cups','cups-printerapp.x86_64', 'java-devel', 'cargo']
+
+        for name in deps:
+            D = objects.RepoDep(name)
+            self.pre_dep_list.append(D)
+
+        # Add a repo dependency that allows either package to be installed
+        #D = objects.RepoDep(name)
+        #self.pre_dep_list.append(D)
+
+#-------------------------------------------------------------------------------
+
+
 class CentOS4(OS):
     
     def pre_init(self):
@@ -1223,6 +1248,7 @@ def determine_os():
                 if 'release 4' in fdata: return RedHat4()
                 if 'release 5' in fdata: return RedHat5()
                 if 'release 6' in fdata: return RedHat6()
+                if 'release 9' in fdata: return RedHat9()
         
         # SUSE
         if os.path.isfile('/etc/SuSE-release'):
