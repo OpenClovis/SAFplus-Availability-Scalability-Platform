@@ -620,21 +620,54 @@ def check_install():
     else:
         return 'incomplete/corrupt'
 
+def is_simulation():
+    return bool(int(asp_run_env['ASP_SIMULATION']))
+def get_asp_run_dir():
+    return asp_run_env['ASP_RUNDIR']
+def get_pid_for_this_sandbox(pid):
+    proc_file = '/proc/%s/cwd' % pid
+
+    try:
+        cwd = os.readlink(proc_file)
+    except OSError as e:
+        print('Failed to read [%s] : %s' %\
+                      (proc_file, e))
+        cwd = ''
+
+    if cwd.endswith(' (deleted)'):
+        print('Contents of this sandbox directory were deleted '
+                     'without stopping SAFplus which was started '
+                     'from it.')
+        print('Please kill all the SAFplus processes manually '
+                          'before proceeding any further.')
+
+    return cwd == get_asp_run_dir()
 def get_amf_pid(watchdog_pid = False):
     while True:
         valid = subprocess.getstatusoutput("pidof %s" % AMF_NAME);
         if valid[0] == 0:
-            if len(valid[1].split())==1:
-                return int(valid[1])
+            l = valid[1].split()
+            if is_simulation():
+                l = list(filter(get_pid_for_this_sandbox, l))
+            if len(l) == 1 :
+                return int(l[0])
+            if len(l) == 0 :
+                return 0
         else:
             break
-        log.warning('There is more than one AMF pid. Try again...')
+        print('There is more than one AMF pid. Try again...')
         time.sleep(0.25)
     if watchdog_pid:
          valid = subprocess.getstatusoutput("pidof safplus_watchdog.py");
          if valid[0] == 0:
-            return int(valid[1])
-    return 0;
+            l = valid[1].split()
+            if is_simulation():
+                l = list(filter(get_pid_for_this_sandbox, l))
+            if len(l) == 1:
+                return int(l[0])
+            if len(l) == 0 :
+                return 0
+    return 0
 
 def is_asp_running(watchdog_pid = False):
     '''
