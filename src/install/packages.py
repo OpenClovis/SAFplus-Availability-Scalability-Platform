@@ -447,8 +447,8 @@ class OS:
 
         sqlite = objects.BuildDep()
         sqlite.name          = 'sqlite'
-        sqlite.version       = '3.6.23'
-        sqlite.pkg_name      = 'sqlite-3.6.23.tar.gz'
+        sqlite.version       = '3.53.0'
+        sqlite.pkg_name      = 'sqlite-autoconf-3530000.tar.gz'
         sqlite.ver_test_cmd  = "sqlite3 -version | awk '{print $1;}'"
 
         log = self.log_string_for_dep(sqlite.name)
@@ -1265,7 +1265,7 @@ def determine_os():
             
             if 'jammy' in fdata or '22.' in fdata: return Ubuntu22()
 
-            if 'noble' in fdata or '24.' in fdata: return Ubuntu24()
+            if 'noble' in fdata or '24.' in fdata or 'resolute' in fdata or '26.' in fdata: return Ubuntu24()
 
             if 'ubuntu' in fdata:
                 return Ubuntu()

@@ -132,7 +132,7 @@ GCC_VERSION := $(shell $(CC) -dumpversion)
 GCC_MAJOR_VERSION := $(shell $(CC) -dumpversion | cut -f1 -d.)
 GCC_MINOR_VERSION := $(shell $(CC) -dumpversion | cut -f2 -d.)
 GCC_MAJOR_VERSION_MAX_RANGE := $(shell expr 5 \<= $(GCC_MAJOR_VERSION))
-GCC_MAJOR_VERSION_MIN_RANGE := $(shell expr 4 \== $(GCC_MAJOR_VERSION))
+GCC_MAJOR_VERSION_MIN_RANGE := $(shell expr 4 = $(GCC_MAJOR_VERSION))
 GCC_MINOR_VERSION_MIN_RANGE := $(shell expr 5 \< $(GCC_MINOR_VERSION))
 
 SPECIAL_CFLAGS =
