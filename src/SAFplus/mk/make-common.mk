@@ -121,7 +121,7 @@ endif
 # To verify gcc
 GCCVERSIONGTEQ4 := $(shell expr `gcc -dumpversion | cut -f1 -d.` \>= 7)
 ifeq "$(GCCVERSIONGTEQ4)" "1"
-    CFLAGS += -Wno-error=format-truncation -Wno-error=format-overflow -Wno-error=restrict -Wno-error=address-of-packed-member -Wno-error=array-bounds -Wno-error=stringop-truncation -Wno-error=stringop-overflow -Wno-error=misleading-indentation -Wno-error=address -Wno-error=incompatible-pointer-types -Wno-error=header-guard -Wno-error=discarded-qualifiers
+    CFLAGS += -Wno-error=format-truncation -Wno-error=format-overflow -Wno-error=restrict -Wno-error=address-of-packed-member -Wno-error=array-bounds -Wno-error=stringop-truncation -Wno-error=stringop-overflow -Wno-error=misleading-indentation -Wno-error=address
 #    $(warning Greater than or equal to GCCVERSION g: $(CFLAGS))
 endif
 GCCVERSION13 := $(shell expr `gcc -dumpversion | cut -f1 -d.` \>= 13)
@@ -131,6 +131,10 @@ endif
 GCCVERSION14 := $(shell expr `gcc -dumpversion | cut -f1 -d.` \>= 14)
 ifeq "$(GCCVERSION14)" "1"
     CFLAGS += -Wno-error=implicit-function-declaration
+endif
+GCCVERSION15 := $(shell expr `gcc -dumpversion | cut -f1 -d.` \>= 15)
+ifeq "$(GCCVERSION15)" "1"
+    CFLAGS += -Wno-error=incompatible-pointer-types -Wno-error=header-guard -Wno-error=discarded-qualifiers
 endif
 
 #-------------------------------------------------------------------------------
