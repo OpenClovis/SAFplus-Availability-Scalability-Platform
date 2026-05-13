@@ -367,7 +367,7 @@ clLogSymLink(ClCharT *oldFileName, ClCharT  *newFileName);
 
 ClRcT
 clLogReadLink(ClCharT   *softFileName, 
-              ClCharT   *newFileName, 
+              ClCharT   **newFileName,
               ClInt32T *pFileNameLength);
 ClRcT
 clLogAddressForLocationGet(ClCharT        *pStr, 
