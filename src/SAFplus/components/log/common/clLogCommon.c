@@ -1297,7 +1297,7 @@ clLogSymLink(ClCharT *oldFileName, ClCharT  *newFileName)
 
 ClRcT
 clLogReadLink(ClCharT   *softFileName, 
-              ClCharT   *newFileName, 
+              ClCharT   **newFileName,
               ClInt32T  *pFileNameLength)
 {
     ClCharT path[CL_MAX_NAME_LENGTH] = {0};
@@ -1307,7 +1307,7 @@ clLogReadLink(ClCharT   *softFileName,
 
     CL_LOG_DEBUG_TRACE(("fileName: %s fileNameLen : %d \n", softFileName, 
                         *pFileNameLength));
-    if( (actualFileLen = readlink(softFileName, newFileName,
+    if( (actualFileLen = readlink(softFileName, *newFileName,
                                      *pFileNameLength - 1)) < 0 )
     {
         char errorBuf[100];
@@ -1318,13 +1318,13 @@ clLogReadLink(ClCharT   *softFileName,
     }
 
     *pFileNameLength = actualFileLen;
-    newFileName[actualFileLen] = '\0';
+    (*newFileName)[actualFileLen] = '\0';
 
     /*
      * If soft link is absolute path and actual file is relative path,
      * convert actual file to absolute path by reading soft link path
      */
-    if (newFileName[0] != '/' && softFileName[0] == '/')
+    if ((*newFileName)[0] != '/' && softFileName[0] == '/')
     {
         dirPortion = strrchr(softFileName, '/') - softFileName;
 
@@ -1334,15 +1334,15 @@ clLogReadLink(ClCharT   *softFileName,
         /*
          * Get full path for linked file
          */
-        snprintf(actualFileName, CL_MAX_NAME_LENGTH, "%s/%s", path, newFileName);
+        snprintf(actualFileName, CL_MAX_NAME_LENGTH, "%s/%s", path, *newFileName);
 
         /*
          *
          */
         *pFileNameLength = strlen(actualFileName);
-        newFileName = clHeapRealloc(newFileName, *pFileNameLength+1);
-        newFileName[0] = '\0';
-        strncat(newFileName, actualFileName, *pFileNameLength);
+        *newFileName = clHeapRealloc(*newFileName, *pFileNameLength+1);
+        (*newFileName)[0] = '\0';
+        strncat(*newFileName, actualFileName, *pFileNameLength);
     }
 
     CL_LOG_DEBUG_TRACE(("Exit"));

@@ -1285,7 +1285,7 @@ clLogFileOwnerOldFileDelete(ClCharT    *fileName,
         return rc;
     }
     
-    rc = clLogReadLink(pSoftLinkName, pActualFile, &fileNameLen );
+    rc = clLogReadLink(pSoftLinkName, &pActualFile, &fileNameLen );
     if( CL_OK != rc )
     {
         clHeapFree(pSoftLinkName);
