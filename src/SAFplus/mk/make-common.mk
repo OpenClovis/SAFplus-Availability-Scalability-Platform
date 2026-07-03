@@ -128,14 +128,14 @@ GCCVERSION13 := $(shell expr `gcc -dumpversion | cut -f1 -d.` \>= 13)
 ifeq "$(GCCVERSION13)" "1"
     CFLAGS +=  -Wno-error=enum-int-mismatch
 endif
-GCCVERSION14 := $(shell expr `gcc -dumpversion | cut -f1 -d.` \>= 14)
-ifeq "$(GCCVERSION14)" "1"
-    CFLAGS += -Wno-error=implicit-function-declaration
-endif
-GCCVERSION15 := $(shell expr `gcc -dumpversion | cut -f1 -d.` \>= 15)
-ifeq "$(GCCVERSION15)" "1"
-    CFLAGS += -Wno-error=incompatible-pointer-types -Wno-error=header-guard -Wno-error=discarded-qualifiers
-endif
+#GCCVERSION14 := $(shell expr `gcc -dumpversion | cut -f1 -d.` \>= 14)
+#ifeq "$(GCCVERSION14)" "1"
+#    CFLAGS += -Wno-error=implicit-function-declaration
+#endif
+#GCCVERSION15 := $(shell expr `gcc -dumpversion | cut -f1 -d.` \>= 15)
+#ifeq "$(GCCVERSION15)" "1"
+#    CFLAGS += -Wno-error=incompatible-pointer-types -Wno-error=header-guard -Wno-error=discarded-qualifiers
+#endif
 
 #-------------------------------------------------------------------------------
 

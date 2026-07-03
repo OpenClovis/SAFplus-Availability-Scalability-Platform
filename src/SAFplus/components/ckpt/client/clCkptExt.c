@@ -77,12 +77,12 @@
 
 #define  CL_CKPT_APP_NAME_FORM(appDB, appName)  do {                    \
        ClCharT appBasePath[CL_MAX_NAME_LENGTH+1];                       \
-       ClCharT *appBaseName = NULL;                                     \
-       ClCharT  *path = NULL;                                           \
+       const ClCharT *appBaseName = NULL;                                     \
+       const ClCharT  *path = NULL;                                           \
        if(! (path = strrchr(appName, '/') ) )                           \
        {                                                                \
            path = CKPT_DB_PATH;                                         \
-           appBaseName = (ClCharT*)appName;                             \
+           appBaseName = appName;                             \
        }                                                                \
        else                                                             \
        {                                                                \

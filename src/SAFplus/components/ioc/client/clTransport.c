@@ -499,7 +499,7 @@ static ClXportNodeAddrDataT *_clXportUpdateNodeConfig(ClIocNodeAddressT iocAddre
     return nodeAddrConfig;
 }
 
-static ClRcT _clTransportGmsTimerInitCallback() {
+static ClRcT _clTransportGmsTimerInitCallback(void *dummy) {
     ClRcT rc = CL_OK;
     ClVersionT version = { 'B', 0x1, 0x1 };
     ClGmsCallbacksT gGmsCallbacks = { NULL, NULL, NULL, NULL, };
@@ -1954,7 +1954,7 @@ ClRcT clTransportLayerInitialize(void)
 
     _clSetupDestNodeLUTData();
 
-    _clTransportGmsTimerInitCallback();
+    _clTransportGmsTimerInitCallback(NULL);
 
     rc = transportInitListener(&gXportCtrlDefault);
     if(rc != CL_OK)

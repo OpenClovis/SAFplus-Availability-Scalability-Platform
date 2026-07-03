@@ -1544,7 +1544,7 @@ static ClRcT corInformationModelBuild(const ClCharT *pConfigFile, ClBoolT *pBuil
     ClInt32T corClassId = 0;
     ClInt32T corSuperClassId = 0;
     ClCharT* corSuperClassName = 0;
-    ClCharT* configPath = NULL;
+    const ClCharT* configPath = NULL;
     ClParserPtrT corClassTreeDef = NULL;
     ClParserPtrT corClassDef = NULL;
     ClParserPtrT corClassSimpleAttrDef = NULL;

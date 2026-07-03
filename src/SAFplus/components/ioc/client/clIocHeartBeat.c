@@ -860,7 +860,7 @@ void clHeartBeatTrackCallback(ClGmsClusterNotificationBufferT *notificationBuffe
 /*
  * Create timer to initialize gms
  */
-static ClRcT _clHeartBeatGmsTimerInitCallback() {
+static ClRcT _clHeartBeatGmsTimerInitCallback(void *dummy) {
     ClRcT rc = CL_OK;
     ClVersionT version = { 'B', 0x1, 0x1 };
     ClGmsCallbacksT gGmsCallbacks = {
@@ -1106,7 +1106,7 @@ ClRcT clIocHeartBeatInitialize(ClBoolT nodeRep) {
             /*
              * Register current track to running heartbeat on master only
              */
-            rc = _clHeartBeatGmsTimerInitCallback();
+            rc = _clHeartBeatGmsTimerInitCallback(NULL);
             gClHeartBeatPlugin(gClHeartBeatIntervalLocal, gClHeartBeatRetries);
         }
 

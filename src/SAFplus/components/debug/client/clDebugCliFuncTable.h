@@ -1,5 +1,5 @@
 #ifndef _CL_DEBUG_CLI_FUNC_TABLE_H_
-#define CL_DEBUG_CLI_FUNC_TABLE_H_
+#define _CL_DEBUG_CLI_FUNC_TABLE_H_
 
 #if !defined (__SERVER__) && !defined (__CLIENT__)
 #error "This file should be included  from server or client. Define __SERVER__ or __CLIENT__ if you are server or client and then recompile"
