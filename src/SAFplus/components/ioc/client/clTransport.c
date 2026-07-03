@@ -1440,7 +1440,7 @@ static ClRcT _iocMcastPeerAdd(const ClCharT *addr)
   for (i = 0; i < CL_MCAST_MAX_NODES; i++)
   {
       ClIocAddrMapT *map = &CL_MCAST_ADDR_CACHE_ENTRY_BASE(gClMcastAddrCache)[i];
-      if (map->addrstr != NULL && !strcmp(map->addrstr, addr))
+      if (!strcmp(map->addrstr, addr))
       {
           clLogDebug("MCAST", "MAP", "Duplicate addr: [%s]", addr);
           clOsalSemUnlock(gClMcastAddrCacheSem);
@@ -1450,7 +1450,7 @@ static ClRcT _iocMcastPeerAdd(const ClCharT *addr)
   for (i = 0; i < CL_MCAST_MAX_NODES; i++)
   {
     ClIocAddrMapT *map = &CL_MCAST_ADDR_CACHE_ENTRY_BASE(gClMcastAddrCache)[i];
-    if ((map->addrstr == NULL )|| (strlen(map->addrstr) <= 0))
+    if (strlen(map->addrstr) <= 0)
     {
       map->family = PF_INET;
       map->_addr.sin_addr.sin_family = AF_INET;
@@ -1488,7 +1488,7 @@ static ClRcT _iocMcastPeerDel(const ClCharT *addr)
   for (i = 0; i < CL_MCAST_MAX_NODES; i++)
   {
     ClIocAddrMapT *map = &CL_MCAST_ADDR_CACHE_ENTRY_BASE(gClMcastAddrCache)[i];;
-    if (map->addrstr != NULL && !strcmp(map->addrstr, addr))
+    if (!strcmp(map->addrstr, addr))
     {
       map->addrstr[0] = 0;
       clLogDebug("MCAST", "MAP", "Removed mcast peer address [%s] at idx [%d]", addr, i);
@@ -3102,7 +3102,7 @@ ClRcT clTransportMcastPeerListGet(ClIocAddrMapT *peers, ClUint32T *pNumPeers)
     for (i = 0; i < CL_MCAST_MAX_NODES; i++)
     {
       ClIocAddrMapT *map = &CL_MCAST_ADDR_CACHE_ENTRY_BASE(gClMcastAddrCache)[i];
-      if (map->addrstr != NULL && (strlen(map->addrstr) > 0))
+      if (strlen(map->addrstr) > 0)
       {
         if (peers)
         {

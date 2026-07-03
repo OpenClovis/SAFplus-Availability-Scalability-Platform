@@ -251,11 +251,7 @@ ClRcT clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr, ClInt32
         rc = 1;
         for (ifEntry=ifa; ifEntry!=NULL; ifEntry=ifEntry->ifa_next) 
         {
-	    if (ifEntry->ifa_addr->sa_data == NULL) 
-            {
-                continue;
-	    }
-            if (strcmp(ifEntry->ifa_name,dev)!=0) 
+	    if (strcmp(ifEntry->ifa_name,dev)!=0) 
             {
                 continue;
             }
@@ -464,33 +460,25 @@ void clPluginHelperAddRemVirtualAddress(const ClCharT *cmd, const ClPluginHelper
       goto out;
     }
 
-    if (vipCopy->ip && vipCopy->dev && vipCopy->netmask) 
-    {
-        char execLine[301];
-        snprintf(execLine, 300, "%s/virtualIp %s %s %s %s %s ", getenv("ASP_BINDIR"), cmd, vipCopy->ip, vipCopy->netmask, vipCopy->dev, vipCopy->subnetPrefix);
-        clLogInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Executing %s", execLine);
-        __attribute__((unused)) ClRcT result = system(execLine);
+    char execLine[301];
+    snprintf(execLine, 300, "%s/virtualIp %s %s %s %s %s ", getenv("ASP_BINDIR"), cmd, vipCopy->ip, vipCopy->netmask, vipCopy->dev, vipCopy->subnetPrefix);
+    clLogInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Executing %s", execLine);
+    __attribute__((unused)) ClRcT result = system(execLine);
 
-        if (up) /* If we are coming up, do a gratuitous arp */
-        {
-            clLogInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Sending gratuitous arps: IP address: %s, device: %s", vipCopy->ip, vipCopy->dev);
-            _clPluginHelperSendArp(vipCopy->ip, vipCopy->dev);
-            clOsalTaskCreateDetached("arpTask", CL_OSAL_SCHED_OTHER, 0, 0, _clPluginHelperPummelArps, vipCopy);
-            vipCopy = NULL; /* freed by the arp thread*/
-        } 
-        else 
-        {
-            /* If we are going down, delay a bit so that the machine that takes over will not do so too soon.
-             (the assumption being that the machine taking over will not do so until this remove returns)
-             */
-            clLogInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Removing IP; not sending gratuitous arps");
-            /* sleep(1); */
-        }
+    if (up) /* If we are coming up, do a gratuitous arp */
+    {
+        clLogInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Sending gratuitous arps: IP address: %s, device: %s", vipCopy->ip, vipCopy->dev);
+        _clPluginHelperSendArp(vipCopy->ip, vipCopy->dev);
+        clOsalTaskCreateDetached("arpTask", CL_OSAL_SCHED_OTHER, 0, 0, _clPluginHelperPummelArps, vipCopy);
+        vipCopy = NULL; /* freed by the arp thread*/
     } 
     else 
     {
-        clLogNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Virtual IP work assignment values incorrect: got IP address: %s, device: %s, mask: %s, net prefix: %s", 
-                    vipCopy->ip, vipCopy->dev, vipCopy->netmask, vipCopy->subnetPrefix);
+        /* If we are going down, delay a bit so that the machine that takes over will not do so too soon.
+         (the assumption being that the machine taking over will not do so until this remove returns)
+         */
+        clLogInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Removing IP; not sending gratuitous arps");
+        /* sleep(1); */
     }
 
 out:

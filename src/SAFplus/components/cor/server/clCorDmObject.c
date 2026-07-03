@@ -1931,7 +1931,7 @@ ClRcT _clCorRtAttrWalkFillValues (ClBufferHandleT bufMsgHandle,
 
             clLogTrace("ATW", "FIL", "Putting the latest value obtained from the OI.");
 
-            if (!pWalkInfo || !(pWalkInfo->pAttrBuf + index))
+            if (!pWalkInfo || !(pWalkInfo->pAttrBuf) || !(*(pWalkInfo->pAttrBuf + index)))
             {
                 clLogError("ATW", "FIL", "NULL value passed in pWalkInfo or pWalkInfo->pAttrBuf.");
                 return CL_COR_SET_RC(CL_COR_ERR_NULL_PTR);

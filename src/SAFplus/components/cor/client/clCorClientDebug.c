@@ -849,7 +849,7 @@ ClRcT _clCorClientDebugDataMarshall ( ClCorClientCliOpT cliOp,
 
     for ( index = 0 ; index < argc ; index ++ ) 
     {
-        if ( ( argv + index ) != NULL )
+        if ( *( argv + index ) != NULL )
         {
             multiplicity = strlen ( argv[index] ) + 1;
             rc = clXdrMarshallClUint32T ( &multiplicity, inMsgH, 0 );

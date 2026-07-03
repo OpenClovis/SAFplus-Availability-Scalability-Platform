@@ -1254,8 +1254,7 @@ ClRcT clAlarmClientResTableProcess(ClEoExecutionObjT* pEoObj)
 
     for(resIdx=0; resIdx < resourcesArray.noOfResources; resIdx++)
 	{
-		if ( (resourcesArray.pResources == NULL)
-			 || ((resourcesArray.pResources + resIdx) == NULL) )
+		if (resourcesArray.pResources == NULL)
         {
             clLogError("ALM", "INT", "Failed as the pointer to the resource array is NULL.");
             if (resourcesArray.pResources != NULL)
@@ -1268,7 +1267,6 @@ ClRcT clAlarmClientResTableProcess(ClEoExecutionObjT* pEoObj)
         }
 
 		if ( (resourcesArray.pResources != NULL)
-			 && ((resourcesArray.pResources + resIdx) != NULL) 
 			 && (resourcesArray.pResources[resIdx].objCreateFlag == CL_TRUE) 
 			 && ( resourcesArray.pResources[resIdx].wildCardFlag == CL_TRUE) )
 		{
