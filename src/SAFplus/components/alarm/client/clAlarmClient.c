@@ -2382,7 +2382,7 @@ ClRcT clAlarmWildCardMoIdObjWalk(void*  pData, void *cookie)
     if (srvcId != CL_COR_SVC_ID_ALARM_MANAGEMENT)
         return CL_OK;
 
-	clLogTrace( "ALM", "INT", "Configuring the MSO which is matching the \
+    clLogTrace( "ALM", "INT", "Configuring the MSO which is matching the \
 		wildcarded resource found after object walk. ");
 
     rc = clAlarmBootUpAlarmMsoProcess(&moId);

@@ -480,7 +480,7 @@ clAlarmClientEngineAssertProcess(ClCorMOIdPtrT pMoId,
     else
         clLogInfo("ALM", "ALE", "Alarm already raised, found in after soaking bitmap. ");
 	
-	clLogTrace( "ALM", "ALE", "Leaving [%s]", __FUNCTION__);
+    clLogTrace( "ALM", "ALE", "Leaving [%s]", __FUNCTION__);
 
     return rc;
 }
@@ -1258,9 +1258,9 @@ ClUint32T clAlarmClientEngineTimeDiffCalc(struct timeval * tm1, struct timeval *
     else
         msec -= (tm1->tv_usec - tm2->tv_usec)/1000;
 
-	clLogTrace( "ALM", "ALE", " The time difference is [%d]", msec);
+    clLogTrace( "ALM", "ALE", " The time difference is [%d]", msec);
 
-	clLogTrace( "ALM", "ALE", " Leaving [%s]", __FUNCTION__);
+    clLogTrace( "ALM", "ALE", " Leaving [%s]", __FUNCTION__);
 
     return (msec);
 }

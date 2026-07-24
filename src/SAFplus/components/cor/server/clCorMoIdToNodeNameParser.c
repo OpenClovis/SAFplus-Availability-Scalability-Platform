@@ -174,7 +174,7 @@ ClRcT clCorMoIdToNodeNameTableRead(ClParserPtrT top, moIdToNodeNameParseTableEnt
     if(NULL == nodeInsts)
         CL_COR_RETURN_ERROR(CL_DEBUG_ERROR, "Error while parsing the file", CL_ERR_UNSPECIFIED);
         
-	nodeInst = clParserChild(nodeInsts, "nodeInstance");
+    nodeInst = clParserChild(nodeInsts, "nodeInstance");
     /* Within COR there are multiple maps present. Get them one by one */
     for(i = 0; nodeInst; nodeInst = nodeInst->next, i++)
     {

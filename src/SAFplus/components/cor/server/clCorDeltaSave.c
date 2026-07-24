@@ -288,7 +288,7 @@ ClRcT clCorDeltaContInit()
     if(CL_OK != rc)
         CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Could not create Hash Table. rc[0x%x]", rc));    
 
-	return rc;
+    return rc;
 }
 
 
