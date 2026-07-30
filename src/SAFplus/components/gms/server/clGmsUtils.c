@@ -277,16 +277,16 @@ int OpenAisConfFileCreate(char* ipAddr,
     if (strcmp(gmsGlobalInfo.config.aisLogOption, "stderr") == 0)
     {
         /* Logging option to stderr is provided. Enable logging to stderr */
-        strncpy(logToStderr, "yes",OPTION_STR_SIZE-1);
+        strncpy(logToStderr, "yes",OPTION_STR_SIZE);
     }
     else if (strcmp(gmsGlobalInfo.config.aisLogOption, "file") == 0)
     {
         /* Log to file is provided. Enable file logging */
-        strncpy(logToFile,"yes",OPTION_STR_SIZE-1);
+        strncpy(logToFile,"yes",OPTION_STR_SIZE);
     }
     else if (strcmp(gmsGlobalInfo.config.aisLogOption, "syslog") == 0)
     {
-        strncpy(logToSyslog,"yes",OPTION_STR_SIZE-1);
+        strncpy(logToSyslog,"yes",OPTION_STR_SIZE);
     } 
     else
     {

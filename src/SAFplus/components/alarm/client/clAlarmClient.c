@@ -1532,7 +1532,7 @@ ClRcT clAlarmChannelOpen()
 
 
     channelName.length = strlen(clCorEventName);
-    strncpy(channelName.value, clCorEventName, channelName.length);
+    strncpy(channelName.value, clCorEventName, channelName.length + 1);
     rc = clEventChannelOpen(gAlarmEvtHandle, 
                             &channelName, 
                             CL_EVENT_CHANNEL_SUBSCRIBER | CL_EVENT_GLOBAL_CHANNEL, 
@@ -4381,7 +4381,7 @@ clAlarmEventSubscribe(ClAlarmEventCallbackFuncPtrT pAlarmEvtCallbackFuncFP)
 
     /*Open another event channel. This will be used for getting any alarm events.*/
     almClntChannelName.length = strlen(ClAlarmEventName);
-    strncpy(almClntChannelName.value, ClAlarmEventName, almClntChannelName.length);
+    strncpy(almClntChannelName.value, ClAlarmEventName, almClntChannelName.length + 1);
 
     rc = clEventChannelOpen(gAlarmClntEvtHandle, &almClntChannelName, 
             CL_EVENT_CHANNEL_SUBSCRIBER | CL_EVENT_GLOBAL_CHANNEL, -1, &gAlmServerEvtChannelHandle);

@@ -2577,13 +2577,13 @@ static ClRcT argCompletion(ClDebugCliT* pDebugObj,
             argList = clHeapAllocate(sizeof(ClCharT *) *(num + 2));
             i = strlen (cpm);
             argList[ind] = clHeapAllocate(i + 1);
-            strncpy(argList[ind], cpm, i);
+            strncpy(argList[ind], cpm, i + 1);
             argList[ind][i] = '\0';
             ind++;
 
 	    	i = strlen (amf);
             argList[ind] = clHeapAllocate(i + 1);
-            strncpy(argList[ind], amf, i);
+            strncpy(argList[ind], amf, i + 1);
             argList[ind][i] = '\0';
             ind++;
 

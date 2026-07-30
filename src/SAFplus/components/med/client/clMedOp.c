@@ -230,7 +230,7 @@ ClRcT  clMedInitialize(ClMedHdlPtrT             *medHdl,
 
     clLogTrace(CL_MED_AREA, CL_MED_CTX_INT, "Open Event Channel [%s]", clCorEventName);
     channelName.length = strlen(clCorEventName);
-    strncpy(channelName.value, clCorEventName, channelName.length);
+    strncpy(channelName.value, clCorEventName, channelName.length + 1);
     rc = clEventChannelOpen(gMedEevtHandle, &channelName, CL_EVENT_CHANNEL_SUBSCRIBER | CL_EVENT_GLOBAL_CHANNEL, -1, &gCorEvtChannelHandle);
     if(CL_OK != rc)
     {
@@ -239,7 +239,7 @@ ClRcT  clMedInitialize(ClMedHdlPtrT             *medHdl,
     }
 
     notificationChannelName.length = strlen(ClAlarmEventName);
-    strncpy(notificationChannelName.value, ClAlarmEventName, notificationChannelName.length);
+    strncpy(notificationChannelName.value, ClAlarmEventName, notificationChannelName.length + 1);
 
     clLogTrace(CL_MED_AREA, CL_MED_CTX_INT, "Open Event Channel [%s]", ClAlarmEventName);
     rc = clEventChannelOpen(gMedEevtHandle, &notificationChannelName, CL_EVENT_CHANNEL_SUBSCRIBER | CL_EVENT_GLOBAL_CHANNEL, -1, &gNotificationEvtChannelHandle);

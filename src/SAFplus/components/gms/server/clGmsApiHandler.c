@@ -2047,7 +2047,7 @@ void clGmsEventInit(void)
     };
 
     cpmChannelName.length = strlen(CL_CPM_EVENT_CHANNEL_NAME);
-    strncpy(cpmChannelName.value, CL_CPM_EVENT_CHANNEL_NAME, cpmChannelName.length);
+    strncpy(cpmChannelName.value, CL_CPM_EVENT_CHANNEL_NAME, cpmChannelName.length + 1);
 
     rc = clEventInitialize(&evtInitHandle, &evtCallbacks, &version);
     if (rc != CL_OK)
@@ -2084,7 +2084,7 @@ void clGmsEventInit(void)
     }
 
     cpmChannelName.length = strlen(CL_CPM_NODE_EVENT_CHANNEL_NAME);
-    strncpy(cpmChannelName.value, CL_CPM_NODE_EVENT_CHANNEL_NAME, cpmChannelName.length);
+    strncpy(cpmChannelName.value, CL_CPM_NODE_EVENT_CHANNEL_NAME, cpmChannelName.length + 1);
 
     rc = clEventChannelOpen(evtInitHandle,
             &cpmChannelName,
