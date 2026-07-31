@@ -1474,12 +1474,12 @@ static ClRcT getCompContext( ClIocNodeAddressT nodeAddress,
         if (((strncmp(gCurrentContext,"cpm",3)==0) || strncmp(gCurrentContext,"amf",3)==0) &&
                 (strcmp(funcName,"mcastPeerListAdd")==0 || strcmp(funcName,"mcastPeerListDelete")==0 || strcmp(funcName,"mcastPeerListGet")==0))
         {
-            memcpy(funcName, "", CL_DEBUG_FUNC_NAME_LEN);
+            memset(funcName, 0, CL_DEBUG_FUNC_NAME_LEN);
         }
         else if (strncmp(gCurrentContext,"ioc",3)==0 &&
                  (strcmp(funcName,"mcastPeerListAdd")!=0 && strcmp(funcName,"mcastPeerListDelete")!=0 && strcmp(funcName,"mcastPeerListGet")!=0))
         {
-            memcpy(funcName, "", CL_DEBUG_FUNC_NAME_LEN);
+            memset(funcName, 0, CL_DEBUG_FUNC_NAME_LEN);
         }
 
         memcpy(ptr, funcName, CL_DEBUG_FUNC_NAME_LEN);
@@ -1495,12 +1495,12 @@ static ClRcT getCompContext( ClIocNodeAddressT nodeAddress,
         if (((strncmp(gCurrentContext,"cpm",3)==0) || strncmp(gCurrentContext,"amf",3)==0) &&
                 (strcmp(funcName,"mcastPeerListAdd")==0 || strcmp(funcName,"mcastPeerListDelete")==0 || strcmp(funcName,"mcastPeerListGet")==0))
         {
-            memcpy(funcHelp, "", CL_DEBUG_FUNC_NAME_LEN);
+            memset(funcHelp, 0, CL_DEBUG_FUNC_HELP_LEN);
         }
         else if (strncmp(gCurrentContext,"ioc",3)==0 &&
                 (strcmp(funcName,"mcastPeerListAdd")!=0 && strcmp(funcName,"mcastPeerListDelete")!=0 && strcmp(funcName,"mcastPeerListGet")!=0))
         {
-            memcpy(funcHelp, "", CL_DEBUG_FUNC_NAME_LEN);
+            memset(funcHelp, 0, CL_DEBUG_FUNC_HELP_LEN);
         }
 
         memcpy(ptr, funcHelp, CL_DEBUG_FUNC_HELP_LEN);
