@@ -744,7 +744,6 @@ static ClRcT listenerEventRegister(ClXportCtrlT *xportCtrl,
                                    void *cookie)
 {
     ClPollEventT event = {0};
-    ClEventDataT *eventData;
     struct epoll_event epoll_event = {0};
     ClInt32T err;
     ClRcT rc = CL_ERR_ALREADY_EXIST;
@@ -757,9 +756,12 @@ static ClRcT listenerEventRegister(ClXportCtrlT *xportCtrl,
     if(!events)
         events = EPOLLPRI | EPOLLIN;
     epoll_event.events = events;
-    eventData = (ClEventDataT*)&epoll_event.data;
-    eventData->fd = listener->fd;
-    eventData->index = xportCtrl->numfds;
+
+    ClEventDataT eventDataLocal = {0};
+    eventDataLocal.fd    = listener->fd;
+    eventDataLocal.index = xportCtrl->numfds;
+    memcpy(&epoll_event.data, &eventDataLocal, sizeof(ClEventDataT));
+
     rc = CL_ERR_LIBRARY;
     err = epoll_ctl(xportCtrl->eventFd, EPOLL_CTL_ADD, listener->fd, &epoll_event);
     if(err < 0)
@@ -900,21 +902,23 @@ static ClRcT transportListener(ClPtrT ctxt)
             continue;
         for(i = 0; i < ret; ++i)
         {
-            ClEventDataT *data;
             ClInt32T index;
             ClPollEventT event = {0};
             if(!epoll_events[i].events) continue;
-            data = (void*)&epoll_events[i].data;
-            index = listenerEventFind(xportCtrl, data->fd, data->index);
+
+            ClEventDataT dataLocal = {0};
+            memcpy(&dataLocal, &epoll_events[i].data, sizeof(ClEventDataT));
+            index = listenerEventFind(xportCtrl, dataLocal.fd, dataLocal.index);
+
             if(index < 0)
             {
-                clLogWarning("XPORT", "LISTENER", "Listener not found for fd [%d] registered at index [%d]", data->fd, data->index);
+                clLogWarning("XPORT", "LISTENER", "Listener not found for fd [%d] registered at index [%d]", dataLocal.fd, dataLocal.index);
                 continue;
             }
             memcpy(&event, xportCtrl->pollfds+index, sizeof(event));
             if( !(epoll_events[i].events & event.events) )
             {
-                clLogWarning("XPORT", "LISTENER", "Skipping event for fd [%d] registered at index [%d], received event mask [%x] looking for [%x]", data->fd, data->index,epoll_events[i].events, event.events);
+                clLogWarning("XPORT", "LISTENER", "Skipping event for fd [%d] registered at index [%d], received event mask [%x] looking for [%x]", dataLocal.fd, dataLocal.index,epoll_events[i].events, event.events);
                 continue;
             }
             
