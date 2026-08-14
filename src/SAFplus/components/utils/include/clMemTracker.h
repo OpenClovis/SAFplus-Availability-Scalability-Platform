@@ -24,9 +24,9 @@ extern "C" {
 #endif
 
 #define CL_OUTPUT(...) do { \
-    char buf[0xff+1];\
-    snprintf(buf,sizeof(buf),__VA_ARGS__);\
-    clOsalPrintf(buf);\
+    char clBuf[0xff+1];\
+    snprintf(clBuf,sizeof(clBuf),__VA_ARGS__);\
+    clOsalPrintf(clBuf);\
 }while(0)
 
 #define CL_MEM_TRACKER_ADD(id,address,size,private,logFlag) \
