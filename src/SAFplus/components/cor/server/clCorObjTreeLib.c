@@ -1082,7 +1082,8 @@ _corObjShowFun(ClUint32T idx,
                 /* To remove the trailing ', ' from the string */
                 msoString[strlen(msoString)-2] = '\0';
 
-                sprintf(corStr, "%s(%s)", buff, msoString);
+                //sprintf(corStr, "%s(%s)", buff, msoString);
+                snprintf(corStr, CL_COR_CLI_STR_LEN, "%.*s(%.*s)", (ClInt32T)strlen(buff), buff, (ClInt32T)strlen(msoString), msoString);
                 clBufferNBytesWrite(*pMsg, (ClUint8T *) corStr, strlen(corStr));
                 memset(msoString, 0, CL_COR_CLI_STR_LEN);
                 msoExists = CL_FALSE;
@@ -1104,9 +1105,11 @@ _corObjShowFun(ClUint32T idx,
             if (obj->type == CL_COR_OBJ_TYPE_MO)
             {
                 if (classNameExists == CL_TRUE)
-                    sprintf(corStr, "%s\\%s:%d", buff, className, idx);
+                    //sprintf(corStr, "%s\\%s:%d", buff, className, idx);
+                    snprintf(corStr, CL_COR_CLI_STR_LEN, "%.*s\\%.*s:%d", (ClInt32T)strlen(buff), buff, (ClInt32T)strlen(className), className, idx);
                 else
-                    sprintf(corStr, "%s\\%d:%d", buff, obj->dmObjH.classId, idx);
+                    //sprintf(corStr, "%s\\%d:%d", buff, obj->dmObjH.classId, idx);
+                    snprintf(corStr, CL_COR_CLI_STR_LEN, "%.*s\\%d:%d", (ClInt32T)strlen(buff), buff, obj->dmObjH.classId, idx);
             
                 clBufferNBytesWrite (*pMsg, (ClUint8T *) corStr, strlen(corStr));
             }

@@ -1603,8 +1603,8 @@ static void amsMgmtMigrateListDisplay(ClAmsMgmtMigrateListT *migrateList,
         for(i = 0; i < migrateList->si.count; ++i)
         {
             ClAmsEntityT *entity = migrateList->si.entity+i;
-            ClCharT c = 0;
-            ClUint32T bytes = snprintf(&c, sizeof(c), "Created SI [%.*s]\n",
+            ClCharT dummy[256] = {0};
+            ClUint32T bytes = snprintf(dummy, 256, "Created SI [%.*s]\n",
                                        entity->name.length-1, entity->name.value);
             CHECK_CAPACITY(bytes);
             bytesWritten += snprintf(*ret + bytesWritten,
@@ -1621,8 +1621,8 @@ static void amsMgmtMigrateListDisplay(ClAmsMgmtMigrateListT *migrateList,
         for(i = 0; i < migrateList->csi.count; ++i)
         {
             ClAmsEntityT *entity = migrateList->csi.entity+i;
-            ClCharT c = 0;
-            ClUint32T bytes = snprintf(&c, sizeof(c),
+            ClCharT dummy[256] = {0};
+            ClUint32T bytes = snprintf(dummy, 256,
                                        "Created CSI [%.*s]\n",
                                        entity->name.length-1, entity->name.value);
             CHECK_CAPACITY(bytes);
@@ -1640,8 +1640,8 @@ static void amsMgmtMigrateListDisplay(ClAmsMgmtMigrateListT *migrateList,
         for(i = 0; i < migrateList->node.count; ++i)
         {
             ClAmsEntityT *entity = migrateList->node.entity+i;
-            ClCharT c = 0;
-            ClUint32T bytes = snprintf(&c, sizeof(c), 
+            ClCharT dummy[256] = {0};
+            ClUint32T bytes = snprintf(dummy, 256, 
                                        "Created Node [%.*s]\n",
                                        entity->name.length-1, entity->name.value);
             CHECK_CAPACITY(bytes);
@@ -1659,8 +1659,8 @@ static void amsMgmtMigrateListDisplay(ClAmsMgmtMigrateListT *migrateList,
         for(i = 0; i < migrateList->su.count; ++i)
         {
             ClAmsEntityT *entity = migrateList->su.entity + i;
-            ClCharT c = 0;
-            ClUint32T bytes = snprintf(&c, sizeof(c), 
+            ClCharT dummy[256] = {0};
+            ClUint32T bytes = snprintf(dummy, 256, 
                                        "Created SU [%.*s]\n",
                                        entity->name.length-1, entity->name.value);
             CHECK_CAPACITY(bytes);
@@ -1678,8 +1678,8 @@ static void amsMgmtMigrateListDisplay(ClAmsMgmtMigrateListT *migrateList,
         for(i = 0; i < migrateList->comp.count; ++i)
         {
             ClAmsEntityT *entity = migrateList->comp.entity + i;
-            ClCharT c = 0;
-            ClUint32T bytes = snprintf(&c, sizeof(c), "Created Comp [%.*s]\n",
+            ClCharT dummy[256] = {0};
+            ClUint32T bytes = snprintf(dummy, 256, "Created Comp [%.*s]\n",
                                        entity->name.length-1, entity->name.value);
             CHECK_CAPACITY(bytes);
             bytesWritten += snprintf(*ret + bytesWritten, currentSize - bytesWritten,

@@ -443,7 +443,7 @@ static ClRcT clAmsCkptDBInitialize(void)
 
     memset(dbPath, 0, sizeof(dbPath));
 
-    snprintf(dbPath, sizeof(dbPath), "%s/%s", 
+    ClInt32T pathLen = snprintf(dbPath, sizeof(dbPath), "%s/%s", 
              getenv("ASP_DBDIR") ? getenv("ASP_DBDIR") : ".",
              getenv("ASP_DBDIR") ? "ams" : ".");
 
@@ -455,8 +455,10 @@ static ClRcT clAmsCkptDBInitialize(void)
         goto out;
     }
 
-    snprintf(ckptCtrlDBName, sizeof(ckptCtrlDBName), "%s/%s",
-             dbPath, CL_AMS_CKPT_CTRL_DB_NAME);
+    //snprintf(ckptCtrlDBName, sizeof(ckptCtrlDBName), "%s/%s",
+    //         dbPath, CL_AMS_CKPT_CTRL_DB_NAME);
+    snprintf(ckptCtrlDBName, sizeof(ckptCtrlDBName), "%.*s/%s",
+             pathLen, dbPath, CL_AMS_CKPT_CTRL_DB_NAME);
              
     /*
      * Initialize file based checkpointing variables.
@@ -470,8 +472,10 @@ static ClRcT clAmsCkptDBInitialize(void)
         goto out;
     }
 
+    //snprintf(gClAmsCkptDBName.value, sizeof(gClAmsCkptDBName.value),
+    //         "%s/%s", dbPath, CL_AMS_CKPT_DB_NAME);
     snprintf(gClAmsCkptDBName.value, sizeof(gClAmsCkptDBName.value),
-             "%s/%s", dbPath, CL_AMS_CKPT_DB_NAME);
+             "%.*s/%s", pathLen, dbPath, CL_AMS_CKPT_DB_NAME);
 
     gClAmsCkptDBName.length = strlen(gClAmsCkptDBName.value);
 

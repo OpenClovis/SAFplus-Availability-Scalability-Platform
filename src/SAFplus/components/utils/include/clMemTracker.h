@@ -23,11 +23,15 @@
 extern "C" {
 #endif
 
+#if 0
 #define CL_OUTPUT(...) do { \
     char clBuf[0xff+1];\
     snprintf(clBuf,sizeof(clBuf),__VA_ARGS__);\
     clOsalPrintf(clBuf);\
 }while(0)
+#endif
+
+#define CL_OUTPUT(...) clOsalPrintf(__VA_ARGS__)
 
 #define CL_MEM_TRACKER_ADD(id,address,size,private,logFlag) \
     clMemTrackerAdd(id,address,size,private,logFlag)

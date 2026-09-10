@@ -62,14 +62,16 @@
     ClCharT  *path = CKPT_DB_PATH;      \
     if( NULL != path )\
     {                  \
-        snprintf (ckptDB, sizeof(ckptDB), "%s/%d%s%s.db",path, clIocLocalAddressGet (),\
+        snprintf (ckptDB, sizeof(ckptDB), "%s/%d%s%.*s.db",path, clIocLocalAddressGet (),\
                 CL_CKPT_DB_NAME,\
+                (ClInt32T)strlen(appName),\
                 appName);\
     }\
     else\
     {\
-        snprintf (ckptDB, sizeof(ckptDB), "%d%s%s.db", clIocLocalAddressGet (),\
+        snprintf (ckptDB, sizeof(ckptDB), "%d%s%.*s.db", clIocLocalAddressGet (),\
                 CL_CKPT_DB_NAME,\
+                (ClInt32T)strlen(appName),\
                 appName);\
     }\
 }\
@@ -93,8 +95,8 @@
        }                                                                \
       if(!path)                                                         \
           path = ".";                                                   \
-      snprintf (appDB, sizeof(appDB), "%s/%d%s.db",path, clIocLocalAddressGet (), \
-                                 appBaseName);                          \
+      snprintf (appDB, sizeof(appDB), "%.*s/%d%.*s.db", (ClInt32T)strlen(path), path, clIocLocalAddressGet (), \
+                                 (ClInt32T)strlen(appBaseName), appBaseName);                          \
 }while(0)
 
 #define CKPT_LIST_GET_KEY(key, name) do {           \

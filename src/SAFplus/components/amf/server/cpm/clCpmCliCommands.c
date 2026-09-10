@@ -561,7 +561,8 @@ ClRcT clCpmCompGet(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
             goto done;
         }
         strcpy(compName.value, argv[1]);
-        snprintf(compShmSegment, sizeof(compShmSegment), "/CL_%s_exception_%d", compName.value, clIocLocalAddressGet());
+        //snprintf(compShmSegment, sizeof(compShmSegment), "/CL_%s_exception_%d", compName.value, clIocLocalAddressGet());
+        snprintf(compShmSegment, sizeof(compShmSegment), "/CL_%.*s_exception_%d", compName.length, compName.value, clIocLocalAddressGet());
         rc = clOsalShmOpen(compShmSegment, O_RDONLY, 0777, &fd);
         if(rc == CL_OK)
         {
@@ -615,10 +616,16 @@ ClRcT _clCpmComponentListAll(ClInt32T argc, ClCharT **retStr)
     }
 
     count = gpClCpm->noOfComponent;
+    //snprintf(cpmCompName,
+    //         CL_MAX_NAME_LENGTH-1,
+    //         "%s_%s",
+    //         CL_CPM_COMPONENT_NAME,
+    //         gpClCpm->pCpmLocalInfo->nodeName);
     snprintf(cpmCompName,
              CL_MAX_NAME_LENGTH-1,
-             "%s_%s",
+             "%s_%.*s",
              CL_CPM_COMPONENT_NAME,
+             (ClInt32T)strlen(gpClCpm->pCpmLocalInfo->nodeName),
              gpClCpm->pCpmLocalInfo->nodeName);
 
     rc = clCntFirstNodeGet(gpClCpm->compTable, &hNode);
@@ -647,8 +654,12 @@ ClRcT _clCpmComponentListAll(ClInt32T argc, ClCharT **retStr)
             
             eoList = comp->eoHandle;
 
-            int len = sprintf(tempStr, "%30s| 0x%x | 0x%x |%8d |%14d |%15s\n",
-                              comp->compConfig->compName, comp->compId,
+            //int len = sprintf(tempStr, "%30s| 0x%x | 0x%x |%8d |%14d |%15s\n",
+            //                  comp->compConfig->compName, comp->compId,
+            //                  comp->eoPort, comp->processId, comp->compRestartCount,
+            //                  _cpmPresenceStateNameGet(comp->compPresenceState));
+            int len = snprintf(tempStr, 256, "%30.*s| 0x%x | 0x%x |%8d |%14d |%15s\n",
+                              (ClInt32T)strlen(comp->compConfig->compName), comp->compConfig->compName, comp->compId,
                               comp->eoPort, comp->processId, comp->compRestartCount,
                               _cpmPresenceStateNameGet(comp->compPresenceState));
             
@@ -811,15 +822,23 @@ ClRcT _cpmClusterConfigList(ClInt32T argc, ClCharT **retStr)
         {
             if (cpmL->pCpmLocalInfo->status == CL_CPM_EO_DEAD)
             {
-                sprintf(tempStr, "%10s | DEAD  | %8d |   0x%x\n",
-                        cpmL->nodeName,
+                //sprintf(tempStr, "%10s | DEAD  | %8d |   0x%x\n",
+                //        cpmL->nodeName,
+                //        cpmL->pCpmLocalInfo->cpmAddress.nodeAddress,
+                //        cpmL->pCpmLocalInfo->cpmAddress.portId);
+                snprintf(tempStr, 256, "%10.*s | DEAD  | %8d |   0x%x\n",
+                        (ClInt32T)strlen(cpmL->nodeName), cpmL->nodeName,
                         cpmL->pCpmLocalInfo->cpmAddress.nodeAddress,
                         cpmL->pCpmLocalInfo->cpmAddress.portId);
             }
             else
             {
-                sprintf(tempStr, "%10s | ALIVE | %8d |   0x%x\n",
-                        cpmL->nodeName,
+                //sprintf(tempStr, "%10s | ALIVE | %8d |   0x%x\n",
+                //        cpmL->nodeName,
+                //        cpmL->pCpmLocalInfo->cpmAddress.nodeAddress,
+                //        cpmL->pCpmLocalInfo->cpmAddress.portId);
+                snprintf(tempStr, 256, "%10.*s | ALIVE | %8d |   0x%x\n",
+                        (ClInt32T)strlen(cpmL->nodeName), cpmL->nodeName,
                         cpmL->pCpmLocalInfo->cpmAddress.nodeAddress,
                         cpmL->pCpmLocalInfo->cpmAddress.portId);
             }
@@ -829,7 +848,8 @@ ClRcT _cpmClusterConfigList(ClInt32T argc, ClCharT **retStr)
         }
         else
         {
-            sprintf(tempStr, "%10s \n", cpmL->nodeName);
+            //sprintf(tempStr, "%10s \n", cpmL->nodeName);
+            snprintf(tempStr, 256, "%10.*s \n", (ClInt32T)strlen(cpmL->nodeName), cpmL->nodeName);
             rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr,
                                             strlen(tempStr));
             CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);

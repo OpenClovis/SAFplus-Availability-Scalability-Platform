@@ -662,7 +662,8 @@ clCorMoIdShow(ClCorMOIdPtrT this)
                 else
                     sprintf(objInst, "%04x", this->node[i].instance);
     
-                sprintf(moIdTemp, "(%s:%s)%s", className, objInst, (like > 0 ? tmpBuf : ""));
+                //sprintf(moIdTemp, "(%s:%s)%s", className, objInst, (like > 0 ? tmpBuf : ""));
+                snprintf(moIdTemp, CL_MAX_NAME_LENGTH, "(%.*s:%.*s)%s", (ClInt32T)strlen(className), className, (ClInt32T)strlen(objInst), objInst, (like > 0 ? tmpBuf : ""));
 
                 strcat(moIdStr, moIdTemp);
 

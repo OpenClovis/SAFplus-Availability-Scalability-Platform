@@ -149,7 +149,7 @@ clLogFileOwnerSoftLinkDelete(ClLogFileKeyT  *pFileKey,
     ClUint32T  count                                 = 0;
     ClUint32T  fileCountLen                          = 0;
     ClUint32T  softLinkLen                           = 0;
-    ClUint8T   tempVar                               = 0;
+    ClCharT    dummy[16]                             = {0};
     
     CL_LOG_DEBUG_TRACE(("Enter"));
 
@@ -160,7 +160,7 @@ clLogFileOwnerSoftLinkDelete(ClLogFileKeyT  *pFileKey,
         return rc;
     }
 
-    fileCountLen = snprintf((ClCharT*)&tempVar, 1, "%u", fileMaxCnt);
+    fileCountLen = snprintf(dummy, 16, "%u", fileMaxCnt);
     softLinkLen = strlen(fileName) + 1 + fileCountLen + 1;
     
     pSoftLinkName = (ClCharT*) clHeapAllocate(softLinkLen);

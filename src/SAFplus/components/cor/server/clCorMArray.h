@@ -234,7 +234,7 @@ while(0)
 #define COR_PRINT_SPACE_IN_BUFFER(lvl, buff) \
 do\
 { \
-  char space[10]; \
+  char space[16]; \
  \
   if((lvl)<150)\
     {\

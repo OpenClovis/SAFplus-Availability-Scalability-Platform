@@ -137,16 +137,16 @@ enum
 #define CL_DEBUG_PRINT(x,y) \
     do \
     { \
-        char __str[256]; \
+        char __str[800]; \
         if(x <= CL_DEBUG_LEVEL_THRESHOLD) \
         {\
-            snprintf(__str,256,CL_DEBUG_SP y); \
+            snprintf(__str,800,CL_DEBUG_SP y); \
             clLog((ClLogSeverityT)x, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,\
                   __str);\
         }\
            if (1) \
           { \
-            snprintf(__str,256,CL_DEBUG_SP y); \
+            snprintf(__str,800,CL_DEBUG_SP y); \
             clDbgMsg((int)getpid(),__FILE__, __LINE__, __FUNCTION__,x,__str); \
           } \
     }while (0)
@@ -154,16 +154,16 @@ enum
 #define CL_DEBUG_PRINT_CONSOLE(x,y)                                     \
     do                                                                  \
     {                                                                   \
-        char __str[256];                                                \
+        char __str[800];                                                \
         if(x <= CL_DEBUG_LEVEL_THRESHOLD)                               \
         {                                                               \
-            snprintf(__str,256,CL_DEBUG_SP y);                          \
+            snprintf(__str,800,CL_DEBUG_SP y);                          \
             clLogConsole((ClLogSeverityT)x, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, \
                          "%s", __str);                                   \
         }                                                               \
         if (1)                                                          \
         {                                                               \
-            snprintf(__str,256,CL_DEBUG_SP y);                          \
+            snprintf(__str,800,CL_DEBUG_SP y);                          \
             clDbgMsg((int)getpid(),__FILE__, __LINE__, __FUNCTION__,x,__str); \
         }                                                               \
     }while (0)

@@ -337,9 +337,11 @@ ClCharT* _clCorMoIdStrGet(ClCorMOIdPtrT moIdh, ClCharT* tmpStr)
     }
 
     /* Append the service id information */
-    snprintf(moIdStr, CL_MAX_NAME_LENGTH - strlen(":[Svc: ] "), "%s ", moIdName.value);
+    //snprintf(moIdStr, CL_MAX_NAME_LENGTH - strlen(":[Svc: ] "), "%s ", moIdName.value);
+    ClInt32T moIdLen = snprintf(moIdStr, CL_MAX_NAME_LENGTH - strlen(":[Svc: ] "), "%.*s ", moIdName.length, moIdName.value);
 
-    snprintf(tmpStr, CL_MAX_NAME_LENGTH, "%s:[Svc:%d]", moIdStr, moIdh->svcId);
+    //snprintf(tmpStr, CL_MAX_NAME_LENGTH, "%s:[Svc:%d]", moIdStr, moIdh->svcId);
+    snprintf(tmpStr, CL_MAX_NAME_LENGTH, "%.*s:[Svc:%d]", moIdLen, moIdStr, moIdh->svcId);
 
     /* Return the pointer to the information */    
     return ((ClCharT*) tmpStr);

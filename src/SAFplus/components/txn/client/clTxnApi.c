@@ -1428,10 +1428,10 @@ clTxnActiveDbWalk( ClUint32T argc, ClCharT *argv[], ClCharT **retStr )
 
 return_retStr:
     clTxnClientCliDbgPrint(outMsg,
-            "[%s]\nUsage: showActiveDb [txnId]...\n"
+            "[%.*s]\nUsage: showActiveDb [txnId]...\n"
             "txnId [HEX] : Id of a transaction\n"
             "If no txnId is given, all the existing entries will be displayed.\n"
-            "If more than one txnId is given, then all the corresponding transaction info is displayed.", errStr);
+            "If more than one txnId is given, then all the corresponding transaction info is displayed.", (ClInt32T)strlen(errStr), errStr);
     rc = clBufferLengthGet(outMsg, &outLen);
     if(CL_OK != rc)
     {

@@ -678,7 +678,8 @@ ClRcT cpmCompParseArgs(ClCpmCompConfigT *compConfig, ClCharT *cmd, ClUint32T *pA
       if (i == argIndex && *tmp != '/')
       {
         ClCharT *binPath = getenv(CL_ASP_BINDIR_PATH);
-        snprintf(imageName, sizeof(imageName) - 1, "%s%s%s", binPath ? binPath : "", binPath ? "/" : "", tmp);
+        //snprintf(imageName, sizeof(imageName) - 1, "%s%s%s", binPath ? binPath : "", binPath ? "/" : "", tmp);
+        snprintf(imageName, sizeof(imageName) - 1, "%s%s%.*s", binPath ? binPath : "", binPath ? "/" : "", (ClInt32T)strlen(tmp), tmp);
         len = strlen(imageName);
         strncpy(tmp, imageName, CL_MAX_NAME_LENGTH - 1);
         tmp[len] = '\0';

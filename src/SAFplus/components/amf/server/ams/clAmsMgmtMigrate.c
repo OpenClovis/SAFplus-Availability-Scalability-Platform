@@ -699,8 +699,10 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
             }
 
             csi.type = CL_AMS_ENTITY_TYPE_CSI;
+            //snprintf(csi.name.value, sizeof(csi.name.value),
+            //         "%s_CSI%d", si.name.value, i-siBuffer.count);
             snprintf(csi.name.value, sizeof(csi.name.value),
-                     "%s_CSI%d", si.name.value, i-siBuffer.count);
+                     "%.*s_CSI%d", si.name.length, si.name.value, i-siBuffer.count);
             csi.name.length = strlen(csi.name.value)+1;
             clLogNotice("AMS", "MIGRATE", "Creating CSI [%s]", csi.name.value);
             rc = clAmsMgmtCCBEntityCreate(ccbHandle, &csi);
@@ -901,8 +903,10 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
             ClUint64T bitMask = 0;
 
             su.type = CL_AMS_ENTITY_TYPE_SU;
+            //snprintf(su.name.value, sizeof(su.name.value), 
+            //         "%s_%s_SU%d", prefix, nodeList[i-suBuffer.count].name.value, i);
             snprintf(su.name.value, sizeof(su.name.value), 
-                     "%s_%s_SU%d", prefix, nodeList[i-suBuffer.count].name.value, i);
+                     "%s_%.*s_SU%d", prefix, nodeList[i-suBuffer.count].name.length, nodeList[i-suBuffer.count].name.value, i);
 
             su.name.length = strlen(su.name.value)+1;
             clLogNotice("AMS", "MIGRATE", "Creating SU [%s]", su.name.value);
@@ -943,9 +947,12 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
             }
             
             comp.type = CL_AMS_ENTITY_TYPE_COMP;
+            //snprintf(comp.name.value, sizeof(comp.name.value),
+            //         "%s_Comp%d",
+            //         su.name.value, i - suBuffer.count);
             snprintf(comp.name.value, sizeof(comp.name.value),
-                     "%s_Comp%d",
-                     su.name.value, i - suBuffer.count);
+                     "%.*s_Comp%d",
+                     su.name.length, su.name.value, i - suBuffer.count);
             comp.name.length = strlen(comp.name.value)+1;
             clLogNotice("AMS", "MIGRATE", "Creating component [%s]",
                         comp.name.value);

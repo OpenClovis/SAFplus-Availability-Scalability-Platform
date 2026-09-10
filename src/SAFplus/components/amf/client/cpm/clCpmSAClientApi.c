@@ -3216,9 +3216,14 @@ ClRcT clCpmComponentDNNameGet(ClCpmHandleT cpmHandle,
         goto out_free;
     }
 
+    //snprintf(pDNName->value, sizeof(pDNName->value), 
+    //         "safComp=%s,safSu=%s,safSg=%s", 
+    //         compName->value, pSUConfig->entity.name.value, pSUConfig->parentSG.entity.name.value);
     snprintf(pDNName->value, sizeof(pDNName->value), 
-             "safComp=%s,safSu=%s,safSg=%s", 
-             compName->value, pSUConfig->entity.name.value, pSUConfig->parentSG.entity.name.value);
+             "safComp=%.*s,safSu=%.*s,safSg=%.*s", 
+             compName->length, compName->value,
+             pSUConfig->entity.name.length, pSUConfig->entity.name.value,
+             pSUConfig->parentSG.entity.name.length, pSUConfig->parentSG.entity.name.value);
 
     pDNName->length = strlen(pDNName->value);
     

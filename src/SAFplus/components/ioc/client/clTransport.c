@@ -2316,7 +2316,7 @@ ClRcT clTransportAddressAssign(const ClCharT *type)
         if(rc != CL_OK)
         {
             clLogError("XPORT", "ASSIGN", "Transport [%s] address assign failed with [%#x]",
-                       type, rc);
+                       xport->xportType, rc);
         }
     }
 

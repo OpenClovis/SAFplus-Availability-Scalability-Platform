@@ -658,7 +658,8 @@ clCorDbgCliClCorTxnSessionCommit ( ClUint32T argc, ClCharT* argv[], ClCharT** re
     }
 
     corStr[0] = '\0';
-    sprintf(corStr, "Execution Result : passed for txnIdName [%s]\n", txnIdName.value);
+    //sprintf(corStr, "Execution Result : passed for txnIdName [%s]\n", txnIdName.value);
+    snprintf(corStr, CL_MAX_NAME_LENGTH, "Execution Result : passed for txnIdName [%.*s]\n", txnIdName.length, txnIdName.value);
     clCorClientCliDbgPrint(corStr, retStr);
 
     return (CL_OK);

@@ -3000,7 +3000,8 @@ ClRcT clCpmCompPreCleanupInvoke(ClCpmComponentT *comp)
 
     if(!cachedState) goto out;
  
-    snprintf(envBuf, sizeof(envBuf), "ASP_COMPNAME=%s", comp->compConfig->compName);
+    //snprintf(envBuf, sizeof(envBuf), "ASP_COMPNAME=%s", comp->compConfig->compName);
+    snprintf(envBuf, sizeof(envBuf), "ASP_COMPNAME=%.*s", (ClInt32T)strlen(comp->compConfig->compName), comp->compConfig->compName);
     clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Invoking precleanup command [%s %s] for Component [%s]", envBuf, script, comp->compConfig->compName);
     ClUint32T cleanupTimeout;
     compCleanupTimeoutGet(comp, &cleanupTimeout);    
@@ -3024,7 +3025,8 @@ static ClRcT compCleanupInvoke(ClCpmComponentT *comp)
       ClCharT *const args[] = { NULL };
       ClCharT *const envs[] = { envBufComp, envBufFlag, NULL };
 
-      snprintf(envBufComp, sizeof(envBufComp), "ASP_COMPNAME=%s", comp->compConfig->compName);
+      //snprintf(envBufComp, sizeof(envBufComp), "ASP_COMPNAME=%s", comp->compConfig->compName);
+      snprintf(envBufComp, sizeof(envBufComp), "ASP_COMPNAME=%.*s", (ClInt32T)strlen(comp->compConfig->compName), comp->compConfig->compName);
       snprintf(envBufFlag, sizeof(envBufFlag), "EFLAG=%d", !comp->hbFailureDetected);
 
       clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Invoking cleanup command [%s %s %s] for Component [%s]", envBufComp, envBufFlag,
@@ -4459,7 +4461,8 @@ ClRcT VDECL(cpmComponentListDebugAll)(ClEoDataT data,
             if (comp->compOperState == CL_AMS_OPER_STATE_ENABLED)
             {
                 clOsalMutexUnlock(comp->compMutex);
-                sprintf(tempStr, "%s\n", comp->compConfig->compName);
+                //sprintf(tempStr, "%s\n", comp->compConfig->compName);
+                snprintf(tempStr, 256, "%.*s\n", (ClInt32T)strlen(comp->compConfig->compName), comp->compConfig->compName);
                 rc = clBufferNBytesWrite(outMsgHandle, (ClUint8T *) tempStr,
                                          strlen(tempStr));
                 CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BUF_WRITE_ERR, rc, rc,

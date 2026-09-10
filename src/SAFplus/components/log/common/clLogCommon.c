@@ -1334,7 +1334,8 @@ clLogReadLink(ClCharT   *softFileName,
         /*
          * Get full path for linked file
          */
-        snprintf(actualFileName, CL_MAX_NAME_LENGTH, "%s/%s", path, *newFileName);
+        //snprintf(actualFileName, CL_MAX_NAME_LENGTH, "%s/%s", path, *newFileName);
+        snprintf(actualFileName, CL_MAX_NAME_LENGTH, "%.*s/%s", (ClInt32T)strlen(path), path, *newFileName);
 
         /*
          *

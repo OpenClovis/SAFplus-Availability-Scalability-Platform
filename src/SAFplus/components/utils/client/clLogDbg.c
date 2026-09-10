@@ -824,7 +824,14 @@ clLogTimeGet(ClCharT   *pStrTime, ClUint32T maxBytes)
         if((len = strlen(tBuf)) + 4 < maxBytes )
         {
             memmove(tBuf + 4, tBuf, len);
-            snprintf(tBuf, 5, ".%.3d", (ClUint32T)tv.tv_usec/1000);
+            //snprintf(tBuf, 5, ".%.3d", (ClUint32T)tv.tv_usec/1000);
+            ClUint32T miliIdx = 3;
+            ClUint32T miliSec = (ClUint32T)tv.tv_usec/1000;
+
+            tBuf[miliIdx--] = miliSec % 10 + '0'; miliSec /= 10;
+            tBuf[miliIdx--] = miliSec % 10 + '0'; miliSec /= 10;
+            tBuf[miliIdx--] = miliSec % 10 + '0';
+            tBuf[miliIdx] = '.';
             tBuf[4] = ' ';
         }
     }

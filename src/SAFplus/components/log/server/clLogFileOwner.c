@@ -403,11 +403,11 @@ logFileOwnerLogFileCreateNPopulate(ClCharT        *pTimeStr,
     ClUint32T len            = 0;
     ClUint32T  fileCountLen  = 0;
     ClUint32T  softLinkLen   = 0;
-    ClUint8T   tempVar       = 0;
+    ClCharT   dummy[16]      = {0};
 
     CL_LOG_DEBUG_TRACE(("Enter: currFileUnitCnt: %u", fileCount));
     
-    fileCountLen = snprintf((ClCharT*)&tempVar, 1, "%u", fileCount);
+    fileCountLen = snprintf(dummy, 16, "%u", fileCount);
 
     softLinkLen = strlen(fileName) + 1 + fileCountLen + 1;
     
@@ -1257,11 +1257,11 @@ clLogFileOwnerOldFileDelete(ClCharT    *fileName,
     ClInt32T   fileNameLen                          = 0;
     ClUint32T  fileCountLen                         = 0;
     ClUint32T  softLinkLen                          = 0;
-    ClUint8T   tempVar                              = 0;
+    ClCharT    dummy[16]                            = {0};
 
     CL_LOG_DEBUG_TRACE(("Enter: fileCount: %u", fileCount));
     
-    fileCountLen = snprintf((ClCharT*)&tempVar, 1, "%u", fileCount);
+    fileCountLen = snprintf(dummy, 16, "%u", fileCount);
 
     softLinkLen = strlen(fileName) + 1 + fileCountLen + 1;
     

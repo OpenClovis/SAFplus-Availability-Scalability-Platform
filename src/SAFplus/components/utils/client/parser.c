@@ -771,8 +771,8 @@ static ClRcT clParseDisplayTag(ClParserDataT *pData,ClParserTagT *pTag,
             /*Expected to fill in attr through tagfmt callback*/
             if(attr[0])
             {
-                CL_PARSER_OUTPUT("%.*sTAG Name:%s,Value: %s\n",level,spaces,
-                                 pTag->pTag,attr);
+                CL_PARSER_OUTPUT("%.*sTAG Name:%s,Value: %.*s\n",level,spaces,
+                                 pTag->pTag, (ClInt32T)strlen(attr), attr);
 
             }
         }

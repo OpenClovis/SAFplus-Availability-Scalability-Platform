@@ -611,7 +611,8 @@ static ClRcT clUdpGetBackplaneInterface(const ClCharT *xportType, ClCharT *virtu
         /* If we are not using the existing IP addr then we need to use a virtual device to make sure we don't overwrite an already-configured address */
         if (!gClUdpUseExistingIp)
         {
-            snprintf(virtualInf, CL_MAX_FIELD_LENGTH, "%s:%d", net_addr, gIocLocalBladeAddress + 10);
+            //snprintf(virtualInf, CL_MAX_FIELD_LENGTH, "%s:%d", net_addr, gIocLocalBladeAddress + 10);
+            snprintf(virtualInf, CL_MAX_FIELD_LENGTH, "%.*s:%d", (ClInt32T)strlen(net_addr), net_addr, gIocLocalBladeAddress + 10);
             printf("virtual backplane if [%s]", virtualInf);
         }
     }

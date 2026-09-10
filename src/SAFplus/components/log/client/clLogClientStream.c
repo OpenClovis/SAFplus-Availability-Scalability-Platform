@@ -887,7 +887,7 @@ clLogClientMsgWriteWithHeader(ClLogSeverityT     severity,
         __UPDATE_REC_SIZE;
         {
             ClCharT *pSeverity = clLogSeverityStrGet(severity);
-            ClCharT c = 0;
+            ClCharT dummy[256] = {0};
             ClInt32T hdrLen = 0;
             ClInt32T len = 0;
             va_list argsCopy;
@@ -896,11 +896,11 @@ clLogClientMsgWriteWithHeader(ClLogSeverityT     severity,
             pFmtStr = va_arg(argsCopy, ClCharT *);
             if(pMsgHeader && pMsgHeader[0])
             {
-                hdrLen = snprintf(&c, 1, "%s.%05lld : %6s) ",
+                hdrLen = snprintf(dummy, 256, "%s.%05lld : %6s) ",
                                   pMsgHeader, sequenceNum, pSeverity ? pSeverity : "DEBUG");
                 if(hdrLen < 0) hdrLen = 0;
             }
-            len = vsnprintf(&c, 1, pFmtStr, argsCopy);
+            len = vsnprintf(dummy, 256, pFmtStr, argsCopy);
             va_end(argsCopy);
             if(len < 0) len = 0;
             hdrLen = CL_MIN(hdrLen, recSize - LOG_ASCII_HDR_LEN - LOG_ASCII_DATA_LEN - 1);

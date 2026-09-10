@@ -393,7 +393,8 @@ static ClRcT clMemTrackerFileNameGet(ClCharT *pFileName,ClUint32T maxSize)
     }
     /*copy the process name*/
     strncpy(CL_MEM_TRACKER_PNAME,processBuf,sizeof(CL_MEM_TRACKER_PNAME)-1);
-    snprintf(pFileName,maxSize,"%s%s.log",dirBuf,processBuf);
+    //snprintf(pFileName,maxSize,"%s%s.log",dirBuf,processBuf);
+    snprintf(pFileName,maxSize,"%.*s%.*s.log", (ClInt32T)strlen(dirBuf), dirBuf, (ClInt32T)strlen(processBuf), processBuf);
     out:
     return rc;
 }
@@ -435,9 +436,11 @@ static void clMemTrackerDumpBTConsole
                 CL_OUTPUT("Skipping dumpstack as ASP_BINDIR is not exported...\n");
                 goto out;
             }
-            snprintf(binary,sizeof(binary),"%s/%s",pEnv,CL_MEM_TRACKER_PNAME);
+            //snprintf(binary,sizeof(binary),"%s/%s",pEnv,CL_MEM_TRACKER_PNAME);
+            snprintf(binary,sizeof(binary),"%s/%.*s", pEnv, (ClInt32T)strlen(CL_MEM_TRACKER_PNAME), CL_MEM_TRACKER_PNAME);
             /*Now popen addr2line and fire it up*/
-            snprintf(buf,sizeof(buf),"addr2line -e %s",binary);
+            //snprintf(buf,sizeof(buf),"addr2line -e %s",binary);
+            snprintf(buf,sizeof(buf),"addr2line -e %.*s", (ClInt32T)strlen(binary), binary);
             close(fds[0]);
             dup2(fds[1],1);
             pPtr = popen(buf,"w");

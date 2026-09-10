@@ -56,7 +56,8 @@ ClRcT clCachedCkptClientInitialize(ClCachedCkptClientSvcInfoT *serviceInfo,
 
     serviceInfo->cachSize = shmSize;
 
-    snprintf(cacheName, sizeof(cacheName), "%s_%d", ckptName->value, gIocLocalBladeAddress);
+    //snprintf(cacheName, sizeof(cacheName), "%s_%d", ckptName->value, gIocLocalBladeAddress);
+    snprintf(cacheName, sizeof(cacheName), "%.*s_%d", ckptName->length, ckptName->value, gIocLocalBladeAddress);
 
     do
     {
@@ -382,7 +383,8 @@ ClRcT clCachedCkptInitialize(ClCachedCkptSvcInfoT *serviceInfo,
         return CL_ERR_ALREADY_EXIST;
     }
 
-    snprintf(serviceInfo->cacheName, sizeof(serviceInfo->cacheName), "%s_%d", ckptName->value, gIocLocalBladeAddress);
+    //snprintf(serviceInfo->cacheName, sizeof(serviceInfo->cacheName), "%s_%d", ckptName->value, gIocLocalBladeAddress);
+    snprintf(serviceInfo->cacheName, sizeof(serviceInfo->cacheName), "%.*s_%d", ckptName->length, ckptName->value, gIocLocalBladeAddress);
 
     clOsalShmUnlink(serviceInfo->cacheName);
     rc = clOsalSemCreate((ClUint8T*)serviceInfo->cacheName, 1, &serviceInfo->cacheSem);

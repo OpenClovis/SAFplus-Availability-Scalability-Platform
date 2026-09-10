@@ -1416,12 +1416,14 @@ static void cpmLoggerSetFileName(void)
                 strncpy(cpmLoggerFile,cpmLogFileName,CL_MAX_NAME_LENGTH-1);
 
             /* Otherwise copy */
-            else snprintf(cpmLoggerFile,CL_MAX_NAME_LENGTH-1,"%s/%s", aspLogPath,cpmLogFileName);
+            //else snprintf(cpmLoggerFile,CL_MAX_NAME_LENGTH-1,"%s/%s", aspLogPath,cpmLogFileName);
+            else snprintf(cpmLoggerFile,CL_MAX_NAME_LENGTH-1,"%.*s/%s", (ClInt32T)strlen(aspLogPath), aspLogPath, cpmLogFileName);
         }        
     }
     else
     {        
-        snprintf(cpmLoggerFile,CL_MAX_NAME_LENGTH-1,"%s/%s.log", aspLogPath,clCpmNodeName);
+        //snprintf(cpmLoggerFile,CL_MAX_NAME_LENGTH-1,"%s/%s.log", aspLogPath,clCpmNodeName);
+        snprintf(cpmLoggerFile,CL_MAX_NAME_LENGTH-1,"%.*s/%.*s.log", (ClInt32T)strlen(aspLogPath), aspLogPath, (ClInt32T)strlen(clCpmNodeName), clCpmNodeName);
     }
     
 }
@@ -1717,12 +1719,18 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
     /*
      * Initialize all the component names on which CPM is dependent upon 
      */
-    sprintf(gpClCpm->corServerName, "%s_%s", CL_CPM_COMPONENT_COR_NAME,
-            gpClCpm->pCpmConfig->nodeName);
-    sprintf(gpClCpm->eventServerName, "%s_%s", CL_CPM_COMPONENT_EVENT_NAME,
-            gpClCpm->pCpmConfig->nodeName);
-    sprintf(gpClCpm->logServerName, "%s_%s", CL_CPM_COMPONENT_LOG_NAME,
-            gpClCpm->pCpmConfig->nodeName);
+    //sprintf(gpClCpm->corServerName, "%s_%s", CL_CPM_COMPONENT_COR_NAME,
+    //        gpClCpm->pCpmConfig->nodeName);
+    //sprintf(gpClCpm->eventServerName, "%s_%s", CL_CPM_COMPONENT_EVENT_NAME,
+    //        gpClCpm->pCpmConfig->nodeName);
+    //sprintf(gpClCpm->logServerName, "%s_%s", CL_CPM_COMPONENT_LOG_NAME,
+    //        gpClCpm->pCpmConfig->nodeName);
+    snprintf(gpClCpm->corServerName, CL_MAX_NAME_LENGTH, "%s_%.*s", CL_CPM_COMPONENT_COR_NAME,
+            (ClInt32T)strlen(gpClCpm->pCpmConfig->nodeName), gpClCpm->pCpmConfig->nodeName);
+    snprintf(gpClCpm->eventServerName, CL_MAX_NAME_LENGTH, "%s_%.*s", CL_CPM_COMPONENT_EVENT_NAME,
+            (ClInt32T)strlen(gpClCpm->pCpmConfig->nodeName), gpClCpm->pCpmConfig->nodeName);
+    snprintf(gpClCpm->logServerName, CL_MAX_NAME_LENGTH, "%s_%.*s", CL_CPM_COMPONENT_LOG_NAME,
+            (ClInt32T)strlen(gpClCpm->pCpmConfig->nodeName), gpClCpm->pCpmConfig->nodeName);
 
     sprintf(gpClCpm->ckptCpmLName.value, "%s", gpClCpm->name.value);
     gpClCpm->ckptCpmLName.length = strlen(gpClCpm->ckptCpmLName.value);
@@ -2736,8 +2744,11 @@ static void cpmInvokeNodeCleanup(void)
     if(!(err = access(scriptFile, F_OK | X_OK)))
     {
         if(gpClCpm->pCpmLocalInfo)
-            snprintf(cmdBuf, sizeof(cmdBuf), "%s %s", 
-                     scriptFile, gpClCpm->pCpmLocalInfo->nodeName);
+            //snprintf(cmdBuf, sizeof(cmdBuf), "%s %s", 
+            //         scriptFile, gpClCpm->pCpmLocalInfo->nodeName);
+            snprintf(cmdBuf, sizeof(cmdBuf), "%.*s %.*s", 
+                     (ClInt32T)strlen(scriptFile), scriptFile,
+                     (ClInt32T)strlen(gpClCpm->pCpmLocalInfo->nodeName), gpClCpm->pCpmLocalInfo->nodeName);
         else
             snprintf(cmdBuf, sizeof(cmdBuf), "%s", scriptFile);
         if(system(cmdBuf))
@@ -4613,8 +4624,10 @@ static void loadAspInstallInfo(void)
         aspDir = "/root/asp";
     clCpmTargetVersionGet(gAspVersion, sizeof(gAspVersion)-1); /* load the asp version */
     loadAspNodeIp(intf); /* load the ip address of the node pertaining to link name */
-    snprintf(gAspInstallInfo, sizeof(gAspInstallInfo), "interface=%s:%s,version=%s,dir=%s",
-             intf, gAspNodeIp, gAspVersion, aspDir);
+    //snprintf(gAspInstallInfo, sizeof(gAspInstallInfo), "interface=%s:%s,version=%s,dir=%s",
+    //         intf, gAspNodeIp, gAspVersion, aspDir);
+    snprintf(gAspInstallInfo, sizeof(gAspInstallInfo), "interface=%s:%.*s,version=%.*s,dir=%s",
+             intf, (ClInt32T)strlen(gAspNodeIp), gAspNodeIp, (ClInt32T)strlen(gAspVersion), gAspVersion, aspDir);
 }
 
 ClRcT cpmMain(ClInt32T argc, ClCharT *argv[])
@@ -4637,7 +4650,8 @@ ClRcT cpmMain(ClInt32T argc, ClCharT *argv[])
               argv[0],
               (int)getpid());
 
-    sprintf(cpmName, "%s_%s", CL_CPM_COMPONENT_NAME, clCpmNodeName);
+    //sprintf(cpmName, "%s_%s", CL_CPM_COMPONENT_NAME, clCpmNodeName);
+    snprintf(cpmName, CL_MAX_NAME_LENGTH, "%s_%.*s", CL_CPM_COMPONENT_NAME, (ClInt32T)strlen(clCpmNodeName), clCpmNodeName);
     setenv("ASP_COMPNAME", cpmName, 1);
 
     /* 

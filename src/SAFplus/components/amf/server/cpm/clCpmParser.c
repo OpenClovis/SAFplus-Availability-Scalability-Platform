@@ -331,9 +331,16 @@ void cpmModifyCompArgs(ClCpmCompConfigT *newConfig, ClUint32T *pArgIndex)
     if( (pInst = strchr(instantiateCMD, ' ') ) )
         *pInst = 0;
     
+    //snprintf(logFileCmd, CL_MAX_NAME_LENGTH-1, 
+    //         " --log-file=%s/%s.%s.%lld",
+    //         aspLogDir,
+    //         instantiateCMD,
+    //         "%p",
+    //         clOsalStopWatchTimeGet());
     snprintf(logFileCmd, CL_MAX_NAME_LENGTH-1, 
-             " --log-file=%s/%s.%s.%lld",
+             " --log-file=%s/%.*s.%s.%lld",
              aspLogDir,
+             (ClInt32T)strlen(instantiateCMD),
              instantiateCMD,
              "%p",
              clOsalStopWatchTimeGet());
@@ -1877,8 +1884,10 @@ ClRcT cpmParseAspConfig(ClParserPtrT configFile,
                     /*
                      * Populate the component name. 
                      */
-                    sprintf(aspCompName, "%s_%s", compName,
-                            gpClCpm->pCpmConfig->nodeName);
+                    //sprintf(aspCompName, "%s_%s", compName,
+                    //        gpClCpm->pCpmConfig->nodeName);
+                    snprintf(aspCompName, CL_MAX_NAME_LENGTH, "%s_%.*s", compName,
+                            (ClInt32T)strlen(gpClCpm->pCpmConfig->nodeName), gpClCpm->pCpmConfig->nodeName);
                     /*
                      * FIXME: 
                      */
@@ -2439,8 +2448,12 @@ ClRcT cpmBmParseDeployConfigFile(ClParserPtrT configFile)
     {
         if (cpmIsAspSUPresent(cpmConfig, "cmSU"))
         {
-            sprintf(aspCompName, "%s_%s",
+            //sprintf(aspCompName, "%s_%s",
+            //        "cmServer",
+            //        gpClCpm->pCpmConfig->nodeName);
+            snprintf(aspCompName, CL_MAX_NAME_LENGTH, "%s_%.*s",
                     "cmServer",
+                    (ClInt32T)strlen(gpClCpm->pCpmConfig->nodeName),
                     gpClCpm->pCpmConfig->nodeName);
 
             rc = cpmBmAddComponent(aspCompName, 5);
@@ -2450,8 +2463,12 @@ ClRcT cpmBmParseDeployConfigFile(ClParserPtrT configFile)
 
         if (cpmIsAspSUPresent(cpmConfig, "msgSU"))
         {
-            sprintf(aspCompName, "%s_%s",
+            //sprintf(aspCompName, "%s_%s",
+            //        "msgServer",
+            //        gpClCpm->pCpmConfig->nodeName);
+            snprintf(aspCompName, CL_MAX_NAME_LENGTH, "%s_%.*s",
                     "msgServer",
+                    (ClInt32T)strlen(gpClCpm->pCpmConfig->nodeName),
                     gpClCpm->pCpmConfig->nodeName);
 
             rc = cpmBmAddComponent(aspCompName, 5);
@@ -2466,8 +2483,12 @@ ClRcT cpmBmParseDeployConfigFile(ClParserPtrT configFile)
     {
         if (cpmIsAspSUPresent(cpmConfig, "msgSU"))
         {
-            sprintf(aspCompName, "%s_%s",
+            //sprintf(aspCompName, "%s_%s",
+            //        "msgServer",
+            //        gpClCpm->pCpmConfig->nodeName);
+            snprintf(aspCompName, CL_MAX_NAME_LENGTH, "%s_%.*s",
                     "msgServer",
+                    (ClInt32T)strlen(gpClCpm->pCpmConfig->nodeName),
                     gpClCpm->pCpmConfig->nodeName);
 
             rc = cpmBmAddComponent(aspCompName, 5);
@@ -2494,10 +2515,16 @@ ClRcT cpmBmParseDeployConfigFile(ClParserPtrT configFile)
             for(j = 0; suMap->suCompMap[j].compName; ++j)
             {
                 ClCpmAspCompMappingT *compMap = suMap->suCompMap + j;
-                sprintf(aspCompName,
-                        "%s%s_%s",
+                //sprintf(aspCompName,
+                //        "%s%s_%s",
+                //        compMap->compName,
+                //        "Server",
+                //        gpClCpm->pCpmConfig->nodeName);
+                snprintf(aspCompName, CL_MAX_NAME_LENGTH,
+                        "%s%s_%.*s",
                         compMap->compName,
                         "Server",
+                        (ClInt32T)strlen(gpClCpm->pCpmConfig->nodeName),
                         gpClCpm->pCpmConfig->nodeName);
                 rc = cpmBmAddComponent(aspCompName, compMap->level);
                 CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_BM_COMP_ADD_ERR, rc, rc,

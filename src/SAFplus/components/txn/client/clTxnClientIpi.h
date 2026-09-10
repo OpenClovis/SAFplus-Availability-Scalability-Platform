@@ -58,7 +58,7 @@ extern "C" {
 #define clTxnClientCliDbgPrint(hdl, ... ) do { \
     ClRcT retCode = CL_OK; \
     ClCharT temp[1024]; \
-    sprintf(temp, __VA_ARGS__); \
+    snprintf(temp, 1024, __VA_ARGS__); \
     retCode = clBufferNBytesWrite(hdl, (ClUint8T *)temp, strlen((char *)temp)); \
     if(CL_OK != retCode) \
     {\

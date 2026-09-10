@@ -274,8 +274,10 @@ ClRcT _clAlarmCliShowRaisedAlarms(void* pData, void* cookie)
             return rc;
         }
 
+        //snprintf (alarmString, CL_MAX_NAME_LENGTH, 
+        //    "\n\nMoId :      [%s]", moIdname.value);
         snprintf (alarmString, CL_MAX_NAME_LENGTH, 
-            "\n\nMoId :      [%s]", moIdname.value);
+            "\n\nMoId :      [%.*s]", moIdname.length, moIdname.value);
         rc = clBufferNBytesWrite(buffer, (ClUint8T *) alarmString, strlen(alarmString));
         if (rc != CL_OK)
         {
@@ -818,7 +820,8 @@ static ClRcT _clAlarmCliShowAssociatedAlarms(void* pData, void* cookie)
         return rc;
     }
     
-    snprintf(alarmString, CL_MAX_NAME_LENGTH, "\n\n\nMoId : [%s]\n", moIdname.value);
+    //snprintf(alarmString, CL_MAX_NAME_LENGTH, "\n\n\nMoId : [%s]\n", moIdname.value);
+    snprintf(alarmString, CL_MAX_NAME_LENGTH, "\n\n\nMoId : [%.*s]\n", moIdname.length, moIdname.value);
 
     rc = clBufferNBytesWrite(buffer, (ClUint8T *) alarmString, strlen(alarmString));
     if (rc != CL_OK)
